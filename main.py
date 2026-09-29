@@ -236,7 +236,8 @@ class MADDPGSolver:
             with torch.no_grad():
                 act = actor(obs_t).squeeze(0).numpy()
             actor.train()
-            act += np.random.normal(0, noise_std, size=act.shape)
+            if noise_std > 0:
+                act += np.random.normal(0, noise_std, size=act.shape)
             actions.append(np.clip(act, -1.0, 1.0))
         return actions
 
@@ -284,7 +285,6 @@ class MADDPGSolver:
             for p, pt in zip(self.critics[i].parameters(), self.target_critics[i].parameters()):
                 pt.data.copy_(self.tau * p.data + (1 - self.tau) * pt.data)
 
-    # ---------- 新增：保存 Checkpoint 接口 ----------
     def save_checkpoint(self, filepath):
         checkpoint = {
             'actors': [actor.state_dict() for actor in self.actors],
@@ -296,7 +296,26 @@ class MADDPGSolver:
 
 
 # ==========================================
-# 3. 训练主程序 (导出最佳模型 + 生成收敛曲线)
+# 3. 策略无噪声评估函数
+# ==========================================
+def evaluate_policy(env, maddpg, eval_episodes=5):
+    total_eval_rewards = []
+    for _ in range(eval_episodes):
+        obs = env.reset()
+        ep_reward = 0
+        while True:
+            actions = maddpg.select_action(obs, noise_std=0.0)  # 关闭噪声
+            next_obs, rewards, dones, _ = env.step(actions)
+            obs = next_obs
+            ep_reward += sum(rewards)
+            if all(dones):
+                break
+        total_eval_rewards.append(ep_reward)
+    return float(np.mean(total_eval_rewards))
+
+
+# ==========================================
+# 4. 训练主程序 (定期评估并保存最佳模型)
 # ==========================================
 def train_and_plot():
     env = NormalizedLogisticsEnv(num_uavs=3, num_orders=8)
@@ -305,21 +324,23 @@ def train_and_plot():
 
     episodes = 500
     batch_size = 128
-    ep_rewards = []  # 记录每局奖励
+    ep_rewards = []
 
-    # 最佳模型保存相关变量
     model_dir = "saved_models"
     os.makedirs(model_dir, exist_ok=True)
-    best_avg_reward = -float('inf')
-    window_size = 20  # 计算近20局的平均表现
 
-    print("🚀 启动 MADDPG 训练并监控收敛曲线与最佳模型保存...")
+    best_eval_reward = -float('inf')  # 记录历史最高评估得分
+    eval_interval = 20               # 每 20 episode 评估一次
+    eval_episodes = 5                # 每次评估跑 5 局求平均
+
+    print("🚀 启动 MADDPG 训练（配置定期无噪声策略评估与最佳模型保存）...")
 
     for ep in range(episodes):
         obs = env.reset()
         ep_reward = 0
         noise = max(0.05, 0.35 * (1.0 - ep / 400))
 
+        # 训练 Episode (带探索噪声)
         while True:
             actions = maddpg.select_action(obs, noise_std=noise)
             next_obs, rewards, dones, _ = env.step(actions)
@@ -335,27 +356,27 @@ def train_and_plot():
 
         ep_rewards.append(ep_reward)
 
-        # 判定与保存最佳模型逻辑
-        if len(ep_rewards) >= window_size:
-            current_avg_reward = float(np.mean(ep_rewards[-window_size:]))
-            if current_avg_reward > best_avg_reward:
-                best_avg_reward = current_avg_reward
+        # 定期无噪声评估 & 导出最佳模型
+        if (ep + 1) % eval_interval == 0:
+            eval_reward = evaluate_policy(env, maddpg, eval_episodes=eval_episodes)
+            recent_avg = np.mean(ep_rewards[-20:])
+            print(f"Episode [{ep + 1}/{episodes}] | 近20局训练均分: {recent_avg:.2f} | 无噪声评估得分: {eval_reward:.2f}")
+
+            # 当且仅当评估性能突破历史最高值时保存模型
+            if eval_reward > best_eval_reward:
+                best_eval_reward = eval_reward
                 best_model_path = os.path.join(model_dir, "maddpg_best.pth")
                 maddpg.save_checkpoint(best_model_path)
-                print(f"✨ Episode [{ep + 1}/{episodes}] 刷新最佳 20 局平均奖励: {best_avg_reward:.2f}，模型已更新保存至 '{best_model_path}'")
+                print(f"  ✨ 策略创历史新高！保存最佳模型至 '{best_model_path}' (最高评估得分: {best_eval_reward:.2f})")
 
-        if (ep + 1) % 20 == 0:
-            avg_last_20 = np.mean(ep_rewards[-20:])
-            print(f"Episode [{ep + 1}/{episodes}] | Recent 20 Avg Reward: {avg_last_20:.2f} | Noise: {noise:.2f}")
-
-    print(f"\n🏆 训练完成！最高滑动平均奖励为: {best_avg_reward:.2f}")
+    print(f"\n🏆 训练结束！最终保存的模型最高评估得分为: {best_eval_reward:.2f}")
     print("📊 正在生成收敛曲线图...")
 
-    # 绘制 Matplotlib 收敛曲线
+    # 绘制收敛曲线
     plt.figure(figsize=(10, 5))
     plt.plot(ep_rewards, alpha=0.3, color='dodgerblue', label='Raw Episode Reward')
 
-    # 20 Episode 滑动平均
+    window_size = 20
     moving_avg = np.convolve(ep_rewards, np.ones(window_size) / window_size, mode='valid')
     plt.plot(range(window_size - 1, len(ep_rewards)), moving_avg, color='navy', linewidth=2.5,
              label=f'{window_size}-Episode Moving Average')
