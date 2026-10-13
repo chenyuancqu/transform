@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:," />
+  <title>智慧园区 · G1 单栋建筑验收</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, "Segoe UI", system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #dbe8ef; color: #1f2f38; }
+    #canvas-container { width: 100%; height: 100%; }
+    canvas { display: block; }
+    .panel { position: fixed; z-index: 2; border: 1px solid rgba(255,255,255,.8); border-radius: 18px; background: rgba(248,252,252,.86); box-shadow: 0 16px 42px rgba(28,56,69,.16); backdrop-filter: blur(18px); }
+    #header { top: 22px; left: 24px; padding: 16px 18px 14px; min-width: 330px; }
+    #header .eyebrow { margin-bottom: 5px; color: #58727c; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; }
+    #header h1 { margin: 0; font-size: 21px; letter-spacing: -.02em; font-weight: 700; }
+    #header p { margin: 8px 0 0; color: #5f7077; font-size: 12px; }
+    #status { margin-top: 12px; padding: 8px 10px; border-radius: 10px; font-size: 12px; background: #eef4f3; color: #54737a; }
+    #status.loading { color: #8a6b35; background: #fff7e4; }
+    #status.ready { color: #2c735d; background: #e8f6ef; }
+    #status.error { color: #9b4545; background: #fff0ee; }
+    #controls { right: 24px; top: 22px; padding: 12px; display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; max-width: 360px; }
+    button { border: 1px solid #c7d6d7; color: #2f4a52; background: rgba(255,255,255,.75); border-radius: 10px; padding: 9px 11px; font-size: 12px; cursor: pointer; transition: .18s ease; }
+    button:hover, button.active { border-color: #2c9e92; color: #176e69; background: #e5f7f1; transform: translateY(-1px); }
+    #metrics { right: 24px; bottom: 24px; width: 270px; padding: 15px 16px; }
+    #metrics h2 { margin: 0 0 11px; font-size: 12px; letter-spacing: .14em; color: #557079; text-transform: uppercase; }
+    .row { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid rgba(89,119,124,.15); font-size: 12px; }
+    .row span:first-child { color: #6c7d82; }
+    .row span:last-child { color: #26434c; font-variant-numeric: tabular-nums; }
+    #license { left: 24px; bottom: 22px; max-width: 390px; padding: 11px 13px; color: #64777c; font-size: 11px; line-height: 1.5; }
+    #license a { color: #227a78; }
+    @media (max-width: 720px) { #header { left: 12px; top: 12px; min-width: 0; right: 12px; } #controls { top: 136px; left: 12px; right: 12px; justify-content: flex-start; } #metrics { right: 12px; bottom: 12px; } #license { left: 12px; bottom: 12px; max-width: 260px; } }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <section id="header" class="panel">
+    <div class="eyebrow">Campus visual rebuild · G1</div>
+    <h1>现代研发办公塔楼 · 单栋资产验收</h1>
+    <p>真实 GLB / PBR 材质 / 自然日光 / Orbit 相机</p>
+    <div id="status" class="loading">准备加载资产…</div>
+  </section>
+  <nav id="controls" class="panel" aria-label="建筑视角">
+    <button data-view="angle" class="active">斜角</button>
+    <button data-view="front">正面</button>
+    <button data-view="back">背面</button>
+    <button data-view="roof">屋顶</button>
+  </nav>
+  <aside id="metrics" class="panel">
+    <h2>Asset / Render</h2>
+    <div class="row"><span>模型尺寸</span><span id="dimensions">—</span></div>
+    <div class="row"><span>网格 / 材质</span><span id="mesh-stats">—</span></div>
+    <div class="row"><span>三角形</span><span id="triangles">—</span></div>
+    <div class="row"><span>Draw calls</span><span id="calls">—</span></div>
+    <div class="row"><span>GPU 几何 / 纹理</span><span id="gpu-memory">—</span></div>
+  </aside>
+  <div id="license" class="panel">资产：Modern Tower Office Apartment House · 原始页面 <a href="https://skfb.ly/oTEUX" target="_blank" rel="noreferrer">Sketchfab / zigurat architecture studio</a> · CC BY 4.0，按署名条件使用。</div>
+  <script type="module">
+    import { SingleBuildingPreview } from '/src/rendering/SingleBuildingPreview.js';
+
+    const $ = (id) => document.getElementById(id);
+    const hud = {
+      setStatus(text, kind) { const el = $('status'); el.textContent = text; el.className = kind; },
+      setAssetStats(size, stats) {
+        $('dimensions').textContent = `${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)} m`;
+        $('mesh-stats').textContent = `${stats.meshes} / ${stats.materials}`;
+        $('triangles').textContent = `${Math.round(stats.triangles).toLocaleString()} tris`;
+      },
+      setRendererStats(stats) {
+        $('calls').textContent = stats.calls;
+        $('gpu-memory').textContent = `${stats.geometries} / ${stats.textures}`;
+      }
+    };
+    const preview = new SingleBuildingPreview(document.getElementById('canvas-container'), hud);
+    if (import.meta.env.DEV && new URLSearchParams(location.search).has('audit')) window.__campusPreview = preview;
+    window.addEventListener('resize', () => preview.onResize());
+    document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => {
+      document.querySelectorAll('[data-view]').forEach((item) => item.classList.remove('active'));
+      button.classList.add('active');
+      preview.setView(button.dataset.view);
+    }));
+  </script>
+</body>
+</html>

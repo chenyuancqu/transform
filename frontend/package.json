@@ -1,0 +1,37 @@
+{
+  "name": "digital-twin-logistics",
+  "version": "1.0.0",
+  "description": "智联蜂群 - 移动母车与无人机协同智能取货系统数字孪生",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "demo": "powershell -ExecutionPolicy Bypass -File scripts/start-demo.ps1",
+    "demo:stop": "powershell -ExecutionPolicy Bypass -File scripts/start-demo.ps1 -Stop",
+    "test:backend": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v",
+    "test:integration": "node tests/mqtt-integration.mjs",
+    "test:frontend": "node --test tests/telemetry.test.js tests/pickup.test.js"
+  },
+  "keywords": [
+    "multi-agent",
+    "reinforcement-learning",
+    "digital-twin",
+    "logistics"
+  ],
+  "author": "陈远、王维",
+  "license": "ISC",
+  "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
+    "aedes": "^1.2.0",
+    "mqtt": "^5.16.0",
+    "onnxruntime-web": "^1.20.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "stats.js": "^0.17.0",
+    "three": "^0.186.1",
+    "vite": "^6.0.1",
+    "ws": "^8.22.0"
+  }
+}
