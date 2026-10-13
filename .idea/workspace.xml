@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3b7dcab4-4197-4650-9ed5-ed4b6f7a41fa" name="Changes" comment="feat(transform): onnx file export">
-      <change afterPath="$PROJECT_DIR$/agent_server.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/simulator_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="3b7dcab4-4197-4650-9ed5-ed4b6f7a41fa" name="Changes" comment="feat(backend): transition to MEC architecture with MQTT pipeline and Gemini LLM Agent&#10;&#10;- Decoupled ONNX inference from frontend, migrating model execution to Python MEC backend&#10;- Integrated paho-mqtt messaging bus for multi-agent (UGV + UAVs) high-frequency state reporting and action dispatch&#10;- Added Google Gemini API-powered Supervisor Agent for natural language to structured JSON command parsing&#10;- Implemented robust batch-dimension expansion and input shape validation for multi-agent ONNX runtimes" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -223,7 +218,15 @@
       <option name="project" value="LOCAL" />
       <updated>1790671615410</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="feat(backend): transition to MEC architecture with MQTT pipeline and Gemini LLM Agent&#10;&#10;- Decoupled ONNX inference from frontend, migrating model execution to Python MEC backend&#10;- Integrated paho-mqtt messaging bus for multi-agent (UGV + UAVs) high-frequency state reporting and action dispatch&#10;- Added Google Gemini API-powered Supervisor Agent for natural language to structured JSON command parsing&#10;- Implemented robust batch-dimension expansion and input shape validation for multi-agent ONNX runtimes">
+      <option name="closed" value="true" />
+      <created>1791869492054</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1791869492054</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -232,6 +235,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feat(transform): init program and keep the best module" />
     <MESSAGE value="feat(transform): onnx file export" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(transform): onnx file export" />
+    <MESSAGE value="feat(backend): transition to MEC architecture with MQTT pipeline and Gemini LLM Agent&#10;&#10;- Decoupled ONNX inference from frontend, migrating model execution to Python MEC backend&#10;- Integrated paho-mqtt messaging bus for multi-agent (UGV + UAVs) high-frequency state reporting and action dispatch&#10;- Added Google Gemini API-powered Supervisor Agent for natural language to structured JSON command parsing&#10;- Implemented robust batch-dimension expansion and input shape validation for multi-agent ONNX runtimes" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(backend): transition to MEC architecture with MQTT pipeline and Gemini LLM Agent&#10;&#10;- Decoupled ONNX inference from frontend, migrating model execution to Python MEC backend&#10;- Integrated paho-mqtt messaging bus for multi-agent (UGV + UAVs) high-frequency state reporting and action dispatch&#10;- Added Google Gemini API-powered Supervisor Agent for natural language to structured JSON command parsing&#10;- Implemented robust batch-dimension expansion and input shape validation for multi-agent ONNX runtimes" />
   </component>
 </project>
