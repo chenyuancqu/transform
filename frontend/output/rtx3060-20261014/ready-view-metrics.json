@@ -1,0 +1,50 @@
+{
+  "metrics": {
+    "frames": 2,
+    "averageMs": 1000.4000000059605,
+    "p95Ms": 1000.5,
+    "calls": 252,
+    "triangles": 458545,
+    "visibility": "visible",
+    "focused": true,
+    "viewport": [
+      2327,
+      1104
+    ],
+    "memory": {
+      "geometries": 298,
+      "textures": 21
+    },
+    "groups": {
+      "ground": {
+        "meshes": 120,
+        "triangles": 12572
+      },
+      "buildings": {
+        "meshes": 24,
+        "triangles": 152108
+      },
+      "nature": {
+        "meshes": 6,
+        "triangles": 203600
+      },
+      "device-rover": {
+        "meshes": 24,
+        "triangles": 31407
+      },
+      "device-uav-1": {
+        "meshes": 25,
+        "triangles": 19620
+      },
+      "device-uav-2": {
+        "meshes": 25,
+        "triangles": 19620
+      },
+      "device-uav-3": {
+        "meshes": 25,
+        "triangles": 19620
+      }
+    }
+  },
+  "errors": []
+}

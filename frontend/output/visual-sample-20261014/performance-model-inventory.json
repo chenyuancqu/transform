@@ -1,0 +1,73 @@
+{
+  "rows": [
+    {
+      "name": "glass-office + accents",
+      "instances": 6,
+      "sourceTriangles": 654653,
+      "instancedTriangles": 3927918
+    },
+    {
+      "name": "dispatch-centre + accents",
+      "instances": 1,
+      "sourceTriangles": 272141,
+      "instancedTriangles": 272141
+    },
+    {
+      "name": "matrice-300",
+      "instances": 3,
+      "sourceTriangles": 888380,
+      "instancedTriangles": 2665140
+    },
+    {
+      "name": "mother-original",
+      "instances": 1,
+      "sourceTriangles": 87996,
+      "instancedTriangles": 87996
+    },
+    {
+      "name": "island_tree_02",
+      "instances": 44,
+      "sourceTriangles": 1072213,
+      "instancedTriangles": 47177372,
+      "meshPrimitives": 3,
+      "geometryBuffersBytes": 40686576,
+      "filesBytes": 59327958
+    },
+    {
+      "name": "jacaranda_tree",
+      "instances": 4,
+      "sourceTriangles": 3863832,
+      "instancedTriangles": 15455328,
+      "meshPrimitives": 3,
+      "geometryBuffersBytes": 208307808,
+      "filesBytes": 230861243
+    },
+    {
+      "name": "shrub_01",
+      "instances": 64,
+      "sourceTriangles": 156012,
+      "instancedTriangles": 9984768,
+      "meshPrimitives": 1,
+      "geometryBuffersBytes": 5239664,
+      "filesBytes": 10755503
+    },
+    {
+      "name": "painted_wooden_bench",
+      "instances": 8,
+      "sourceTriangles": 630,
+      "instancedTriangles": 5040,
+      "meshPrimitives": 1,
+      "geometryBuffersBytes": 25444,
+      "filesBytes": 7994757
+    }
+  ],
+  "modelTrianglesTotal": 79575703,
+  "runtimeUniqueFiles": 48,
+  "runtimeResourceBytes": 509140417,
+  "currentPC": {
+    "cpu": "Intel Core i5-14500",
+    "ramGiB": 31.6,
+    "installedGPU": "Intel UHD Graphics 770"
+  },
+  "countScope": "Active GLB/glTF triangle topology multiplied by instances; excludes small generated terrain/lamps/parcels; not an occlusion-visible pixel count"
+}

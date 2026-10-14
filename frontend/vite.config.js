@@ -13,6 +13,10 @@ export default defineConfig({
       input: {
         app: 'index.html',
         campusPreview: 'campus-preview.html',
+        assetReview: 'asset-review.html',
+        motherPreview: 'mother-preview.html',
+        approvedAssetPreview: 'approved-asset-preview.html',
+        showcase: 'showcase.html',
         r3f: 'r3f.html'
       }
     }

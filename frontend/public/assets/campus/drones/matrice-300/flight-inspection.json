@@ -1,0 +1,821 @@
+{
+  "file": "flight-ready.glb",
+  "bytes": 42266676,
+  "dimensions": [
+    10.312294,
+    4.888654,
+    11.036089
+  ],
+  "min": [
+    -5.12654,
+    4.091434,
+    -5.131229
+  ],
+  "max": [
+    5.185754,
+    8.980088,
+    5.90486
+  ],
+  "meshes": 46,
+  "triangles": 888380,
+  "materials": 34,
+  "images": 0,
+  "externalImages": [],
+  "animations": 0,
+  "nodes": [
+    {
+      "node": 9,
+      "name": "polySurface4387_Copper_0",
+      "mesh": 4,
+      "min": [
+        -4.078346,
+        6.649802,
+        -3.068433
+      ],
+      "max": [
+        4.137559,
+        6.868376,
+        3.84011
+      ],
+      "vertices": 65532,
+      "triangles": 131008
+    },
+    {
+      "node": 10,
+      "name": "polySurface4387_Copper_0",
+      "mesh": 5,
+      "min": [
+        -4.02127,
+        6.649802,
+        -3.149058
+      ],
+      "max": [
+        4.136702,
+        6.868376,
+        3.84011
+      ],
+      "vertices": 65532,
+      "triangles": 130973
+    },
+    {
+      "node": 11,
+      "name": "polySurface4387_Copper_0",
+      "mesh": 6,
+      "min": [
+        -3.67654,
+        6.649802,
+        -3.149058
+      ],
+      "max": [
+        3.728851,
+        6.868376,
+        -2.500812
+      ],
+      "vertices": 37987,
+      "triangles": 75939
+    },
+    {
+      "node": 12,
+      "name": "polySurface4387_lambert25_0",
+      "mesh": 7,
+      "min": [
+        -1.852108,
+        4.091434,
+        -1.573579
+      ],
+      "max": [
+        1.911321,
+        8.204527,
+        2.248772
+      ],
+      "vertices": 14385,
+      "triangles": 11544
+    },
+    {
+      "node": 13,
+      "name": "polySurface4387_lambert20_0",
+      "mesh": 8,
+      "min": [
+        -4.097862,
+        6.383373,
+        -3.168348
+      ],
+      "max": [
+        4.157075,
+        7.495271,
+        3.859624
+      ],
+      "vertices": 8009,
+      "triangles": 6330
+    },
+    {
+      "node": 14,
+      "name": "polySurface4387_lambert19_0",
+      "mesh": 9,
+      "min": [
+        -4.089606,
+        5.047392,
+        -2.989967
+      ],
+      "max": [
+        3.925139,
+        8.889226,
+        3.859035
+      ],
+      "vertices": 65533,
+      "triangles": 44316
+    },
+    {
+      "node": 15,
+      "name": "polySurface4387_lambert19_0",
+      "mesh": 10,
+      "min": [
+        -4.115519,
+        6.879647,
+        -3.170077
+      ],
+      "max": [
+        3.472118,
+        6.962697,
+        3.859035
+      ],
+      "vertices": 65532,
+      "triangles": 46446
+    },
+    {
+      "node": 16,
+      "name": "polySurface4387_lambert19_0",
+      "mesh": 11,
+      "min": [
+        -3.412905,
+        6.500352,
+        -3.17121
+      ],
+      "max": [
+        3.767766,
+        6.962697,
+        -2.47866
+      ],
+      "vertices": 65532,
+      "triangles": 43842
+    },
+    {
+      "node": 17,
+      "name": "polySurface4387_lambert19_0",
+      "mesh": 12,
+      "min": [
+        -3.597117,
+        6.500352,
+        -3.170077
+      ],
+      "max": [
+        3.751305,
+        6.881948,
+        -2.479087
+      ],
+      "vertices": 65534,
+      "triangles": 46954
+    },
+    {
+      "node": 18,
+      "name": "polySurface4387_lambert19_0",
+      "mesh": 13,
+      "min": [
+        -3.708552,
+        6.524196,
+        -3.17121
+      ],
+      "max": [
+        3.320493,
+        6.962697,
+        -2.47866
+      ],
+      "vertices": 65534,
+      "triangles": 42730
+    },
+    {
+      "node": 19,
+      "name": "polySurface4387_lambert19_0",
+      "mesh": 14,
+      "min": [
+        -3.692092,
+        6.879647,
+        -2.822508
+      ],
+      "max": [
+        3.893912,
+        6.881948,
+        3.858848
+      ],
+      "vertices": 65532,
+      "triangles": 48502
+    },
+    {
+      "node": 20,
+      "name": "polySurface4387_lambert19_0",
+      "mesh": 15,
+      "min": [
+        3.4534,
+        6.524196,
+        3.170353
+      ],
+      "max": [
+        4.174732,
+        6.962697,
+        3.86524
+      ],
+      "vertices": 65533,
+      "triangles": 44203
+    },
+    {
+      "node": 21,
+      "name": "polySurface4387_lambert19_0",
+      "mesh": 16,
+      "min": [
+        -4.070736,
+        5.211761,
+        -1.419242
+      ],
+      "max": [
+        4.174732,
+        8.873097,
+        3.846104
+      ],
+      "vertices": 65532,
+      "triangles": 61785
+    },
+    {
+      "node": 22,
+      "name": "polySurface4387_lambert19_0",
+      "mesh": 17,
+      "min": [
+        -4.115519,
+        5.168519,
+        -3.151587
+      ],
+      "max": [
+        4.174732,
+        8.873097,
+        3.86524
+      ],
+      "vertices": 65534,
+      "triangles": 47750
+    },
+    {
+      "node": 23,
+      "name": "polySurface4387_lambert19_0",
+      "mesh": 18,
+      "min": [
+        -0.586461,
+        6.794991,
+        -0.621401
+      ],
+      "max": [
+        0.645674,
+        8.889226,
+        1.699114
+      ],
+      "vertices": 65532,
+      "triangles": 33200
+    },
+    {
+      "node": 24,
+      "name": "polySurface4387_lambert19_0",
+      "mesh": 19,
+      "min": [
+        -3.077028,
+        6.881948,
+        -2.771821
+      ],
+      "max": [
+        0.522216,
+        8.873097,
+        -0.071551
+      ],
+      "vertices": 42841,
+      "triangles": 21515
+    },
+    {
+      "node": 25,
+      "name": "polySurface4387_lambert29_0",
+      "mesh": 20,
+      "min": [
+        -3.699348,
+        7.00233,
+        -3.099881
+      ],
+      "max": [
+        3.758561,
+        8.879405,
+        0.688963
+      ],
+      "vertices": 530,
+      "triangles": 544
+    },
+    {
+      "node": 26,
+      "name": "polySurface4387_lambert18_0",
+      "mesh": 21,
+      "min": [
+        -4.12162,
+        4.914917,
+        -3.223996
+      ],
+      "max": [
+        4.180834,
+        8.899375,
+        3.883383
+      ],
+      "vertices": 29674,
+      "triangles": 26411
+    },
+    {
+      "node": 27,
+      "name": "polySurface4387_lambert23_0",
+      "mesh": 22,
+      "min": [
+        -0.796848,
+        7.355658,
+        -1.199387
+      ],
+      "max": [
+        0.856061,
+        8.561107,
+        0.77787
+      ],
+      "vertices": 536,
+      "triangles": 364
+    },
+    {
+      "node": 28,
+      "name": "polySurface4387_lambert24_0",
+      "mesh": 23,
+      "min": [
+        -0.796848,
+        7.454841,
+        -1.054602
+      ],
+      "max": [
+        0.856061,
+        8.461923,
+        0.735729
+      ],
+      "vertices": 230,
+      "triangles": 196
+    },
+    {
+      "node": 29,
+      "name": "polySurface4387_lambert27_0",
+      "mesh": 24,
+      "min": [
+        -3.847881,
+        4.113448,
+        -2.946557
+      ],
+      "max": [
+        3.907094,
+        7.315925,
+        3.643654
+      ],
+      "vertices": 408,
+      "triangles": 384
+    },
+    {
+      "node": 30,
+      "name": "polySurface4387_lambert3_0",
+      "mesh": 25,
+      "min": [
+        -4.095726,
+        4.964705,
+        -3.143794
+      ],
+      "max": [
+        4.154939,
+        8.829904,
+        3.828311
+      ],
+      "vertices": 11524,
+      "triangles": 8100
+    },
+    {
+      "node": 31,
+      "name": "polySurface4387_lambert26_0",
+      "mesh": 26,
+      "min": [
+        -0.016634,
+        7.798579,
+        -1.214455
+      ],
+      "max": [
+        0.075847,
+        8.118186,
+        -1.167727
+      ],
+      "vertices": 48,
+      "triangles": 44
+    },
+    {
+      "node": 32,
+      "name": "polySurface4387_lambert5_0",
+      "mesh": 27,
+      "min": [
+        -3.787376,
+        5.085505,
+        -2.856174
+      ],
+      "max": [
+        3.84659,
+        6.940259,
+        3.549138
+      ],
+      "vertices": 3130,
+      "triangles": 2148
+    },
+    {
+      "node": 33,
+      "name": "polySurface4387_lambert28_0",
+      "mesh": 28,
+      "min": [
+        -4.113074,
+        7.00233,
+        3.632599
+      ],
+      "max": [
+        4.172287,
+        7.394874,
+        3.773848
+      ],
+      "vertices": 112,
+      "triangles": 160
+    },
+    {
+      "node": 34,
+      "name": "polySurface4387_lambert4_0",
+      "mesh": 29,
+      "min": [
+        -1.119838,
+        6.997478,
+        -1.129291
+      ],
+      "max": [
+        1.179052,
+        7.40395,
+        1.817064
+      ],
+      "vertices": 2268,
+      "triangles": 1608
+    },
+    {
+      "node": 35,
+      "name": "polySurface4387_lambert8_0",
+      "mesh": 30,
+      "min": [
+        -0.771007,
+        5.553773,
+        -1.195516
+      ],
+      "max": [
+        0.83022,
+        8.894437,
+        2.418777
+      ],
+      "vertices": 1245,
+      "triangles": 1232
+    },
+    {
+      "node": 36,
+      "name": "polySurface4387_lambert7_0",
+      "mesh": 31,
+      "min": [
+        -0.756267,
+        5.556111,
+        -1.154837
+      ],
+      "max": [
+        0.815481,
+        8.842879,
+        2.415908
+      ],
+      "vertices": 3942,
+      "triangles": 3200
+    },
+    {
+      "node": 37,
+      "name": "polySurface4387_Glass_sensor_0",
+      "mesh": 32,
+      "min": [
+        -0.758043,
+        5.577493,
+        -1.156612
+      ],
+      "max": [
+        0.817256,
+        8.844655,
+        2.400609
+      ],
+      "vertices": 269,
+      "triangles": 224
+    },
+    {
+      "node": 38,
+      "name": "polySurface4387_lambert30_0",
+      "mesh": 33,
+      "min": [
+        0.221816,
+        6.632688,
+        1.295945
+      ],
+      "max": [
+        0.662124,
+        6.958627,
+        1.807483
+      ],
+      "vertices": 323,
+      "triangles": 276
+    },
+    {
+      "node": 39,
+      "name": "polySurface4387_lambert11_0",
+      "mesh": 34,
+      "min": [
+        -0.381513,
+        6.941991,
+        -0.955278
+      ],
+      "max": [
+        0.440726,
+        8.894437,
+        0.225001
+      ],
+      "vertices": 102,
+      "triangles": 96
+    },
+    {
+      "node": 40,
+      "name": "polySurface4387_lambert31_0",
+      "mesh": 35,
+      "min": [
+        0.225641,
+        6.616001,
+        1.387268
+      ],
+      "max": [
+        0.633264,
+        6.773994,
+        1.803649
+      ],
+      "vertices": 340,
+      "triangles": 576
+    },
+    {
+      "node": 41,
+      "name": "polySurface4387_Yellow_lamp_0",
+      "mesh": 36,
+      "min": [
+        -0.03448,
+        6.880816,
+        -0.684609
+      ],
+      "max": [
+        0.093693,
+        8.933475,
+        0.180009
+      ],
+      "vertices": 298,
+      "triangles": 432
+    },
+    {
+      "node": 42,
+      "name": "polySurface4387_lambert1_0",
+      "mesh": 37,
+      "min": [
+        -0.090687,
+        5.449677,
+        -0.740816
+      ],
+      "max": [
+        0.974819,
+        8.879869,
+        2.292699
+      ],
+      "vertices": 296,
+      "triangles": 372
+    },
+    {
+      "node": 43,
+      "name": "polySurface4387_Glass_2_0",
+      "mesh": 38,
+      "min": [
+        -0.079354,
+        6.834203,
+        -0.729483
+      ],
+      "max": [
+        0.138567,
+        8.980088,
+        0.224883
+      ],
+      "vertices": 298,
+      "triangles": 432
+    },
+    {
+      "node": 44,
+      "name": "polySurface4387_lambert12_0",
+      "mesh": 39,
+      "min": [
+        -0.181113,
+        4.956958,
+        1.847223
+      ],
+      "max": [
+        0.767613,
+        8.640934,
+        2.747484
+      ],
+      "vertices": 1011,
+      "triangles": 848
+    },
+    {
+      "node": 45,
+      "name": "polySurface4387_lambert21_0",
+      "mesh": 40,
+      "min": [
+        -0.662308,
+        6.41482,
+        1.161681
+      ],
+      "max": [
+        0.721522,
+        6.552692,
+        2.587918
+      ],
+      "vertices": 1092,
+      "triangles": 1728
+    },
+    {
+      "node": 46,
+      "name": "polySurface4387_Glass_Camera_2_0",
+      "mesh": 41,
+      "min": [
+        0.312495,
+        4.991246,
+        2.275626
+      ],
+      "max": [
+        0.641941,
+        5.482285,
+        2.659579
+      ],
+      "vertices": 97,
+      "triangles": 144
+    },
+    {
+      "node": 47,
+      "name": "polySurface4387_Glass_Camera_1_0",
+      "mesh": 42,
+      "min": [
+        0.256414,
+        5.030243,
+        2.234155
+      ],
+      "max": [
+        0.546437,
+        5.46252,
+        2.572162
+      ],
+      "vertices": 97,
+      "triangles": 144
+    },
+    {
+      "node": 48,
+      "name": "polySurface4387_Glass_Camera_3_0",
+      "mesh": 43,
+      "min": [
+        0.369194,
+        4.958045,
+        2.318767
+      ],
+      "max": [
+        0.730801,
+        5.497018,
+        2.740202
+      ],
+      "vertices": 97,
+      "triangles": 144
+    },
+    {
+      "node": 49,
+      "name": "polySurface4387_Glass_camera_4_0",
+      "mesh": 44,
+      "min": [
+        0.606354,
+        5.11309,
+        1.905418
+      ],
+      "max": [
+        0.732367,
+        5.300912,
+        2.05228
+      ],
+      "vertices": 97,
+      "triangles": 144
+    },
+    {
+      "node": 50,
+      "name": "polySurface4387_Glass_camera_5_0",
+      "mesh": 45,
+      "min": [
+        0.672709,
+        5.587801,
+        2.325016
+      ],
+      "max": [
+        0.717594,
+        5.654702,
+        2.377328
+      ],
+      "vertices": 97,
+      "triangles": 144
+    },
+    {
+      "node": 51,
+      "name": "rotor_1",
+      "mesh": 46,
+      "min": [
+        2.444739,
+        6.502729,
+        1.130732
+      ],
+      "max": [
+        5.185754,
+        6.582906,
+        5.90486
+      ],
+      "vertices": 408,
+      "triangles": 312
+    },
+    {
+      "node": 52,
+      "name": "rotor_2",
+      "mesh": 47,
+      "min": [
+        -5.12654,
+        6.502729,
+        1.130732
+      ],
+      "max": [
+        -2.385525,
+        6.582906,
+        5.90486
+      ],
+      "vertices": 408,
+      "triangles": 312
+    },
+    {
+      "node": 53,
+      "name": "rotor_3",
+      "mesh": 48,
+      "min": [
+        1.907434,
+        6.497856,
+        -5.131229
+      ],
+      "max": [
+        4.915828,
+        6.582378,
+        -0.518644
+      ],
+      "vertices": 408,
+      "triangles": 312
+    },
+    {
+      "node": 54,
+      "name": "rotor_4",
+      "mesh": 49,
+      "min": [
+        -4.856615,
+        6.497856,
+        -5.131229
+      ],
+      "max": [
+        -1.848221,
+        6.582378,
+        -0.518644
+      ],
+      "vertices": 408,
+      "triangles": 312
+    }
+  ],
+  "modifications": [
+    "Separate display case removed",
+    "Eight original blades grouped into four Y-axis rotor pivots; fixed motor housings preserved"
+  ],
+  "rotorTriangles": [
+    312,
+    312,
+    312,
+    312
+  ],
+  "suggestedDemoSpanMetres": 1.45,
+  "scaleIsDemoCalibrationNotManufacturerSpecification": true
+}

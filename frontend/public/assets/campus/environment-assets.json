@@ -1,0 +1,336 @@
+[
+  {
+    "id": "shrub_01",
+    "kind": "models",
+    "source": "https://polyhaven.com/a/shrub_01",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-13",
+    "verifiedAt": "2026-10-14",
+    "files": [
+      {
+        "path": "public/assets/campus/models/shrub_01/shrub_01_2k.gltf",
+        "bytes": 2895,
+        "md5": "b4dba9051ffc1eae61780af528973499"
+      },
+      {
+        "path": "public/assets/campus/models/shrub_01/textures/shrub_01_nor_gl_2k.jpg",
+        "bytes": 2628947,
+        "md5": "ba76e790f9346ad2366585b57095c214"
+      },
+      {
+        "path": "public/assets/campus/models/shrub_01/textures/shrub_01_arm_2k.jpg",
+        "bytes": 1232008,
+        "md5": "94b1eac99e9f949487d49243d19f70e4"
+      },
+      {
+        "path": "public/assets/campus/models/shrub_01/shrub_01.bin",
+        "bytes": 5239664,
+        "md5": "baf77d162f397f43fa4737b545d73e1a"
+      },
+      {
+        "path": "public/assets/campus/models/shrub_01/textures/shrub_01_diff_2k.jpg",
+        "bytes": 1651989,
+        "md5": "cd89f941ba9e5c60cbeee50e0b269e2c"
+      }
+    ]
+  },
+  {
+    "id": "aerial_asphalt_01",
+    "kind": "materials",
+    "source": "https://polyhaven.com/a/aerial_asphalt_01",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-13",
+    "verifiedAt": "2026-10-14",
+    "files": [
+      {
+        "path": "public/assets/campus/materials/aerial_asphalt_01/Diffuse.jpg",
+        "bytes": 2802005,
+        "md5": "4cb311fc7638c0b1d5e9641ca9c6ea78"
+      },
+      {
+        "path": "public/assets/campus/materials/aerial_asphalt_01/nor_gl.jpg",
+        "bytes": 2751902,
+        "md5": "2b2d543f7c6567030f11a6070f586e05"
+      },
+      {
+        "path": "public/assets/campus/materials/aerial_asphalt_01/Rough.jpg",
+        "bytes": 1392536,
+        "md5": "f46f34b5509cec4b7fccdff8dfe4dc59"
+      }
+    ]
+  },
+  {
+    "id": "painted_wooden_bench",
+    "kind": "models",
+    "source": "https://polyhaven.com/a/painted_wooden_bench",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-13",
+    "verifiedAt": "2026-10-14",
+    "files": [
+      {
+        "path": "public/assets/campus/models/painted_wooden_bench/painted_wooden_bench_2k.gltf",
+        "bytes": 2835,
+        "md5": "2977ba5644963b449ad3372c3e5e7dc5"
+      },
+      {
+        "path": "public/assets/campus/models/painted_wooden_bench/textures/painted_wooden_bench_arm_2k.jpg",
+        "bytes": 2232819,
+        "md5": "85abb03024e970c08fcc2163a38b564c"
+      },
+      {
+        "path": "public/assets/campus/models/painted_wooden_bench/textures/painted_wooden_bench_nor_gl_2k.jpg",
+        "bytes": 3522953,
+        "md5": "02fe51467ced6a748de37c8563d3d543"
+      },
+      {
+        "path": "public/assets/campus/models/painted_wooden_bench/textures/painted_wooden_bench_diff_2k.jpg",
+        "bytes": 2210706,
+        "md5": "2b497deb0d615cae13454400672b724f"
+      },
+      {
+        "path": "public/assets/campus/models/painted_wooden_bench/painted_wooden_bench.bin",
+        "bytes": 25444,
+        "md5": "ed331b50f955852f007313c1a75c2e2d"
+      }
+    ]
+  },
+  {
+    "id": "grass_ground",
+    "kind": "materials",
+    "source": "https://polyhaven.com/a/grass_ground",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-14",
+    "verifiedAt": "2026-10-14",
+    "files": [
+      {
+        "path": "public/assets/campus/materials/grass_ground/Diffuse.jpg",
+        "bytes": 3787330,
+        "md5": "fd97f2402677e6686b2d9159fc3a4256"
+      },
+      {
+        "path": "public/assets/campus/materials/grass_ground/nor_gl.jpg",
+        "bytes": 5968024,
+        "md5": "c8b2dd95f09868c4aacb91f62c673344"
+      },
+      {
+        "path": "public/assets/campus/materials/grass_ground/Rough.jpg",
+        "bytes": 1525000,
+        "md5": "0685285b42a7110ce0876f676a2f79c2"
+      }
+    ]
+  },
+  {
+    "id": "pavement_03",
+    "kind": "materials",
+    "source": "https://polyhaven.com/a/pavement_03",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-13",
+    "verifiedAt": "2026-10-14",
+    "files": [
+      {
+        "path": "public/assets/campus/materials/pavement_03/Diffuse.jpg",
+        "bytes": 4993732,
+        "md5": "4b30b7cdada2e98c9a04b8c84ee3efb1"
+      },
+      {
+        "path": "public/assets/campus/materials/pavement_03/nor_gl.jpg",
+        "bytes": 5367653,
+        "md5": "231db3782d36b08e940940f4db75da8b"
+      },
+      {
+        "path": "public/assets/campus/materials/pavement_03/Rough.jpg",
+        "bytes": 2404553,
+        "md5": "422d750569b1fd5231282587dac1fcaa"
+      }
+    ]
+  },
+  {
+    "id": "kloofendal_48d_partly_cloudy_puresky",
+    "kind": "environment",
+    "source": "https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-13",
+    "verifiedAt": "2026-10-14",
+    "files": [
+      {
+        "path": "public/assets/campus/environment/kloofendal_48d_partly_cloudy_puresky/sky.hdr",
+        "bytes": 5451493,
+        "md5": "2eba3a4d7eeb23cbfbeca364c97e7980"
+      }
+    ]
+  },
+  {
+    "id": "grass_path_2",
+    "kind": "materials",
+    "source": "https://polyhaven.com/a/grass_path_2",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-13",
+    "verifiedAt": "2026-10-14",
+    "files": [
+      {
+        "path": "public/assets/campus/materials/grass_path_2/Diffuse.jpg",
+        "bytes": 2788295,
+        "md5": "e03c3884e3a1f13dc838a4eee9af4dab"
+      },
+      {
+        "path": "public/assets/campus/materials/grass_path_2/nor_gl.jpg",
+        "bytes": 2506245,
+        "md5": "f2496daebc75a5d9bc98ecd0c6a8657d"
+      },
+      {
+        "path": "public/assets/campus/materials/grass_path_2/Rough.jpg",
+        "bytes": 1329811,
+        "md5": "22fa874bdfd9a18f8c541342486493b0"
+      }
+    ]
+  },
+  {
+    "id": "island_tree_02",
+    "kind": "models",
+    "source": "https://polyhaven.com/a/island_tree_02",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-13",
+    "verifiedAt": "2026-10-14",
+    "files": [
+      {
+        "path": "public/assets/campus/models/island_tree_02/island_tree_02_2k.gltf",
+        "bytes": 8545,
+        "md5": "8f26ebaa1648086a1958ce67a8154e64"
+      },
+      {
+        "path": "public/assets/campus/models/island_tree_02/textures/island_tree_02_nor_gl_2k.jpg",
+        "bytes": 4339456,
+        "md5": "e5e741ee0d2b5299893ddef2952e4c55"
+      },
+      {
+        "path": "public/assets/campus/models/island_tree_02/textures/island_tree_02_diff_2k.jpg",
+        "bytes": 2684467,
+        "md5": "1593cf55910abff0a418b2799870471a"
+      },
+      {
+        "path": "public/assets/campus/models/island_tree_02/textures/island_tree_02_arm_2k.jpg",
+        "bytes": 2347246,
+        "md5": "661a0b08c23989c081904d53d1bb1433"
+      },
+      {
+        "path": "public/assets/campus/models/island_tree_02/textures/island_tree_02_leaves_nor_gl_2k.jpg",
+        "bytes": 1378585,
+        "md5": "b7d1e6306288a64119e1d17dae3c272d"
+      },
+      {
+        "path": "public/assets/campus/models/island_tree_02/textures/island_tree_02_leaves_diff_2k.jpg",
+        "bytes": 661175,
+        "md5": "9898a7bf79fe6214f7ca8c3b139c4116"
+      },
+      {
+        "path": "public/assets/campus/models/island_tree_02/textures/island_tree_02_leaves_arm_2k.jpg",
+        "bytes": 1645169,
+        "md5": "a03c8dd6852becfbc0fbec70a4f0b30f"
+      },
+      {
+        "path": "public/assets/campus/models/island_tree_02/textures/island_tree_02_branches_nor_gl_2k.jpg",
+        "bytes": 2437750,
+        "md5": "0b598c975ce1515ea0d51fb0d5696ea3"
+      },
+      {
+        "path": "public/assets/campus/models/island_tree_02/textures/island_tree_02_branches_diff_2k.jpg",
+        "bytes": 1476655,
+        "md5": "3210126439a8423b3caba28de0f3c25f"
+      },
+      {
+        "path": "public/assets/campus/models/island_tree_02/textures/island_tree_02_branches_arm_2k.jpg",
+        "bytes": 1523257,
+        "md5": "969af8206d91a37edfefaf65a668470e"
+      },
+      {
+        "path": "public/assets/campus/models/island_tree_02/island_tree_02.bin",
+        "bytes": 40686576,
+        "md5": "7fa9d6ee752b670cabb65053a5c6395b"
+      },
+      {
+        "path": "public/assets/campus/models/island_tree_02/leaves_alpha_2k.png",
+        "bytes": 139077,
+        "md5": "063774afef8fe1d35ce52d56bf41bf81"
+      }
+    ]
+  },
+  {
+    "id": "jacaranda_tree",
+    "kind": "models",
+    "source": "https://polyhaven.com/a/jacaranda_tree",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-14",
+    "verifiedAt": "2026-10-14",
+    "files": [
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/jacaranda_tree_2k.gltf",
+        "bytes": 9526,
+        "md5": "b204f429a52213e7bdc110a674738c95"
+      },
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/textures/jacaranda_tree_branches_nor_gl_2k.jpg",
+        "bytes": 2437750,
+        "md5": "0b598c975ce1515ea0d51fb0d5696ea3"
+      },
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/textures/jacaranda_tree_branches_diff_2k.jpg",
+        "bytes": 1483476,
+        "md5": "4a8b8f050f4dd43c380b8d7721709cfd"
+      },
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/textures/jacaranda_tree_branches_arm_2k.jpg",
+        "bytes": 1523257,
+        "md5": "969af8206d91a37edfefaf65a668470e"
+      },
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/textures/jacaranda_tree_trunk_nor_gl_2k.jpg",
+        "bytes": 4050519,
+        "md5": "4c397e335b200ebb47f2af4a36e97de6"
+      },
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/textures/jacaranda_tree_trunk_diff_2k.jpg",
+        "bytes": 3397103,
+        "md5": "313836f3418f75c8a3be7b562d50c2d5"
+      },
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/textures/jacaranda_tree_trunk_arm_2k.jpg",
+        "bytes": 3444454,
+        "md5": "aa54b0fddd758972efa6509a41945583"
+      },
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/textures/jacaranda_tree_leaves_nor_gl_2k.jpg",
+        "bytes": 2162002,
+        "md5": "7333d450f7d695069496416db73ca3ce"
+      },
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/textures/jacaranda_tree_leaves_diff_2k.jpg",
+        "bytes": 1608661,
+        "md5": "f8df03e04d5d5b9f50d21efc3b1de32f"
+      },
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/textures/jacaranda_tree_leaves_arm_2k.jpg",
+        "bytes": 1184148,
+        "md5": "0b344a7c044e51485ad1fe579a56ec26"
+      },
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/jacaranda_tree.bin",
+        "bytes": 208307808,
+        "md5": "ae25eacd5e67ea2e9bbbaa2854b6ed99"
+      },
+      {
+        "path": "public/assets/campus/models/jacaranda_tree/leaves_alpha_2k.png",
+        "bytes": 1252539,
+        "md5": "9f8afd60299fd936ef95a4c3235102cf"
+      }
+    ]
+  }
+]

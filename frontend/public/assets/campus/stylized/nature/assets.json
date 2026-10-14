@@ -1,0 +1,74 @@
+[
+  {
+    "id": "cluster-tree",
+    "url": "/assets/campus/stylized/nature/cluster-tree.glb",
+    "source": "https://kenney.nl/assets/nature-kit",
+    "author": "Kenney",
+    "sourceFile": "tree_detailed.obj",
+    "license": "CC0-1.0",
+    "modification": "Two Loop subdivision passes on original canopy topology, restored fuller crown volumes, recomputed smooth normals, new pastel colours; original trunk retained for trees, canopy reused for shrubs.",
+    "triangles": 4600,
+    "parts": [
+      {
+        "name": "leafsGreen",
+        "triangles": 4480
+      },
+      {
+        "name": "woodBark",
+        "triangles": 120
+      }
+    ],
+    "bytes": 113624,
+    "sha256": "f830b06e44a51f768d3ff626e225e8567906f9c036feff467fa92bebf3fb61cc"
+  },
+  {
+    "id": "broad-tree",
+    "url": "/assets/campus/stylized/nature/broad-tree.glb",
+    "source": "https://kenney.nl/assets/nature-kit",
+    "author": "Kenney",
+    "sourceFile": "tree_fat.obj",
+    "license": "CC0-1.0",
+    "modification": "Two Loop subdivision passes on original canopy topology, restored fuller crown volumes, recomputed smooth normals, new pastel colours; original trunk retained for trees, canopy reused for shrubs.",
+    "triangles": 650,
+    "parts": [
+      {
+        "name": "leafsGreen",
+        "triangles": 640
+      },
+      {
+        "name": "woodBark",
+        "triangles": 10
+      }
+    ],
+    "bytes": 17828,
+    "sha256": "bf3e623d4e14b3baf3299e6e14800027bbed1ddcd021a4159ee17336ead0c4a8"
+  },
+  {
+    "id": "rounded-shrub",
+    "url": "/assets/campus/stylized/nature/rounded-shrub.glb",
+    "source": "https://kenney.nl/assets/nature-kit",
+    "author": "Kenney",
+    "sourceFile": "tree_fat.obj",
+    "license": "CC0-1.0",
+    "modification": "Two Loop subdivision passes on original canopy topology, restored fuller crown volumes, recomputed smooth normals, new pastel colours; original trunk retained for trees, canopy reused for shrubs.",
+    "triangles": 640,
+    "parts": [
+      {
+        "name": "leafsGreen",
+        "triangles": 640
+      }
+    ],
+    "bytes": 16716,
+    "sha256": "53db7cf19b511d2a19d83db808bbf25d7fa74acf17f231737242b386f3236991"
+  },
+  {
+    "id": "bench",
+    "url": "/assets/campus/stylized/nature/bench.glb",
+    "source": "https://polyhaven.com/a/painted_wooden_bench",
+    "author": "Poly Haven",
+    "license": "CC0-1.0",
+    "modification": "Original geometry, replaced scanned texture maps with warm matte colour.",
+    "triangles": 630,
+    "bytes": 21140
+  }
+]

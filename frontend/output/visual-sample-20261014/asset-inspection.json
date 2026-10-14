@@ -1,0 +1,102 @@
+{
+  "glass-office": {
+    "file": "daylight-ready.glb",
+    "bytes": 40579992,
+    "dimensions": [
+      46.711948,
+      32.0,
+      16.146488
+    ],
+    "min": [
+      -23.355974,
+      0.0,
+      -8.073244
+    ],
+    "max": [
+      23.355974,
+      32.0,
+      8.073244
+    ],
+    "meshes": 60,
+    "triangles": 650371,
+    "materials": 14,
+    "images": 3,
+    "externalImages": [],
+    "animations": 0
+  },
+  "dispatch-centre": {
+    "file": "dispatch-centre.glb",
+    "bytes": 72439356,
+    "dimensions": [
+      46.711897,
+      9.8,
+      16.146488
+    ],
+    "min": [
+      -23.355923,
+      0.0,
+      -8.073244
+    ],
+    "max": [
+      23.355974,
+      9.8,
+      8.073244
+    ],
+    "meshes": 21,
+    "triangles": 267859,
+    "materials": 14,
+    "images": 3,
+    "externalImages": [],
+    "animations": 0
+  },
+  "matrice-300": {
+    "file": "flight-ready.glb",
+    "bytes": 42266676,
+    "dimensions": [
+      10.312294,
+      4.888654,
+      11.036089
+    ],
+    "min": [
+      -5.12654,
+      4.091434,
+      -5.131229
+    ],
+    "max": [
+      5.185754,
+      8.980088,
+      5.90486
+    ],
+    "meshes": 46,
+    "triangles": 888380,
+    "materials": 34,
+    "images": 0,
+    "externalImages": [],
+    "animations": 0
+  },
+  "mother-original": {
+    "file": "mother-carrier-original.glb",
+    "bytes": 8470704,
+    "dimensions": [
+      2.35,
+      1.832995,
+      4.171
+    ],
+    "min": [
+      -1.175,
+      0.0,
+      -2.0855
+    ],
+    "max": [
+      1.175,
+      1.832995,
+      2.0855
+    ],
+    "meshes": 24,
+    "triangles": 87996,
+    "materials": 9,
+    "images": 0,
+    "externalImages": [],
+    "animations": 0
+  }
+}

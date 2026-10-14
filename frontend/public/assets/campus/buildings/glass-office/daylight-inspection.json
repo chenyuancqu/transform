@@ -1,0 +1,15 @@
+{
+  "units": "metres",
+  "height": 32,
+  "width": 46.71194812754603,
+  "depth": 16.146488522515657,
+  "front": 8.073244261257829,
+  "cutTriangles": 106,
+  "modifications": [
+    "Uniform metre scale and front orientation",
+    "Daylight material adaptation",
+    "Real clipped entrance opening; original UVs retained",
+    "Rear adapted using original glazed facade geometry; formerly blind rear surface removed"
+  ],
+  "license": "CC BY 4.0"
+}

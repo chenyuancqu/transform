@@ -1,0 +1,58 @@
+{
+  "requestedViewport": [
+    1920,
+    1080
+  ],
+  "actualCanvas": [
+    1745,
+    981
+  ],
+  "rendererName": "ANGLE (Intel, Intel(R) UHD Graphics 770 (0x00004680) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "viewMetrics": {
+    "frames": 2,
+    "averageMs": 1000.4500000029802,
+    "p95Ms": 1000.5,
+    "calls": 255,
+    "triangles": 458641,
+    "visibility": "visible",
+    "focused": true,
+    "viewport": [
+      1745,
+      981
+    ],
+    "memory": {
+      "geometries": 216,
+      "textures": 21
+    },
+    "groups": {
+      "ground": {
+        "meshes": 120,
+        "triangles": 12572
+      },
+      "buildings": {
+        "meshes": 24,
+        "triangles": 152108
+      },
+      "nature": {
+        "meshes": 6,
+        "triangles": 203600
+      },
+      "device-rover": {
+        "meshes": 24,
+        "triangles": 31407
+      },
+      "device-uav-1": {
+        "meshes": 26,
+        "triangles": 19652
+      },
+      "device-uav-2": {
+        "meshes": 26,
+        "triangles": 19652
+      },
+      "device-uav-3": {
+        "meshes": 26,
+        "triangles": 19652
+      }
+    }
+  }
+}

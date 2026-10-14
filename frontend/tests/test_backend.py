@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'backend'))
-from mission import Mission, aligned, pickup, world
+from mission import Mission, aligned, pickup, world, dock
 from service import Policy
 
 
@@ -105,7 +105,7 @@ class BackendMissionTests(unittest.TestCase):
                 m.assign()
                 actions = policy.infer(m.observations())
             m.advance(.05, actions)
-            if m.stats['deliveredOrders'] == 8:
+            if not m.running:
                 break
         self.assertEqual(m.stats['completedOrders'], 8)
         self.assertEqual(m.stats['deliveredOrders'], 8)
@@ -114,6 +114,54 @@ class BackendMissionTests(unittest.TestCase):
         self.assertTrue(all(u['cargoOrderId'] is None for u in m.uavs))
         self.assertGreater(policy.count, 0)
         print(f"Real ONNX mission: {m.elapsed:.1f}s simulation, {policy.count} inference batches, {m.stats['uavDistanceMeters']:.1f}m UAV distance")
+
+    def test_grounded_uav_takes_off_vertically_without_teleport(self):
+        m=Mission();m.running=True
+        u=m.uavs[0];u['z']=.37/50
+        m.assign();self.assertEqual(u['phase'],'takingOff')
+        original=(u['x'],u['y'])
+        for _ in range(30):
+            before=world(u)[2];m.advance(.05,{})
+            self.assertEqual((u['x'],u['y']),original)
+            self.assertLessEqual(world(u)[2]-before,.060001)
+        self.assertEqual(u['phase'],'takingOff')
+        for _ in range(15):m.advance(.05,{})
+        self.assertEqual(u['phase'],'cruising')
+
+    def test_single_bay_queue_hatch_pause_and_resume(self):
+        m = Mission()
+        m.running = True
+        m.assign()
+        cargo_ids = []
+        for u in m.uavs:
+            order = next(o for o in m.orders if o['id'] == u['targetOrderId'])
+            order.update(completed=True, status='collected')
+            cargo_ids.append(order['id'])
+            u.update(dock(m.rover,u),cargoOrderId=order['id'],targetOrderId=None,phase='returning')
+        m.stats['completedOrders'] = 3
+        m.advance(.05,{})
+        self.assertLessEqual(sum(u['phase']=='unloading' for u in m.uavs),1)
+        self.assertEqual(sum(u['phase']=='waitingDock' for u in m.uavs),2)
+        self.assertEqual(m.docking['owner'],1)
+        m.control({'action':'pause'})
+        before=copy.deepcopy(m.__dict__)
+        m.advance(20,{})
+        self.assertEqual(m.__dict__,before)
+        m.control({'action':'start'})
+        for _ in range(4500):
+            m.advance(.05,{})
+            active=[u for u in m.uavs if u['phase']=='unloading']
+            self.assertLessEqual(len(active),1)
+            if active:
+                self.assertEqual(active[0]['id'],m.docking['owner'])
+                self.assertEqual(m.docking['hatchProgress'],1)
+            if not m.running:break
+        self.assertEqual(m.stats['deliveredOrders'],8)
+        self.assertEqual(m.docking['queue'],[])
+        self.assertEqual(m.docking['hatchProgress'],0)
+        self.assertTrue(all(u['phase']=='idle' for u in m.uavs))
+        self.assertTrue(all(o['status']=='delivered' for o in m.orders if o['id'] in cargo_ids))
+        self.assertGreater(min(__import__('math').dist(world(a),world(b)) for i,a in enumerate(m.uavs) for b in m.uavs[i+1:]),4)
 
 
 if __name__ == '__main__':

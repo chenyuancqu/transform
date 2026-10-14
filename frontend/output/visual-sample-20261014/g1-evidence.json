@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-14",
+  "observedAsset": "glass-office daylight derivative + original architectural accents",
+  "browserObservedDimensions": [
+    46.71,
+    33.44,
+    18.75
+  ],
+  "browserObservedMeshes": 65,
+  "browserObservedTriangles": 654653,
+  "materials": 19,
+  "textures": 4,
+  "viewsChecked": [
+    "angle",
+    "front",
+    "back",
+    "side",
+    "roof"
+  ],
+  "sources": "Actual native inspector screenshots g1-*.png; older pre-merge observations preserved separately",
+  "drawCallObservation": 199,
+  "performanceStatus": "Short automated-browser windows only; stable G5 performance not accepted"
+}

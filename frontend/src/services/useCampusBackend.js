@@ -4,12 +4,15 @@ import mqtt from 'mqtt';
 const EMPTY = { epoch: 'unconnected', seq: 0, rover: { x: .5, y: .5, z: 0 }, uavs: [], orders: [],
   stats: {}, health: {}, events: [], running: false, speed: .7, elapsedSeconds: 0 };
 const POSE = p => Array.isArray(p) && p.length === 3 && p.every(Number.isFinite);
-const PHASES = ['idle', 'cruising', 'approaching', 'aligning', 'picking', 'returning', 'unloading'];
+const PHASES = ['idle','takingOff', 'cruising', 'approaching', 'aligning', 'picking', 'returning', 'waitingDock', 'unloading', 'clearingBay','parking'];
 
 export function decodeSnapshot(data) {
   if (data?.schema_version !== 1 || data.coordinate_system !== 'campus_meters_xy_height'
       || typeof data.epoch !== 'string' || !Number.isInteger(data.seq) || !Number.isFinite(data.timestamp)
-      || !POSE(data.rover?.position) || !Array.isArray(data.uavs) || data.uavs.length !== 3
+      || !POSE(data.rover?.position) || (data.rover.heading!=null&&!Number.isFinite(data.rover.heading))
+      || (data.docking!=null&&(!Array.isArray(data.docking.queue)||new Set(data.docking.queue).size!==data.docking.queue.length||data.docking.queue.some(i=>![1,2,3].includes(i))
+        ||(data.docking.owner!=null&&!data.docking.queue.includes(data.docking.owner))||!Number.isFinite(data.docking.hatchProgress)||data.docking.hatchProgress<0||data.docking.hatchProgress>1))
+      || !Array.isArray(data.uavs) || data.uavs.length !== 3
       || new Set(data.uavs.map(u => u.id)).size !== 3 || !Array.isArray(data.orders) || data.orders.length !== 8
       || new Set(data.orders.map(o => o.id)).size !== 8 || typeof data.running !== 'boolean'
       || !Number.isFinite(data.speed) || data.speed < .3 || data.speed > 2
@@ -17,7 +20,8 @@ export function decodeSnapshot(data) {
       || !data.uavs.every(u => [1, 2, 3].includes(u.id) && POSE(u.position) && Number.isFinite(u.battery)
         && u.battery >= 0 && u.battery <= 1 && PHASES.includes(u.phase)
         && Number.isFinite(u.pickupProgress) && u.pickupProgress >= 0 && u.pickupProgress <= 1
-        && Number.isFinite(u.unloadProgress) && u.unloadProgress >= 0 && u.unloadProgress <= 1)
+        && Number.isFinite(u.unloadProgress) && u.unloadProgress >= 0 && u.unloadProgress <= 1
+        && (u.retractProgress==null||(Number.isFinite(u.retractProgress)&&u.retractProgress>=0&&u.retractProgress<=1)))
       || !data.orders.every(o => Number.isInteger(o.id) && o.id >= 1 && o.id <= 8 && POSE(o.position) && typeof o.completed === 'boolean')) {
     throw new Error('后端快照格式或坐标单位不匹配');
   }
@@ -29,8 +33,11 @@ export function decodeSnapshot(data) {
 export function interpolateSnapshots(a, b, t) {
   if (!a || a.epoch !== b.epoch || t >= 1) return b;
   const pose = (p, q) => ({ ...p, x: p.x + (q.x - p.x) * t, y: p.y + (q.y - p.y) * t, z: p.z + (q.z - p.z) * t });
-  return { ...a, rover: pose(a.rover, b.rover), uavs: a.uavs.map((u, i) => ({ ...pose(u, b.uavs[i]),
+  const yaw = (p,q) => p + Math.atan2(Math.sin(q-p),Math.cos(q-p))*t;
+  return { ...a, docking:a.docking&&b.docking?{...a.docking,hatchProgress:a.docking.hatchProgress+(b.docking.hatchProgress-a.docking.hatchProgress)*t}:a.docking,
+    rover: {...pose(a.rover, b.rover),heading:yaw(a.rover.heading||0,b.rover.heading||0)}, uavs: a.uavs.map((u, i) => ({ ...pose(u, b.uavs[i]),
     pickupProgress: u.phase === b.uavs[i].phase ? u.pickupProgress + (b.uavs[i].pickupProgress - u.pickupProgress) * t : u.pickupProgress,
+    retractProgress:u.phase===b.uavs[i].phase?(u.retractProgress||0)+((b.uavs[i].retractProgress||0)-(u.retractProgress||0))*t:u.retractProgress,
     unloadProgress: u.phase === b.uavs[i].phase ? u.unloadProgress + (b.uavs[i].unloadProgress - u.unloadProgress) * t : u.unloadProgress })) };
 }
 

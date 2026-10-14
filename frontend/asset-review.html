@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:," />
+  <title>园区模型 · 下载与验收</title>
+  <style>
+    :root{font-family:'Segoe UI','Microsoft YaHei',sans-serif;color:#243834;background:#eef1ee;color-scheme:light}
+    *{box-sizing:border-box}body{margin:0}main{max-width:1440px;margin:auto;padding:34px 30px 50px}header{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-bottom:25px}h1{font-size:28px;font-weight:600;margin:6px 0 10px;letter-spacing:-.04em}p{line-height:1.65;margin:8px 0;color:#576a64}header small{letter-spacing:.16em;color:#32776b}.notice{padding:13px 18px;background:#e1eae5;border-left:3px solid #438774;border-radius:0 6px 6px 0;margin-bottom:25px;font-size:14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}article{background:#fff;border:1px solid #d7e0db;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px #2c483409}article img{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#e1e3e2}.content{padding:22px}h2{font-size:20px;margin:5px 0 9px}.tag{font-size:12px;color:#427665}.meta{font-size:12px;color:#64756e;padding:12px 0;border-bottom:1px solid #e4e9e5;margin-bottom:13px}.pending{padding:10px 12px;background:#f5f3eb;font-size:13px;border-radius:6px;color:#756748}footer{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:18px}a,button{font:inherit;font-size:13px;text-decoration:none;cursor:pointer;border-radius:7px;border:1px solid #cddbd3;background:#f4f7f4;color:#355e52;padding:10px 13px}a:hover,button:hover{background:#e4eee7}.primary{background:#285b4d;color:#fff;border-color:#285b4d}.credit{font-size:12px;line-height:1.7;margin-top:14px}.credit a{padding:0;border:0;background:transparent;text-decoration:underline}dialog{padding:0;border:0;border-radius:12px;width:min(1100px,95vw);background:#fff;color:#243834}dialog::backdrop{background:#10231ca8}.dialog-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px}dialog iframe{display:block;width:100%;height:min(65vh,680px);border:0}.dialog-note{padding:12px 20px;margin:0;font-size:13px}a:focus-visible,button:focus-visible{outline:3px solid #438774;outline-offset:3px}@media(max-width:720px){main{padding:20px 14px}.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}h1{font-size:24px}.content{padding:17px}}
+  </style>
+</head>
+<body>
+  <main>
+    <header><div><small>CAMPUS / ASSET REVIEW · LOCAL FILES</small><h1>已选资产 · 下载与验收结果</h1><p>两栋办公楼、工业无人机已下载 · 原创母车外形已确认</p></div><a href="/approved-asset-preview.html">查看本地 GLB 验收 ↗</a></header>
+    <div class="notice">第三方图片为原作者预览；原创母车图片为本项目实拍截图。点击“查看本地模型”检查已下载 GLB。伦敦办公楼是局部立面，未通过主楼完整性验收；本页没有把下载成功视作园区改造完成。</div>
+    <div class="grid" id="assets" aria-live="polite">正在读取候选…</div>
+  </main>
+  <dialog id="viewer"><div class="dialog-head"><strong id="viewer-title">模型预览</strong><button id="close-viewer">关闭预览</button></div><div id="viewer-frame"></div><p class="dialog-note">原作者的交互预览。若无法加载，可从候选卡片打开原始页面。预览能旋转不代表动画部件已经通过验收。</p></dialog>
+  <script type="module">
+    const list = document.getElementById('assets');
+    const dialog = document.getElementById('viewer');
+    const frame = document.getElementById('viewer-frame');
+    const title = document.getElementById('viewer-title');
+    const text = (tag, value, className) => {const el=document.createElement(tag);el.textContent=value;if(className)el.className=className;return el;};
+    const link = (label, url, className) => {const el=text('a',label,className);el.href=url;el.target='_blank';el.rel='noreferrer';return el;};
+    document.getElementById('close-viewer').addEventListener('click',()=>dialog.close());
+    dialog.addEventListener('close',()=>frame.replaceChildren());
+    (async () => { try {
+      const response=await fetch('/assets/campus/review/shortlist.json');if(!response.ok)throw Error('metadata');
+      const models=await response.json();list.replaceChildren();
+      for(const model of models){
+        const article=document.createElement('article');const image=document.createElement('img');image.src=model.preview;image.alt=model.title+' — '+model.author+(model.kind==='original'?' 本地模型实拍':' 原作者模型预览');article.append(image);
+        const content=text('div','','content');content.append(text('span',model.category,'tag'),text('h2',model.title),text('p',model.advantages));
+        const motion=model.kind==='original'?'机械预览':model.uid==='6677d02d66df4b73aad0d8e7bb9e3d9c'?'独立旋翼预览':'静态建筑';
+        content.append(text('div',`${model.triangles.toLocaleString()} 三角形（原始元数据） · ${motion} · ${model.kind==='original'?'原创 / ISC':'免费 / CC BY 4.0'}`,'meta'));
+        content.append(text('p','实际状态：'+model.pending,'pending'));
+        const footer=document.createElement('footer');const key={'8d3ea98595b4403cbf21065e8f9b7bb7':'london','af9782245c134c21ae0c8df7f57077e6':'glass','6677d02d66df4b73aad0d8e7bb9e3d9c':'drone','mother-original':'mother'}[model.uid];
+        footer.append(link('查看本地模型 ↗','/approved-asset-preview.html?asset='+key,'primary'),link(model.kind==='original'?'机械预览 ↗':'原始页面 / 下载 ↗',model.source));content.append(footer);
+        const credit=text('div',`${model.originalTitle} · ${model.author} · ${model.kind==='original'?'本地实拍':'原图未修改'} · `,'credit');credit.append(link(model.kind==='original'?'原创模型说明':'CC BY 许可',model.licenseUrl));content.append(credit);article.append(content);list.append(article);
+      }
+    }catch{list.textContent='候选元数据加载失败，请检查本地服务。';} })();
+  </script>
+</body>
+</html>

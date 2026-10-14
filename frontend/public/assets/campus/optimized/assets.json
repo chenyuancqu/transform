@@ -1,0 +1,827 @@
+[
+  {
+    "id": "island_tree_02",
+    "lod": "near",
+    "source": "models/island_tree_02/island_tree_02_2k.gltf",
+    "sourceTriangles": 1072213,
+    "sourceBounds": {
+      "min": [
+        -2.052337884902954,
+        -0.017011718824505806,
+        -1.1141542196273804
+      ],
+      "max": [
+        2.155407428741455,
+        3.389594078063965,
+        2.956543207168579
+      ]
+    },
+    "errorLimit": 0.02,
+    "maxRelativeError": 0.006597579922527075,
+    "license": "CC0-1.0",
+    "url": "/assets/campus/optimized/nature/island_tree_02-near.gltf",
+    "triangles": 42287,
+    "bounds": {
+      "min": [
+        -2.052337884902954,
+        -0.017011718824505806,
+        -1.1141542196273804
+      ],
+      "max": [
+        2.155407428741455,
+        3.389594078063965,
+        2.956543207168579
+      ]
+    },
+    "primitives": 3,
+    "geometryBytes": 3172972,
+    "resourceBytes": 21671518,
+    "sha256": "a4807ae08beb10aa02cabac72bdcc92ecbfab226bf2ccda89a27f88be4340d50"
+  },
+  {
+    "id": "island_tree_02",
+    "lod": "medium",
+    "source": "models/island_tree_02/island_tree_02_2k.gltf",
+    "sourceTriangles": 1072213,
+    "sourceBounds": {
+      "min": [
+        -2.052337884902954,
+        -0.017011718824505806,
+        -1.1141542196273804
+      ],
+      "max": [
+        2.155407428741455,
+        3.389594078063965,
+        2.956543207168579
+      ]
+    },
+    "errorLimit": 0.025,
+    "maxRelativeError": 0.007337531540542841,
+    "license": "CC0-1.0",
+    "url": "/assets/campus/optimized/nature/island_tree_02-medium.gltf",
+    "triangles": 37612,
+    "bounds": {
+      "min": [
+        -2.052337884902954,
+        -0.017011718824505806,
+        -1.1141542196273804
+      ],
+      "max": [
+        2.155407428741455,
+        3.389594078063965,
+        2.956543207168579
+      ]
+    },
+    "primitives": 3,
+    "geometryBytes": 2868084,
+    "resourceBytes": 21366632,
+    "sha256": "d024729ae1e45ae5cc923a2a434090a81f0d7547ff115c435a7e4895b0e55191"
+  },
+  {
+    "id": "island_tree_02",
+    "lod": "far",
+    "source": "models/island_tree_02/island_tree_02_2k.gltf",
+    "sourceTriangles": 1072213,
+    "sourceBounds": {
+      "min": [
+        -2.052337884902954,
+        -0.017011718824505806,
+        -1.1141542196273804
+      ],
+      "max": [
+        2.155407428741455,
+        3.389594078063965,
+        2.956543207168579
+      ]
+    },
+    "errorLimit": 0.025,
+    "maxRelativeError": 0.008278275839984417,
+    "license": "CC0-1.0",
+    "url": "/assets/campus/optimized/nature/island_tree_02-far.gltf",
+    "triangles": 33387,
+    "bounds": {
+      "min": [
+        -2.052337884902954,
+        -0.017011718824505806,
+        -1.1141542196273804
+      ],
+      "max": [
+        2.0611910820007324,
+        3.389594078063965,
+        2.956543207168579
+      ]
+    },
+    "primitives": 3,
+    "geometryBytes": 2451112,
+    "resourceBytes": 20949655,
+    "sha256": "63bb02568c20b021f4e73a5f38e2b33dd19376085ae0015b2576868d3711c185"
+  },
+  {
+    "id": "jacaranda_tree",
+    "lod": "near",
+    "source": "models/jacaranda_tree/jacaranda_tree_2k.gltf",
+    "sourceTriangles": 3863832,
+    "sourceBounds": {
+      "min": [
+        -12.92025089263916,
+        -0.146615132689476,
+        -9.953813552856445
+      ],
+      "max": [
+        11.496798515319824,
+        19.3222599029541,
+        9.200760841369629
+      ]
+    },
+    "errorLimit": 0.025,
+    "maxRelativeError": 0.004976480267941952,
+    "license": "CC0-1.0",
+    "url": "/assets/campus/optimized/nature/jacaranda_tree-near.gltf",
+    "triangles": 57328,
+    "bounds": {
+      "min": [
+        -12.92025089263916,
+        -0.1163412556052208,
+        -9.953813552856445
+      ],
+      "max": [
+        11.496798515319824,
+        19.3222599029541,
+        9.200760841369629
+      ]
+    },
+    "primitives": 3,
+    "geometryBytes": 4242328,
+    "resourceBytes": 25538227,
+    "sha256": "f03a275e385645d06f6c56f99c7dff294704d37abc6acc5278698686329b27a7"
+  },
+  {
+    "id": "jacaranda_tree",
+    "lod": "medium",
+    "source": "models/jacaranda_tree/jacaranda_tree_2k.gltf",
+    "sourceTriangles": 3863832,
+    "sourceBounds": {
+      "min": [
+        -12.92025089263916,
+        -0.146615132689476,
+        -9.953813552856445
+      ],
+      "max": [
+        11.496798515319824,
+        19.3222599029541,
+        9.200760841369629
+      ]
+    },
+    "errorLimit": 0.035,
+    "maxRelativeError": 0.006740095559507608,
+    "license": "CC0-1.0",
+    "url": "/assets/campus/optimized/nature/jacaranda_tree-medium.gltf",
+    "triangles": 37855,
+    "bounds": {
+      "min": [
+        -12.92025089263916,
+        -0.1163412556052208,
+        -9.953813552856445
+      ],
+      "max": [
+        11.496798515319824,
+        19.3222599029541,
+        9.200760841369629
+      ]
+    },
+    "primitives": 3,
+    "geometryBytes": 2690876,
+    "resourceBytes": 23986772,
+    "sha256": "9816175a98dab936a2ac1bbd0ed465c55d0d2a223747bf76a4376ca0bd317d7a"
+  },
+  {
+    "id": "jacaranda_tree",
+    "lod": "far",
+    "source": "models/jacaranda_tree/jacaranda_tree_2k.gltf",
+    "sourceTriangles": 3863832,
+    "sourceBounds": {
+      "min": [
+        -12.92025089263916,
+        -0.146615132689476,
+        -9.953813552856445
+      ],
+      "max": [
+        11.496798515319824,
+        19.3222599029541,
+        9.200760841369629
+      ]
+    },
+    "errorLimit": 0.055,
+    "maxRelativeError": 0.009685637429356575,
+    "license": "CC0-1.0",
+    "url": "/assets/campus/optimized/nature/jacaranda_tree-far.gltf",
+    "triangles": 22464,
+    "bounds": {
+      "min": [
+        -12.92025089263916,
+        -0.1163412556052208,
+        -9.953813552856445
+      ],
+      "max": [
+        11.496798515319824,
+        19.3222599029541,
+        9.200760841369629
+      ]
+    },
+    "primitives": 3,
+    "geometryBytes": 1630048,
+    "resourceBytes": 22925938,
+    "sha256": "6d68b16a68ad7c4ad2a5db193828f64c79884f2ce23a1b1d301101f04524fec4"
+  },
+  {
+    "id": "shrub_01",
+    "lod": "near",
+    "source": "models/shrub_01/shrub_01_2k.gltf",
+    "sourceTriangles": 156012,
+    "sourceBounds": {
+      "min": [
+        -1.8545848727226257,
+        -0.008752564899623394,
+        -0.11381389200687408
+      ],
+      "max": [
+        0.7320764809846878,
+        0.38722172379493713,
+        0.10474707186222076
+      ]
+    },
+    "errorLimit": 0.025,
+    "maxRelativeError": 0.0010914256563410163,
+    "license": "CC0-1.0",
+    "url": "/assets/campus/optimized/nature/shrub_01-near.gltf",
+    "triangles": 3855,
+    "bounds": {
+      "min": [
+        -1.8545848727226257,
+        -0.008752564899623394,
+        -0.11381389200687408
+      ],
+      "max": [
+        0.7320764809846878,
+        0.38722172379493713,
+        0.10474707186222076
+      ]
+    },
+    "primitives": 1,
+    "geometryBytes": 211676,
+    "resourceBytes": 5726344,
+    "sha256": "1f82431ab17c51e073fa1bb7c1f0d0ac128fb6c578682e9f5b62636406913205"
+  },
+  {
+    "id": "shrub_01",
+    "lod": "medium",
+    "source": "models/shrub_01/shrub_01_2k.gltf",
+    "sourceTriangles": 156012,
+    "sourceBounds": {
+      "min": [
+        -1.8545848727226257,
+        -0.008752564899623394,
+        -0.11381389200687408
+      ],
+      "max": [
+        0.7320764809846878,
+        0.38722172379493713,
+        0.10474707186222076
+      ]
+    },
+    "errorLimit": 0.055,
+    "maxRelativeError": 0.0017903837142512202,
+    "license": "CC0-1.0",
+    "url": "/assets/campus/optimized/nature/shrub_01-medium.gltf",
+    "triangles": 1383,
+    "bounds": {
+      "min": [
+        -1.8545848727226257,
+        -0.008752564899623394,
+        -0.11381389200687408
+      ],
+      "max": [
+        0.7320764809846878,
+        0.3856160342693329,
+        0.09219473600387573
+      ]
+    },
+    "primitives": 1,
+    "geometryBytes": 67276,
+    "resourceBytes": 5581940,
+    "sha256": "c55763ac2241688bb34dfd743f317b447b48f404a55cbb1cd47781c7078718e8"
+  },
+  {
+    "id": "shrub_01",
+    "lod": "far",
+    "source": "models/shrub_01/shrub_01_2k.gltf",
+    "sourceTriangles": 156012,
+    "sourceBounds": {
+      "min": [
+        -1.8545848727226257,
+        -0.008752564899623394,
+        -0.11381389200687408
+      ],
+      "max": [
+        0.7320764809846878,
+        0.38722172379493713,
+        0.10474707186222076
+      ]
+    },
+    "errorLimit": 0.1,
+    "maxRelativeError": 0.0032339016906917095,
+    "license": "CC0-1.0",
+    "url": "/assets/campus/optimized/nature/shrub_01-far.gltf",
+    "triangles": 624,
+    "bounds": {
+      "min": [
+        -1.8545848727226257,
+        -0.008752564899623394,
+        -0.11381389200687408
+      ],
+      "max": [
+        0.7320764809846878,
+        0.38013213872909546,
+        0.09195554256439209
+      ]
+    },
+    "primitives": 1,
+    "geometryBytes": 35840,
+    "resourceBytes": 5550502,
+    "sha256": "6c528a7525a6784768bba44c4ad111a84a7be2a36a8f7b1921b41c5dd6ee79ca"
+  },
+  {
+    "id": "office",
+    "lod": "exterior",
+    "source": "buildings/glass-office/daylight-ready.glb",
+    "sourceTriangles": 650371,
+    "removedInterior": [
+      {
+        "name": "office_chairs02__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs00_Color_007_0",
+        "triangles": 4041
+      },
+      {
+        "name": "office_chairs00_Color_002_0",
+        "triangles": 9602
+      },
+      {
+        "name": "office_chairs00_Color_003_0",
+        "triangles": 831
+      },
+      {
+        "name": "office_chairs00_Color_000_0",
+        "triangles": 11
+      },
+      {
+        "name": "office_chairs00_Color_001_0",
+        "triangles": 650
+      },
+      {
+        "name": "office_chairs00_FrontColor_0",
+        "triangles": 152
+      },
+      {
+        "name": "office_chairs01_Color_007_0",
+        "triangles": 505
+      },
+      {
+        "name": "office_chairs01_Color_003_0",
+        "triangles": 147
+      },
+      {
+        "name": "office_chairs01_FrontColor_0",
+        "triangles": 12
+      },
+      {
+        "name": "office_chairs01_Color_002_0",
+        "triangles": 14
+      },
+      {
+        "name": "office_chairs03_Color_001_0",
+        "triangles": 216
+      },
+      {
+        "name": "office_chairs03_Color_003_0",
+        "triangles": 126
+      },
+      {
+        "name": "office_chairs03_FrontColor_0",
+        "triangles": 34
+      },
+      {
+        "name": "office_chairs03_Color_007_0",
+        "triangles": 246
+      },
+      {
+        "name": "office_chairs004__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs005__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs006_Color_007_0",
+        "triangles": 4041
+      },
+      {
+        "name": "office_chairs006_Color_002_0",
+        "triangles": 9602
+      },
+      {
+        "name": "office_chairs006_Color_003_0",
+        "triangles": 831
+      },
+      {
+        "name": "office_chairs006_Color_000_0",
+        "triangles": 11
+      },
+      {
+        "name": "office_chairs006_Color_001_0",
+        "triangles": 650
+      },
+      {
+        "name": "office_chairs006_FrontColor_0",
+        "triangles": 152
+      },
+      {
+        "name": "office_chairs007_Color_007_0",
+        "triangles": 4041
+      },
+      {
+        "name": "office_chairs007_Color_002_0",
+        "triangles": 9602
+      },
+      {
+        "name": "office_chairs007_Color_003_0",
+        "triangles": 831
+      },
+      {
+        "name": "office_chairs007_Color_000_0",
+        "triangles": 11
+      },
+      {
+        "name": "office_chairs007_Color_001_0",
+        "triangles": 650
+      },
+      {
+        "name": "office_chairs007_FrontColor_0",
+        "triangles": 152
+      },
+      {
+        "name": "office_chairs012__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs013__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs017__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs018__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs019__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs023__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs024__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs025__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs029__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs030__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs031__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs035__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs036__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs037__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs041__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs042__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs043__0",
+        "triangles": 29194
+      }
+    ],
+    "license": "CC BY 4.0",
+    "url": "/assets/campus/optimized/buildings/office.gltf",
+    "triangles": 19330,
+    "bounds": {
+      "min": [
+        -23.355974197387695,
+        0,
+        -8.073244261257827
+      ],
+      "max": [
+        23.355974197387695,
+        32.000000000000014,
+        8.073244094848633
+      ]
+    },
+    "primitives": 8,
+    "geometryBytes": 827004,
+    "resourceBytes": 3189182,
+    "sha256": "0bc7d1ac0bdce342c5341fd54a9ea23d583329312c84dfba589b0ce97d85a29f"
+  },
+  {
+    "id": "dispatch",
+    "lod": "exterior",
+    "source": "buildings/glass-office/dispatch-centre.glb",
+    "sourceTriangles": 267859,
+    "removedInterior": [
+      {
+        "name": "low-office_chairs029__0",
+        "triangles": 28847
+      },
+      {
+        "name": "low-office_chairs030__0",
+        "triangles": 28847
+      },
+      {
+        "name": "low-office_chairs031__0",
+        "triangles": 28847
+      },
+      {
+        "name": "low-office_chairs035__0",
+        "triangles": 29194
+      },
+      {
+        "name": "low-office_chairs036__0",
+        "triangles": 29194
+      },
+      {
+        "name": "low-office_chairs037__0",
+        "triangles": 29194
+      },
+      {
+        "name": "low-office_chairs041__0",
+        "triangles": 29194
+      },
+      {
+        "name": "low-office_chairs042__0",
+        "triangles": 29194
+      },
+      {
+        "name": "low-office_chairs043__0",
+        "triangles": 29194
+      }
+    ],
+    "license": "CC BY 4.0",
+    "url": "/assets/campus/optimized/buildings/dispatch.gltf",
+    "triangles": 6154,
+    "bounds": {
+      "min": [
+        -23.35592269897461,
+        0,
+        -8.073244094848633
+      ],
+      "max": [
+        23.355974197387695,
+        9.800000190734863,
+        8.073244094848633
+      ]
+    },
+    "primitives": 6,
+    "geometryBytes": 267416,
+    "resourceBytes": 2616715,
+    "sha256": "3b07b4b43497f344661e360cf09c527725f13506ebc7a81c73fcd14a0063c571"
+  },
+  {
+    "id": "matrice-300",
+    "lod": "near",
+    "source": "drones/matrice-300/flight-ready.glb",
+    "sourceTriangles": 888380,
+    "sourceBounds": {
+      "min": [
+        -5.126540420600772,
+        4.091434478759766,
+        -5.1312286012649535
+      ],
+      "max": [
+        5.185753555992246,
+        8.980088233947754,
+        5.904859860801697
+      ]
+    },
+    "errorLimit": 0.004,
+    "maxRelativeError": 0.003999454900622368,
+    "materialSimplified": false,
+    "license": "CC BY 4.0",
+    "url": "/assets/campus/optimized/devices/matrice-300-near.gltf",
+    "triangles": 140387,
+    "bounds": {
+      "min": [
+        -5.126540420600772,
+        4.091434478759766,
+        -5.1312286012649535
+      ],
+      "max": [
+        5.185753555992246,
+        8.980088233947754,
+        5.904859860801697
+      ]
+    },
+    "primitives": 34,
+    "geometryBytes": 4644420,
+    "resourceBytes": 4672893,
+    "sha256": "9f88ea33b06863bebb9e1c0040bab7583e2226f9a175d057242be3f9ea85a811"
+  },
+  {
+    "id": "matrice-300",
+    "lod": "medium",
+    "source": "drones/matrice-300/flight-ready.glb",
+    "sourceTriangles": 888380,
+    "sourceBounds": {
+      "min": [
+        -5.126540420600772,
+        4.091434478759766,
+        -5.1312286012649535
+      ],
+      "max": [
+        5.185753555992246,
+        8.980088233947754,
+        5.904859860801697
+      ]
+    },
+    "errorLimit": 0.008,
+    "maxRelativeError": 0.007992910221219063,
+    "materialSimplified": false,
+    "license": "CC BY 4.0",
+    "url": "/assets/campus/optimized/devices/matrice-300-medium.gltf",
+    "triangles": 43389,
+    "bounds": {
+      "min": [
+        -5.126540420600772,
+        4.091434478759766,
+        -5.1312286012649535
+      ],
+      "max": [
+        5.185753555992246,
+        8.980088233947754,
+        5.904859860801697
+      ]
+    },
+    "primitives": 34,
+    "geometryBytes": 1286396,
+    "resourceBytes": 1314816,
+    "sha256": "7cbfe4f0a5797062756f4b6410f564831a3b646009f9fc98ff7898d05546480b"
+  },
+  {
+    "id": "matrice-300",
+    "lod": "far",
+    "source": "drones/matrice-300/flight-ready.glb",
+    "sourceTriangles": 888380,
+    "sourceBounds": {
+      "min": [
+        -5.126540420600772,
+        4.091434478759766,
+        -5.1312286012649535
+      ],
+      "max": [
+        5.185753555992246,
+        8.980088233947754,
+        5.904859860801697
+      ]
+    },
+    "errorLimit": 0.016,
+    "maxRelativeError": 0.015980510041117668,
+    "materialSimplified": true,
+    "license": "CC BY 4.0",
+    "url": "/assets/campus/optimized/devices/matrice-300-far.gltf",
+    "triangles": 19584,
+    "bounds": {
+      "min": [
+        -5.126540420600772,
+        4.091434478759766,
+        -5.1312286012649535
+      ],
+      "max": [
+        5.185753555992246,
+        8.980088233947754,
+        5.904859860801697
+      ]
+    },
+    "primitives": 22,
+    "geometryBytes": 626316,
+    "resourceBytes": 644889,
+    "sha256": "e127e68b999c0de2f9d406224866722ce199e27e83e385f5be9686c559d1922a"
+  },
+  {
+    "id": "mother",
+    "lod": "near",
+    "source": "vehicles/mother-carrier-original.glb",
+    "sourceTriangles": 87996,
+    "sourceBounds": {
+      "min": [
+        -1.175000006556511,
+        0,
+        -2.0855000019073486
+      ],
+      "max": [
+        1.175000006556511,
+        1.8329947583675383,
+        2.0855000019073486
+      ]
+    },
+    "errorLimit": 0,
+    "maxRelativeError": 0,
+    "materialSimplified": false,
+    "license": "ISC",
+    "url": "/assets/campus/optimized/devices/mother-near.gltf",
+    "triangles": 87996,
+    "bounds": {
+      "min": [
+        -1.175000006556511,
+        0,
+        -2.0855000019073486
+      ],
+      "max": [
+        1.175000006556511,
+        1.8329947583675383,
+        2.0855000019073486
+      ]
+    },
+    "primitives": 24,
+    "geometryBytes": 3669768,
+    "resourceBytes": 3683070,
+    "sha256": "1542a0c14893fe6316b41cef8c71da9a5e48e0eae300832f8f1ab6dca84e5d8a"
+  },
+  {
+    "id": "mother",
+    "lod": "medium",
+    "source": "vehicles/mother-carrier-original.glb",
+    "sourceTriangles": 87996,
+    "sourceBounds": {
+      "min": [
+        -1.175000006556511,
+        0,
+        -2.0855000019073486
+      ],
+      "max": [
+        1.175000006556511,
+        1.8329947583675383,
+        2.0855000019073486
+      ]
+    },
+    "errorLimit": 0.005,
+    "maxRelativeError": 0.004988158121705055,
+    "materialSimplified": false,
+    "license": "ISC",
+    "url": "/assets/campus/optimized/devices/mother-medium.gltf",
+    "triangles": 31407,
+    "bounds": {
+      "min": [
+        -1.175000006556511,
+        0,
+        -2.0855000019073486
+      ],
+      "max": [
+        1.175000006556511,
+        1.8329947583675383,
+        2.0855000019073486
+      ]
+    },
+    "primitives": 24,
+    "geometryBytes": 802544,
+    "resourceBytes": 816115,
+    "sha256": "fe062bc8abe3cc191e86fe52eead97d4a79a8e7f080e7fc6080fecdc991ae2db"
+  }
+]

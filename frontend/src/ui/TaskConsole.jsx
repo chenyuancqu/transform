@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { businessToWorld } from '../rendering/CoordinateSystem.js';
 
-const PHASE = { idle: '待命', cruising: '前往取件', approaching: '减速对准', aligning: '稳定悬停', picking: '装载包裹', returning: '携货返航', unloading: '母车回收' };
+const PHASE = { idle: '待命', takingOff:'起飞爬升',cruising: '前往取件', approaching: '减速对准', aligning: '稳定悬停', picking: '装载包裹', returning: '携货返航', waitingDock:'排队返航', unloading: '母车回收',clearingBay:'吊具回收',parking:'离舱归位' };
 const ORDER = { waiting: '待分配', enroute: '前往取件', approaching: '减速对准', aligning: '稳定悬停', picking: '装载中', collected: '返航中', delivered: '已回收' };
 const format = (value, digits = 0) => Number.isFinite(value) ? value.toFixed(digits) : '—';
 const PRESETS = [
@@ -14,37 +14,42 @@ export function TaskConsole({ simulation: sim, focus }) {
   const { snapshot: state, online } = sim;
   const [text, setText] = useState('');
   const [diagnostics, setDiagnostics] = useState(false);
+  const [dispatchOpen,setDispatchOpen]=useState(false);
+  const [parcelsOpen,setParcelsOpen]=useState(false);
   const [speedDraft, setSpeedDraft] = useState(null);
   const busy = Object.keys(sim.pending).length > 0;
   const stats = state.stats;
+  const finished=stats.deliveredOrders===8&&state.uavs.every(u=>u.phase==='idle')&&!(state.docking?.hatchProgress>0);
   const initialNotice = sim.message.startsWith('后端已就绪') || sim.message === '等待本机后端连接';
-  const statusText = stats.deliveredOrders === 8 ? '任务完成 · 8/8 包裹已回收至母车'
+  const statusText = finished ? '任务完成 · 8/8 包裹已回收至母车'
+    : stats.deliveredOrders===8 ? (sim.running?'全部包裹已回收 · 正在离舱归位与关舱':'已暂停 · 待完成离舱归位与关舱')
     : initialNotice && stats.stepCount > 0 && sim.running ? '任务执行中 · 后端推理与遥测正常'
-    : !sim.running && stats.stepCount > 0 ? (state.events.at(-1)?.text?.startsWith('本次调度范围') ? state.events.at(-1).text : sim.message)
+    : !sim.running && stats.stepCount > 0 ? (state.events.at(-1)?.text?.startsWith('本次调度范围') ? state.events.at(-1).text : '任务已暂停 · 位置与装卸动作保持')
     : sim.message;
-  const locate = p => { const world = businessToWorld(p.x, p.y, p.z); focus([world.x, world.y, world.z]); };
+  const locate = p => { const world = businessToWorld(p.x, p.y, p.z); focus([world.x, world.y, world.z],p.phase?'device-uav-'+p.id:p===state.rover?'device-rover':undefined); };
   const stages = [
     { title: '任务准备', value: `${state.orders.length || '—'} 个包裹`, done: state.orders.length > 0 },
-    { title: '设备执行', value: sim.running ? '运行中' : stats.deliveredOrders === 8 ? '已结束' : '待命 / 暂停', done: sim.running || stats.stepCount > 0 },
+    { title: '设备执行', value: sim.running ? '运行中' : finished ? '已结束' : '待命 / 暂停', done: sim.running || stats.stepCount > 0 },
     { title: '包裹装载', value: `${stats.completedOrders ?? '—'} / 8`, done: stats.completedOrders > 0 },
     { title: '母车回收', value: `${stats.deliveredOrders ?? '—'} / 8`, done: stats.deliveredOrders > 0 }
   ];
-  return <div className="task-console">
+  return <div className={`task-console ${dispatchOpen?'dispatch-open':''}`}>
     <header className="console-header">
-      <div className="console-brand"><i>◈</i><div><strong>空地协同 · 任务演示台</strong><small>SMART CAMPUS / DIGITAL TWIN</small></div></div>
-      <div className="header-tags"><span>园区取件演示</span><span>后端 ONNX 调度</span></div>
+      <div className="console-brand"><i>◈</i><div><strong>NEXUS · 智慧园区</strong><small>AIR + GROUND / CAMPUS LOGISTICS</small></div></div>
+      <div className="header-tags"><span>园区取件演示</span><span>空地协同配送</span></div>
+      <button className="dispatch-toggle" aria-expanded={dispatchOpen} onClick={()=>setDispatchOpen(!dispatchOpen)}>{dispatchOpen?'收起调度台':'打开调度台'} ↗</button>
       <div className={`connection-chip ${online ? 'connected' : ''}`}><i />{online ? '后端已连接' : sim.connection === 'connecting' ? '正在连接' : '后端离线'}</div>
     </header>
     <aside className="fleet-panel console-card">
       <div className="section-title"><h2>任务与设备</h2><span>{online ? 'LIVE' : 'OFFLINE'}</span></div>
       <div className="mission-summary"><strong>{format(stats.deliveredOrders)}<small> / 8</small></strong><span>已回收至母车</span><progress max="8" value={stats.deliveredOrders || 0} /></div>
-      <div className="task-buttons"><button className="primary" disabled={!online || busy || sim.running || stats.deliveredOrders === 8} onClick={sim.start}>{stats.stepCount > 0 ? '继续任务' : '开始任务'}</button><button disabled={!online || busy || !sim.running} onClick={sim.pause}>暂停</button><button disabled={!online || busy} onClick={sim.reset}>重置</button></div>
+      <div className="task-buttons"><button className="primary" disabled={!online || busy || sim.running || finished} onClick={sim.start}>{stats.stepCount > 0 ? '继续任务' : '开始任务'}</button><button disabled={!online || busy || !sim.running} onClick={sim.pause}>暂停</button><button disabled={!online || busy} onClick={sim.reset}>重置</button></div>
       <label className="speed-control">演示速度 <b>{format(speedDraft ?? sim.speed, 1)}×</b><input aria-label="演示速度" type="range" min="0.3" max="2" step="0.1" value={speedDraft ?? sim.speed} disabled={!online || busy} onChange={e => setSpeedDraft(Number(e.target.value))} onPointerUp={e => { sim.setSpeed(Number(e.target.value)); setSpeedDraft(null); }} onKeyUp={e => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) { sim.setSpeed(Number(e.target.value)); setSpeedDraft(null); } }} /></label>
-      <div className="fleet-list"><button className="fleet-device" disabled={!state.orders.length} onClick={() => locate(state.rover)}><i>▰</i><span><strong>移动母车</strong><small>{sim.running ? '协同巡航 / 等待回收' : '待命'} · MEC</small></span><b>定位 ↗</b></button>
+      <div className="fleet-list"><button className="fleet-device" disabled={!state.orders.length} onClick={() => locate(state.rover)}><i>▰</i><span><strong>移动母车</strong><small>{state.docking?.owner!=null?'单舱接货 / 排队中':sim.running ? '协同巡航 / 等待回收' : '待命'} · MEC</small></span><b>定位 ↗</b></button>
         {state.uavs.map(u => <button className="fleet-device" key={u.id} onClick={() => locate(u)}><i>✣</i><span><strong>UAV {u.id}<em>{format(u.battery * 100)}%</em></strong><small>{PHASE[u.phase]}{u.targetOrderId ? ` · 包裹 ${u.targetOrderId}` : u.cargoOrderId ? ` · 携货 ${u.cargoOrderId}` : ''}</small><progress max="100" value={u.battery * 100} /></span><b>↗</b></button>)}
       </div>
-      <div className="section-title order-heading"><h2>包裹清单</h2><span>点击定位</span></div>
-      <div className="parcel-list">{state.orders.map(o => <button key={o.id} onClick={() => locate(o)} className={o.status === 'delivered' ? 'delivered' : o.status === 'picking' ? 'picking' : ''}><b>{String(o.id).padStart(2, '0')}</b><span>{o.area} 区<small>{o.reservedBy ? `UAV ${o.reservedBy}` : '等待分配'}</small></span><em>{ORDER[o.status]}</em></button>)}</div>
+      <div className="section-title order-heading"><h2>包裹清单</h2><button className="parcel-toggle" aria-expanded={parcelsOpen} onClick={()=>setParcelsOpen(!parcelsOpen)}>{parcelsOpen?'收起':'展开'} · {state.orders.length}</button></div>
+      <div className="parcel-list" style={{display:parcelsOpen?'block':'none'}}>{state.orders.map(o => <button key={o.id} onClick={() => locate(o)} className={o.status === 'delivered' ? 'delivered' : o.status === 'picking' ? 'picking' : ''}><b>{String(o.id).padStart(2, '0')}</b><span>{o.area} 区<small>{o.reservedBy ? `UAV ${o.reservedBy}` : '等待分配'}</small></span><em>{ORDER[o.status]}</em></button>)}</div>
       {!state.orders.length && <p className="empty-state">等待后端下发设备与包裹数据</p>}
     </aside>
     <aside className="dispatch-panel console-card">

@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "epoch": "3d46901ca044405bbb47413896012900",
+  "seq": 65,
+  "timestamp": 1791961521408.406,
+  "coordinate_system": "campus_meters_xy_height",
+  "running": false,
+  "speed": 2,
+  "elapsedSeconds": 14.90600000001723,
+  "rover": {
+    "heading": -1.5707963267948966,
+    "position": [
+      -19.734399022975282,
+      30,
+      0
+    ]
+  },
+  "uavs": [
+    {
+      "id": 1,
+      "battery": 0.9140038461537463,
+      "phase": "picking",
+      "targetOrderId": 3,
+      "cargoOrderId": null,
+      "pickupProgress": 0.35399999999208376,
+      "unloadProgress": 0,
+      "enabled": true,
+      "preferredArea": null,
+      "energyLimit": null,
+      "missionEnergy": 8.599615384625327,
+      "retractProgress": 0,
+      "position": [
+        -40,
+        40,
+        1.55
+      ]
+    },
+    {
+      "id": 2,
+      "battery": 0.9140038461537463,
+      "phase": "picking",
+      "targetOrderId": 4,
+      "cargoOrderId": null,
+      "pickupProgress": 0.4793333333218471,
+      "unloadProgress": 0,
+      "enabled": true,
+      "preferredArea": null,
+      "energyLimit": null,
+      "missionEnergy": 8.599615384625327,
+      "retractProgress": 0,
+      "position": [
+        40,
+        40,
+        1.55
+      ]
+    },
+    {
+      "id": 3,
+      "battery": 0.9140038461537463,
+      "phase": "approaching",
+      "targetOrderId": 5,
+      "cargoOrderId": null,
+      "pickupProgress": 0,
+      "unloadProgress": 0,
+      "enabled": true,
+      "preferredArea": null,
+      "energyLimit": null,
+      "missionEnergy": 8.599615384625327,
+      "retractProgress": 0,
+      "position": [
+        -69.71257715289454,
+        -0.15756489619802494,
+        1.55
+      ]
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "area": "A",
+      "completed": false,
+      "status": "waiting",
+      "reservedBy": null,
+      "deliveredAt": null,
+      "position": [
+        -60,
+        -40,
+        0.6
+      ]
+    },
+    {
+      "id": 2,
+      "area": "A",
+      "completed": false,
+      "status": "waiting",
+      "reservedBy": null,
+      "deliveredAt": null,
+      "position": [
+        60,
+        -40,
+        0.6
+      ]
+    },
+    {
+      "id": 3,
+      "area": "B",
+      "completed": false,
+      "status": "picking",
+      "reservedBy": 1,
+      "deliveredAt": null,
+      "position": [
+        -40,
+        40,
+        0.6
+      ]
+    },
+    {
+      "id": 4,
+      "area": "B",
+      "completed": false,
+      "status": "picking",
+      "reservedBy": 2,
+      "deliveredAt": null,
+      "position": [
+        40,
+        40,
+        0.6
+      ]
+    },
+    {
+      "id": 5,
+      "area": "C",
+      "completed": false,
+      "status": "approaching",
+      "reservedBy": 3,
+      "deliveredAt": null,
+      "position": [
+        -70,
+        0,
+        0.6
+      ]
+    },
+    {
+      "id": 6,
+      "area": "C",
+      "completed": false,
+      "status": "waiting",
+      "reservedBy": null,
+      "deliveredAt": null,
+      "position": [
+        70,
+        0,
+        0.6
+      ]
+    },
+    {
+      "id": 7,
+      "area": "A",
+      "completed": false,
+      "status": "waiting",
+      "reservedBy": null,
+      "deliveredAt": null,
+      "position": [
+        0,
+        -60,
+        0.6
+      ]
+    },
+    {
+      "id": 8,
+      "area": "B",
+      "completed": false,
+      "status": "waiting",
+      "reservedBy": null,
+      "deliveredAt": null,
+      "position": [
+        0,
+        60,
+        0.6
+      ]
+    }
+  ],
+  "stats": {
+    "stepCount": 126,
+    "completedOrders": 0,
+    "deliveredOrders": 0,
+    "uavDistanceMeters": 183.51348364013464,
+    "roverDistanceMeters": 39.56724689525207,
+    "energyConsumed": 25.798846153876074,
+    "averageDelaySeconds": null
+  },
+  "health": {
+    "online": true,
+    "modelsLoaded": 4,
+    "inferenceCount": 570,
+    "inferenceMs": 0.3063999756705016,
+    "agentConfigured": true,
+    "agentReady": true,
+    "agentVerified": false,
+    "agentLastError": "AI 接口响应超时，请稍后重试",
+    "agentStatus": "ready",
+    "agentModel": "gemini-3.8-flash-high",
+    "agentMessage": "AI 接口已就绪",
+    "agentProvider": "local_gateway",
+    "inferenceLocation": "local_mec",
+    "error": null
+  },
+  "docking": {
+    "owner": null,
+    "queue": [],
+    "hatchProgress": 0,
+    "stage": "closed"
+  },
+  "events": [
+    {
+      "time": 0,
+      "text": "UAV 1 分配包裹 3 · B区"
+    },
+    {
+      "time": 0,
+      "text": "UAV 2 分配包裹 4 · B区"
+    },
+    {
+      "time": 0,
+      "text": "UAV 3 分配包裹 5 · C区"
+    },
+    {
+      "time": 13.5,
+      "text": "UAV 2 悬停确认 · 装载包裹 4"
+    },
+    {
+      "time": 13.8,
+      "text": "UAV 1 悬停确认 · 装载包裹 3"
+    }
+  ],
+  "lastCommand": null
+}

@@ -11,7 +11,8 @@
     "demo:stop": "powershell -ExecutionPolicy Bypass -File scripts/start-demo.ps1 -Stop",
     "test:backend": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v",
     "test:integration": "node tests/mqtt-integration.mjs",
-    "test:frontend": "node --test tests/telemetry.test.js tests/pickup.test.js"
+    "test:assets": "node --test tests/optimized-assets.test.mjs",
+    "assets:optimize": "node scripts/optimize-campus-assets.mjs office dispatch matrice-300 mother && node scripts/prepare-rounded-nature.mjs"
   },
   "keywords": [
     "multi-agent",
@@ -33,5 +34,11 @@
     "three": "^0.186.1",
     "vite": "^6.0.1",
     "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
+    "meshoptimizer": "^1.3.0"
   }
 }

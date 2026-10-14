@@ -22,8 +22,17 @@ def pickup(order):
 
 
 def dock(rover, uav):
-    dx, dy = [(-.82, -.68), (.82, -.68), (0, .78)][uav['id'] - 1]
-    return dict(x=rover['x'] + dx / 200, y=rover['y'] + dy / 200, z=2.35 / 50)
+    heading = rover.get('heading', 0)
+    return dict(x=rover['x'] - .15 * math.sin(heading) / 200,
+                y=rover['y'] - .15 * math.cos(heading) / 200, z=2.63 / 50)
+
+
+def stand(rover, uav, waiting=False):
+    dx, dy = [(-5.5, 3), (5.5, 3), (0, -6.5)][uav['id'] - 1]
+    heading = rover.get('heading', 0)
+    return dict(x=rover['x'] + (dx * math.cos(heading) + dy * math.sin(heading)) / 200,
+                y=rover['y'] + (dy * math.cos(heading) - dx * math.sin(heading)) / 200,
+                z=(4.6 if waiting else .37) / 50)
 
 
 def move(p, goal, dt, speed):
@@ -51,10 +60,11 @@ class Mission:
         self.running = False
         self.speed = .7
         self.elapsed = 0
-        self.rover = dict(x=.5, y=.5, z=0)
+        self.rover = dict(x=.5, y=.5, z=0, heading=0)
+        self.docking = dict(owner=None, queue=[], hatchProgress=0., stage='closed')
         self.uavs = [dict(id=i + 1, x=x, y=.5, z=.05, battery=1., phase='idle', targetOrderId=None,
                           cargoOrderId=None, stableElapsed=0., pickupProgress=0., unloadProgress=0.,
-                          enabled=True, preferredArea=None, energyLimit=None, missionEnergy=0.)
+                          enabled=True, preferredArea=None, energyLimit=None, missionEnergy=0.,retractProgress=0.)
                      for i, x in enumerate([.5, .55, .45])]
         points = [(.2, .3), (.8, .3), (.3, .7), (.7, .7), (.15, .5), (.85, .5), (.5, .2), (.5, .8)]
         self.orders = [dict(id=i + 1, x=x, y=y, z=.012, area=('A' if y < .4 else 'B' if y > .6 else 'C'),
@@ -72,7 +82,7 @@ class Mission:
 
     def assign(self):
         for u in self.uavs:
-            if not u['enabled'] or u['cargoOrderId'] is not None or u['targetOrderId'] is not None:
+            if not u['enabled'] or u['phase'] != 'idle' or u['cargoOrderId'] is not None or u['targetOrderId'] is not None:
                 continue
             choices = [o for o in self.orders if not o['completed'] and o['reservedBy'] is None]
             if u['preferredArea']:
@@ -86,7 +96,7 @@ class Mission:
             if u['energyLimit'] is not None and u['missionEnergy'] + estimated > u['energyLimit']:
                 continue
             order.update(reservedBy=u['id'], status='enroute')
-            u.update(targetOrderId=order['id'], phase='cruising', stableElapsed=0., pickupProgress=0.)
+            u.update(targetOrderId=order['id'], phase='takingOff' if u['z']<.05 else 'cruising', stableElapsed=0., pickupProgress=0.)
             self.event(f"UAV {u['id']} 分配包裹 {order['id']} · {order['area']}区")
 
     def observations(self):
@@ -110,15 +120,33 @@ class Mission:
         self.assign()
         r = self.rover
         old_rover = r.copy()
-        docking = any(u['phase'] == 'unloading' or (u['phase'] == 'returning' and distance(u, dock(r, u)) <= 6) for u in self.uavs)
+        active = [u for u in self.uavs if (u['cargoOrderId'] is not None and u['phase'] in ['returning', 'waitingDock', 'unloading'])
+                  or u['phase']=='clearingBay' or (u['phase']=='parking' and distance(u,dock(r,u))<=2)]
+        ids = {u['id'] for u in active}
+        self.docking['queue'] = [i for i in self.docking['queue'] if i in ids]
+        for u in sorted(active, key=lambda u: distance(u, dock(r, u))):
+            if u['id'] not in self.docking['queue']:
+                self.docking['queue'].append(u['id'])
+        self.docking['owner'] = self.docking['queue'][0] if self.docking['queue'] else None
+        owner = next((u for u in active if u['id'] == self.docking['owner']), None)
+        open_bay = owner is not None and (owner['phase'] in ['unloading','clearingBay'] or distance(owner, dock(r, owner)) <= 8)
+        self.docking['hatchProgress'] = min(1., self.docking['hatchProgress'] + dt) if open_bay else max(0., self.docking['hatchProgress'] - dt)
+        self.docking['stage'] = 'open' if self.docking['hatchProgress'] == 1 else 'closed' if self.docking['hatchProgress'] == 0 else 'opening' if open_bay else 'closing'
+        docking = self.docking['hatchProgress'] > 0 or any(u['phase'] == 'parking' or
+                  (u['phase'] in ['returning', 'waitingDock'] and distance(u, dock(r, u)) <= 8) for u in self.uavs)
         if not docking:
             a = actions.get('mother', [0, 0])
             for k, value in zip(['x', 'y'], a):
                 r[k] = max(.35, min(.65, r[k] + value * .0075 * dt / .52))
+        if distance(r, old_rover) > .0001:
+            r['heading'] = math.atan2(r['x'] - old_rover['x'], r['y'] - old_rover['y'])
         self.stats['roverDistanceMeters'] += distance(r, old_rover)
         for u in self.uavs:
             before = u.copy()
             order = next((o for o in self.orders if o['id'] == u['targetOrderId'] and not o['completed']), None)
+            if order and u['phase']=='takingOff':
+                move(u,dict(x=u['x'],y=u['y'],z=.05),dt,0)
+                if abs(u['z']-.05)*50<=.005:u.update(z=.05,phase='cruising')
             if order and u['phase'] in ['cruising', 'approaching']:
                 goal = pickup(order)
                 dist = distance(u, goal)
@@ -154,10 +182,12 @@ class Mission:
                 elif u['phase'] in ['aligning', 'picking']:
                     u.update(phase='approaching', stableElapsed=0., pickupProgress=0.)
                     order['status'] = 'approaching'
-            if u['phase'] == 'returning':
-                goal = dock(r, u)
+            if u['phase'] in ['returning', 'waitingDock']:
+                owns_bay = u['id'] == self.docking['owner']
+                u['phase'] = 'returning' if owns_bay else 'waitingDock'
+                goal = dock(r, u) if owns_bay else stand(r, u, waiting=True)
                 move(u, goal, dt, 3.5 if self.energy_mode else 5)
-                if distance(u, goal) <= .08:
+                if owns_bay and distance(u, goal) <= .08 and self.docking['hatchProgress'] >= 1:
                     u.update(goal)
                     u.update(phase='unloading', unloadProgress=0.)
                     self.event(f"UAV {u['id']} 到达母车 · 包裹入舱")
@@ -168,10 +198,17 @@ class Mission:
                     delivered = next(o for o in self.orders if o['id'] == u['cargoOrderId'])
                     delivered.update(status='delivered', deliveredAt=self.elapsed)
                     self.stats['deliveredOrders'] += 1
-                    u.update(cargoOrderId=None, phase='idle', pickupProgress=0., stableElapsed=0.)
+                    u.update(cargoOrderId=None, phase='clearingBay', pickupProgress=0., stableElapsed=0.,retractProgress=0.)
                     self.event(f"包裹 {delivered['id']} 已回收至母车")
-            elif u['phase'] == 'idle' and u['unloadProgress'] >= 1:
-                move(u, dock(r, u), dt, 5)
+            elif u['phase']=='clearingBay':
+                u.update(dock(r,u))
+                u['retractProgress']=min(1.,u['retractProgress']+dt/.65)
+                if u['retractProgress']>=1:u['phase']='parking'
+            elif u['phase'] == 'parking':
+                goal = stand(r, u)
+                move(u, goal, dt, 5)
+                if distance(u, goal) <= .04:
+                    u.update(goal, phase='idle')
             travelled = distance(u, before)
             self.stats['uavDistanceMeters'] += travelled
             if u['phase'] != 'idle':
@@ -180,12 +217,12 @@ class Mission:
                 u['battery'] -= used
                 u['missionEnergy'] += used * 100
                 self.stats['energyConsumed'] += used * 100
-            if u['phase'] == 'idle' and distance(u, dock(r, u)) <= .2:
+            if u['phase'] == 'idle' and distance(u, stand(r, u)) <= .2:
                 u['battery'] = min(1, u['battery'] + dt * .05)
         delays = [o['deliveredAt'] for o in self.orders if o['deliveredAt'] is not None]
         self.stats['averageDelaySeconds'] = sum(delays) / len(delays) if delays else None
         self.stats['stepCount'] += 1
-        if self.stats['deliveredOrders'] == len(self.orders):
+        if self.stats['deliveredOrders'] == len(self.orders) and all(u['phase'] == 'idle' for u in self.uavs) and self.docking['hatchProgress'] == 0:
             self.running = False
             self.event('全部包裹已回收 · 任务完成')
         elif all(u['phase'] == 'idle' for u in self.uavs):
@@ -198,7 +235,7 @@ class Mission:
     def control(self, command):
         action = command.get('action')
         if action == 'start':
-            if self.stats['deliveredOrders'] == len(self.orders):
+            if self.stats['deliveredOrders'] == len(self.orders) and all(u['phase'] == 'idle' for u in self.uavs) and self.docking['hatchProgress'] == 0:
                 raise ValueError('任务已完成，请先重置')
             self.running = True
         elif action == 'pause':
@@ -259,4 +296,5 @@ class Mission:
                     coordinate_system='campus_meters_xy_height', running=self.running, speed=self.speed,
                     elapsedSeconds=self.elapsed, rover=pose(self.rover), uavs=[pose(u) for u in self.uavs],
                     orders=[pose(o) for o in self.orders], stats=self.stats.copy(), health=health,
+                    docking=copy.deepcopy(self.docking),
                     events=copy.deepcopy(self.events), lastCommand=self.last_command)

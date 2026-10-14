@@ -1,10 +1,10 @@
 node_modules/
 dist/
+.playwright-cli/
 .venv/
 __pycache__/
-.playwright-cli/
-output/
+output/checkpoints/
+output/downloads/
+output/backend/
 .env
-.env.*
-!.env.example
-*.log
+asset-inbox/

@@ -1,0 +1,31 @@
+{
+  "name": "Mother Carrier",
+  "original": true,
+  "license": "ISC",
+  "units": "metres",
+  "dimensions": {
+    "width": 2.350000013113022,
+    "height": 1.8329947583675383,
+    "length": 4.171000003814697
+  },
+  "bottom": 0,
+  "bytes": 8470704,
+  "meshes": 24,
+  "triangles": 87996,
+  "pivots": [
+    "steering_fl",
+    "steering_fr",
+    "wheel_fl",
+    "wheel_fr",
+    "wheel_rl",
+    "wheel_rr",
+    "roof_hatch_pivot"
+  ],
+  "stage": "user-approved exterior; real receiving opening and cargo bay added",
+  "bay": {
+    "openingWidth": 1.13,
+    "openingLength": 1.25,
+    "conveyorTop": 1.089,
+    "hatchOpenRadians": 1.8849555921538759
+  }
+}

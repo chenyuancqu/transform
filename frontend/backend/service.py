@@ -69,12 +69,19 @@ class Service:
     def publish(self, topic, data, retain=False):
         self.client.publish(topic, json.dumps(data, ensure_ascii=False, allow_nan=False), qos=1, retain=retain)
 
+    def publish_backend_status(self):
+        # An old connection's retained will can arrive after a replacement connects.
+        # A live service periodically restores its own status; telemetry expiry and
+        # the offline will continue to freeze the frontend when the service stops.
+        self.publish('simulation/backend/status', dict(self.health(),
+                     timestamp=time.time() * 1000, epoch=self.mission.epoch), True)
+
     def on_connect(self, client, userdata, flags, reason, properties):
         if reason.is_failure:
             return
         self.connected = True
         client.subscribe([('simulation/control', 1), ('simulation/command/agent', 1), ('simulation/command/input', 1)])
-        self.publish('simulation/backend/status', {'online': True, 'modelsLoaded': 4, **self.agent.health()}, True)
+        self.publish_backend_status()
         print('MEC connected: 4 ONNX models loaded; AI configured:', self.agent.configured, flush=True)
 
     def on_disconnect(self, client, userdata, flags, reason, properties):
@@ -180,7 +187,7 @@ class Service:
         threading.Thread(target=self.agent_worker, daemon=True).start()
         actions = {name: [0] * (2 if name == 'mother' else 3) for name in AGENTS}
         previous = time.monotonic()
-        last_inference = last_publish = 0
+        last_inference = last_publish = last_status = 0
         action_epoch = None
         try:
             while not self.stop.wait(.05):
@@ -191,6 +198,9 @@ class Service:
                     self.mission.running = False
                     continue
                 self.handle_commands()
+                if now - last_status >= 1:
+                    self.publish_backend_status()
+                    last_status = now
                 if self.mission.running and (now - last_inference >= .5 or action_epoch != self.mission.epoch):
                     self.mission.assign()
                     try:

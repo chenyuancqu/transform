@@ -1,0 +1,150 @@
+[
+  {
+    "id": "london-office",
+    "url": "/assets/campus/buildings/london-office/model.glb",
+    "author": "Pukka Films",
+    "source": "https://sketchfab.com/models/8d3ea98595b4403cbf21065e8f9b7bb7",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "downloaded": "2026-10-13",
+    "sha256": "a2c77d26cb882d34e4d57e2d237bc4f953618f6fe5977b0dcba67f66ebdc6456",
+    "bytes": 19294500,
+    "dimensionsNative": [
+      68.333003,
+      26.198188,
+      23.736233
+    ],
+    "stage": "downloaded; browser-preview-checked",
+    "inspectionNote": "本地发现模型是局部立面与周边铺装，屋顶、背面未形成完整楼体，G1不通过；仅保留作背景候选。"
+  },
+  {
+    "id": "glass-office",
+    "url": "/assets/campus/buildings/glass-office/model.glb",
+    "author": "Nikitos & 3130",
+    "source": "https://sketchfab.com/models/af9782245c134c21ae0c8df7f57077e6",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "downloaded": "2026-10-13",
+    "sha256": "0fa632d26d24691dd3f4732277418c57cc635fb2bfa853785cb19fa78363a812",
+    "bytes": 39554672,
+    "dimensionsNative": [
+      284.832066,
+      195.124084,
+      98.455274
+    ],
+    "stage": "daylight derivative integrated; G1 views checked; visual review pending",
+    "inspectionNote": "日光材质、实际入口开洞、背面玻璃与屋顶设施已完成；接入六栋研发楼。",
+    "daylightDerivative": {
+      "url": "/assets/campus/buildings/glass-office/daylight-ready.glb",
+      "file": "daylight-ready.glb",
+      "bytes": 40579992,
+      "dimensions": [
+        46.711948,
+        32.0,
+        16.146488
+      ],
+      "min": [
+        -23.355974,
+        0.0,
+        -8.073244
+      ],
+      "max": [
+        23.355974,
+        32.0,
+        8.073244
+      ],
+      "meshes": 60,
+      "triangles": 650371,
+      "materials": 14,
+      "images": 3,
+      "externalImages": [],
+      "animations": 0,
+      "sha256": "d346834390b58f6bea1eb6fef7216b06d47fd59a9bca0a23d4a300c7a028784f"
+    }
+  },
+  {
+    "id": "matrice-300",
+    "url": "/assets/campus/drones/matrice-300/model.glb",
+    "author": "19vitali99",
+    "source": "https://sketchfab.com/models/6677d02d66df4b73aad0d8e7bb9e3d9c",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "downloaded": "2026-10-13",
+    "sha256": "cda07e97ef64aca9daae5a6079d316a4fc84b7190dbf1572e6d392cee00f1cd4",
+    "bytes": 41862784,
+    "dimensionsNative": [
+      10.312294,
+      8.980088,
+      11.036089
+    ],
+    "stage": "integrated; real pickup and unloading inspected",
+    "inspectionNote": "四旋翼单独驱动；原创吊具与后端取件、返航、单舱卸货已接入。",
+    "flightReadyUrl": "/assets/campus/drones/matrice-300/flight-ready.glb",
+    "flightReadySha256": "18a9465c6aa7c26ef0451abe1c7964decedf06efe27a1f2346c909d6f18d35b9",
+    "flightReadyBytes": 42266676
+  },
+  {
+    "id": "dispatch-centre",
+    "url": "/assets/campus/buildings/glass-office/dispatch-centre.glb",
+    "author": "Nikitos & 3130 / original architectural accents",
+    "license": "CC BY 4.0 + ISC accents",
+    "source": "https://sketchfab.com/3d-models/office-building-af9782245c134c21ae0c8df7f57077e6",
+    "stage": "integrated; browser checked",
+    "sha256": "59270f5df03a4d55e76a1c0091d0576183215577af93c92f9b5a8b0d0d9f4aba",
+    "file": "dispatch-centre.glb",
+    "bytes": 72439356,
+    "dimensions": [
+      46.711897,
+      9.8,
+      16.146488
+    ],
+    "min": [
+      -23.355923,
+      0.0,
+      -8.073244
+    ],
+    "max": [
+      23.355974,
+      9.8,
+      8.073244
+    ],
+    "meshes": 21,
+    "triangles": 267859,
+    "materials": 14,
+    "images": 3,
+    "externalImages": [],
+    "animations": 0
+  },
+  {
+    "id": "mother-original",
+    "url": "/assets/campus/vehicles/mother-carrier-original.glb",
+    "author": "Digital Twin Logistics project",
+    "license": "ISC",
+    "source": "src/rendering/MotherVehicleAsset.js",
+    "stage": "integrated; browser checked",
+    "sha256": "b51bd4e53babdaf83a894c9358175a3a0443b0e1d4f8b4e29154375b18fc1bc7",
+    "file": "mother-carrier-original.glb",
+    "bytes": 8470704,
+    "dimensions": [
+      2.35,
+      1.832995,
+      4.171
+    ],
+    "min": [
+      -1.175,
+      0.0,
+      -2.0855
+    ],
+    "max": [
+      1.175,
+      1.832995,
+      2.0855
+    ],
+    "meshes": 24,
+    "triangles": 87996,
+    "materials": 9,
+    "images": 0,
+    "externalImages": [],
+    "animations": 0
+  }
+]

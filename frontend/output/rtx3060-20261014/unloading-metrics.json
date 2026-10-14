@@ -1,0 +1,91 @@
+{
+  "metrics": {
+    "frames": 2,
+    "averageMs": 1000.8499999940395,
+    "p95Ms": 1001.0999999940395,
+    "calls": 252,
+    "triangles": 458257,
+    "visibility": "visible",
+    "focused": true,
+    "viewport": [
+      1745,
+      981
+    ],
+    "memory": {
+      "geometries": 213,
+      "textures": 21
+    },
+    "groups": {
+      "ground": {
+        "meshes": 96,
+        "triangles": 9020
+      },
+      "buildings": {
+        "meshes": 24,
+        "triangles": 152108
+      },
+      "nature": {
+        "meshes": 6,
+        "triangles": 203600
+      },
+      "device-rover": {
+        "meshes": 24,
+        "triangles": 31407
+      },
+      "device-uav-1": {
+        "meshes": 33,
+        "triangles": 20708
+      },
+      "device-uav-2": {
+        "meshes": 33,
+        "triangles": 20708
+      },
+      "device-uav-3": {
+        "meshes": 33,
+        "triangles": 20708
+      }
+    }
+  },
+  "devices": [
+    {
+      "id": "device-rover",
+      "position": [
+        -26.868819081692337,
+        0,
+        30
+      ],
+      "yaw": -1.5707963267948966,
+      "hatch": 1.8849555921538759
+    },
+    {
+      "id": "device-uav-1",
+      "position": [
+        -29.86881908169235,
+        4.6,
+        24.500000000000014
+      ],
+      "yaw": 0,
+      "rotor": 0
+    },
+    {
+      "id": "device-uav-2",
+      "position": [
+        -26.718819081692345,
+        2.63,
+        30
+      ],
+      "yaw": 0,
+      "rotor": 0
+    },
+    {
+      "id": "device-uav-3",
+      "position": [
+        -24.12885749533325,
+        4.6,
+        27.72721200015573
+      ],
+      "yaw": 0,
+      "rotor": 0
+    }
+  ]
+}

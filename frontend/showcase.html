@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>样板场景展示 - Premium Showcase</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      background: #87CEEB;
+    }
+
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #info-panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      max-width: 320px;
+      z-index: 100;
+    }
+
+    #info-panel h1 {
+      font-size: 20px;
+      color: #2C3E50;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    #info-panel p {
+      font-size: 14px;
+      color: #5A6C7D;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    #info-panel .status {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #4CAF50;
+      color: white;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 8px;
+    }
+
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: white;
+      font-size: 18px;
+      z-index: 200;
+    }
+
+    #loading .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hide {
+      display: none !important;
+    }
+
+    #back-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #2C3E50;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+      z-index: 100;
+    }
+
+    #back-button:hover {
+      background: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div class="spinner"></div>
+    <div>加载样板场景...</div>
+  </div>
+
+  <div id="info-panel">
+    <h1>🎨 样板场景展示</h1>
+    <p><strong>Premium Showcase Scene</strong></p>
+    <p>使用真实GLB模型资产创建的高品质微缩城市样板</p>
+    <p>• 2栋GLB模型建筑</p>
+    <p>• 完整道路系统</p>
+    <p>• 精致景观设计</p>
+    <p>• 无人机停机坪</p>
+    <div class="status">✓ 已加载</div>
+  </div>
+
+  <button id="back-button" onclick="window.location.href='/'">返回主系统</button>
+
+  <div id="canvas-container"></div>
+
+  <script type="module">
+    import { PremiumShowcase } from './src/rendering/ShowcaseVibrant.js';
+
+    // 初始化场景 - 色彩优化版
+    const container = document.getElementById('canvas-container');
+    const showcase = new PremiumShowcase(container);
+
+    // 隐藏加载界面
+    setTimeout(() => {
+      document.getElementById('loading').classList.add('hide');
+    }, 1500);
+
+    // 启动渲染循环
+    showcase.animate();
+
+    console.log('🎨 鲜艳动画风格场景已加载');
+  </script>
+</body>
+</html>

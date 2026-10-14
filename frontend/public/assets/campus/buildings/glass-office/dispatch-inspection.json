@@ -1,0 +1,12 @@
+{
+  "license": "CC BY 4.0",
+  "source": "Office building by Nikitos & 3130",
+  "height": 9.8,
+  "roofSourceTriangles": 12,
+  "meshes": 21,
+  "modifications": [
+    "Upper floors clipped, original floor spacing preserved",
+    "Original roof surface relocated",
+    "Uses daylight derivative entrance, rear glazing and materials"
+  ]
+}

@@ -2,269 +2,43 @@ import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } fr
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
-  RoundedBox,
-  useGLTF
+  useProgress
 } from '@react-three/drei';
 import * as THREE from 'three';
 import { useCampusBackend } from '../services/useCampusBackend.js';
 import { TaskConsole } from '../ui/TaskConsole.jsx';
 import '../ui/task-console.css';
+import '../ui/task-console-day.css';
 import { businessToWorld } from './CoordinateSystem.js';
-import { CAMPUS_ASSETS } from './assetManifest.js';
-import { CampusGround, CampusFurniture, DronePad, campusSurfaceHeight } from './CampusLayout.jsx';
+import {CampusBuildings, DesignedCampusGround, CampusLandscape, CampusDaylight, CampusShadowCache, campusSurfaceHeight} from './CampusVisualEnvironment.jsx';
+import {CAMPUS_BUILDINGS} from './campusScenePlan.js';
+import {DroneAsset, MotherAsset} from './LogisticsDevices.jsx';
+
 import { CampusCamera, FreeCameraControls } from './CampusCameraControls.jsx';
 // Parcel easing is presentation-only; pickup timing comes from backend telemetry.
 const pickupLift = progress => { const t = Math.max(0, Math.min(1, (progress - .28) / .47)); return t * t * (3 - 2 * t); };
 import { ParcelModel } from './ParcelModel.jsx';
 
-const DRONE_COLORS = ['#26c6da', '#4dd0e1', '#80deea'];
-// World units are metres. The twelve-storey GLB is calibrated once, never
-// shrunk per instance: shrinking a whole building also shrinks its floor height.
-const BUILDING_HEIGHT = CAMPUS_ASSETS.mainBuilding.productionHeightMeters;
-const DRONE_SCALE = 0.42; // ~1.45 m rotor span
-const ROVER_SCALE = [0.42, 0.54, 0.54]; // ~2.18 m wide × 3.44 m long
-const PHASE_LABELS = { idle: '待命', cruising: '前往取件', approaching: '减速对准', aligning: '稳定悬停', picking: '装载包裹', returning: '携货返航', unloading: '母车入舱' };
-const ORDER_LABELS = { waiting: '待取件', enroute: '无人机前往', approaching: '减速对准', aligning: '稳定悬停', picking: '正在装载' };
-const BUILDINGS = [
-  { id: 'A1', name: '主研发中心', position: [-74, 0, -84] },
-  { id: 'A2', name: '创新研发楼', position: [-25, 0, -84] },
-  { id: 'A3', name: '智能技术楼', position: [24, 0, -84] },
-  { id: 'A4', name: '数字实验楼', position: [73, 0, -84] },
-  { id: 'B1', name: '企业研发楼', position: [-74, 0, 84], rotation: [0, Math.PI, 0] },
-  { id: 'B2', name: '协同创新楼', position: [-25, 0, 84], rotation: [0, Math.PI, 0] },
-  { id: 'B3', name: '产业服务楼', position: [24, 0, 84], rotation: [0, Math.PI, 0] },
-  { id: 'B4', name: '综合办公楼', position: [73, 0, 84], rotation: [0, Math.PI, 0] },
-  { id: 'C1', name: '西区研发楼', position: [-98, 0, 0] },
-  { id: 'C2', name: '东区研发楼', position: [98, 0, 0], rotation: [0, Math.PI, 0] }
-];
+const StaticCampus=React.memo(function StaticCampus(){return <><CampusDaylight/><DesignedCampusGround/><CampusBuildings/><CampusLandscape/></>;});
+const BUILDING_HEIGHT=32;
+const BUILDINGS=CAMPUS_BUILDINGS;
+const PHASE_LABELS={idle:'待命',takingOff:'起飞爬升',cruising:'前往取件',approaching:'减速对准',aligning:'稳定悬停',picking:'装载包裹',returning:'携货返航',waitingDock:'排队返航',unloading:'母车入舱',clearingBay:'吊具回收',parking:'离舱归位'};
+const ORDER_LABELS={waiting:'待取件',enroute:'无人机前往',approaching:'减速对准',aligning:'稳定悬停',picking:'正在装载'};
 
 function PerformanceProbe() {
-  const { gl, scene, camera } = useThree();
-  useEffect(() => {
-    if (import.meta.env.DEV) window.__campusR3F = { renderer: gl, scene, camera };
-  }, [gl, scene, camera]);
-  return null;
-}
-
-function BuildingAsset({ position, height = BUILDING_HEIGHT, name, id, castShadow = true, rotation = [0, 0, 0] }) {
-  const { scene } = useGLTF(CAMPUS_ASSETS.mainBuilding.url);
-  const asset = useMemo(() => scene.clone(true), [scene]);
-  const dimensions = useMemo(() => {
-    const bounds = new THREE.Box3().setFromObject(scene);
-    const size = bounds.getSize(new THREE.Vector3());
-    const center = bounds.getCenter(new THREE.Vector3());
-    return { factor: height / size.y, offset: [-center.x, -bounds.min.y, -center.z] };
-  }, [scene, height]);
-  useEffect(() => {
-    asset.traverse((node) => {
-      if (node.isMesh) {
-        node.castShadow = castShadow;
-        node.receiveShadow = true;
-      }
-    });
-  }, [asset, castShadow]);
-  return <group position={position} rotation={rotation} name={`campus-building-${id}`} userData={{ kind: 'building', height }}>
-    <group scale={dimensions.factor}><primitive object={asset} position={dimensions.offset} /></group>
-  </group>;
-}
-
-function Tree({ position, scale = 1, variant = 0 }) {
-  const crown = variant % 2 === 0 ? '#547b63' : '#6d8e68';
-  return (
-    <group position={position} scale={scale}>
-      <mesh position={[0, 2.1, 0]} castShadow>
-        <cylinderGeometry args={[0.32, 0.48, 4.2, 8]} />
-        <meshStandardMaterial color="#735641" roughness={0.92} />
-      </mesh>
-      <mesh position={[0, 4.7, 0]} castShadow>
-        <dodecahedronGeometry args={[2.35, 1]} />
-        <meshStandardMaterial color={crown} roughness={0.9} />
-      </mesh>
-      <mesh position={[0.65, 5.55, 0.25]} castShadow>
-        <dodecahedronGeometry args={[1.45, 1]} />
-        <meshStandardMaterial color="#789b70" roughness={0.9} />
-      </mesh>
-    </group>
-  );
-}
-
-function Landscape() {
-  const trees = useMemo(() => [
-    ...[-112, 112].flatMap((x) => [-77, -48, -28, 28, 48, 77].map((z) => [x, 0, z, 0.95])),
-    ...[-48, 48].flatMap((x) => [-43, -28, 28, 43].map((z) => [x, 0, z, 0.85])),
-    ...[-94, 94].flatMap((z) => [-49, 0, 49].map((x) => [x, 0, z, 0.92])),
-    ...[-18, 18].flatMap((x) => [-34, 34].map((z) => [x, 0, z, 0.8]))
-  ], []);
-  return (
-    <group>
-      {trees.map(([x, y, z, scale], index) => <Tree key={index} position={[x, y, z]} scale={scale} variant={index} />)}
-      {[-34, 34].map((x) => (
-        <group key={x} position={[x, 0, 35]}>
-          <mesh position={[0, 1.2, 0]} castShadow><sphereGeometry args={[1.35, 16, 12]} /><meshStandardMaterial color="#718e6d" roughness={0.92} /></mesh>
-          <mesh position={[0, 0.4, 0]}><cylinderGeometry args={[1.4, 1.4, 0.35, 20]} /><meshStandardMaterial color="#a4b8a1" roughness={0.85} /></mesh>
-        </group>
-      ))}
-    </group>
-  );
-}
-
-function Drone({ uav, index, visualUAVs, running, speed }) {
-  const bodyRef = useRef();
-  const initialWorld = businessToWorld(uav.x, uav.y, uav.z);
-  const initialPosition = useRef([initialWorld.x, initialWorld.y, initialWorld.z]);
-  const animation = useRef({ orderId: null, pickupProgress: 0, unloadProgress: 0 });
-  const cableRef = useRef();
-  const clawRef = useRef();
-  const cargoRef = useRef();
-  const rotorRefs = useRef([]);
-  const trailRef = useRef();
-  const trailPoints = useRef([]);
-  const target = useMemo(() => new THREE.Vector3(), []);
-  const trailObject = useMemo(() => {
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(45 * 3), 3));
-    geometry.setDrawRange(0, 0);
-    const material = new THREE.LineBasicMaterial({ color: DRONE_COLORS[index], transparent: true, opacity: 0.42 });
-    return new THREE.Line(geometry, material);
-  }, [index]);
-
-  useEffect(() => () => { trailObject.geometry.dispose(); trailObject.material.dispose(); }, [trailObject]);
-
-  useFrame((_, delta) => {
-    const world = businessToWorld(uav.x, uav.y, uav.z);
-    target.set(world.x, world.y, world.z);
-    if (!bodyRef.current) return;
-    const blend = 1 - Math.exp(-delta * 12);
-    const previousX = bodyRef.current.position.x;
-    const previousY = bodyRef.current.position.y;
-    const previousZ = bodyRef.current.position.z;
-    bodyRef.current.position.lerp(target, blend);
-    const anim = animation.current;
-    anim.orderId = uav.phase === 'picking' ? uav.targetOrderId : null;
-    anim.pickupProgress = uav.phase === 'picking' ? uav.pickupProgress : 0;
-    anim.unloadProgress = uav.phase === 'unloading' ? uav.unloadProgress : 0;
-    let cableLength = 0.04;
-    if (uav.phase === 'picking') {
-      const extension = Math.min(1, anim.pickupProgress / 0.28);
-      cableLength = THREE.MathUtils.lerp(0.04, 0.42, extension) - pickupLift(anim.pickupProgress) * 0.3;
-    } else if (uav.cargoOrderId != null) cableLength = 0.12 + anim.unloadProgress * 0.1;
-    if (cableRef.current) {
-      cableRef.current.position.y = -(0.28 + cableLength / 2) / DRONE_SCALE;
-      cableRef.current.scale.y = cableLength / DRONE_SCALE;
+  const {gl,camera,scene}=useThree();const last=useRef(0),samples=useRef([]),frame=useRef(0),diagnosticTime=useRef(0),objects=useRef(new Map());
+  useEffect(()=>{const el=document.getElementById('render-audit'),context=gl.getContext(),debug=context.getExtension('WEBGL_debug_renderer_info');if(el)el.dataset.renderer=debug?context.getParameter(debug.UNMASKED_RENDERER_WEBGL):context.getParameter(context.RENDERER);},[gl]);
+  useFrame((_,delta)=>{
+    const el=document.getElementById('render-audit');if(!el)return;
+    frame.current++;
+    if(performance.now()-diagnosticTime.current>250){
+      el.dataset.shadow=JSON.stringify({autoUpdate:gl.shadowMap.autoUpdate,needsUpdate:gl.shadowMap.needsUpdate});el.dataset.frame=String(frame.current);el.dataset.camera=camera.position.toArray().map(n=>n.toFixed(3)).join(',');
+      el.dataset.devices=JSON.stringify(['device-rover',...['1','2','3'].map(id=>'device-uav-'+id)].map(id=>{let o=objects.current.get(id);if(!o?.parent){o=scene.getObjectByName(id);if(o)objects.current.set(id,o);}return {id,position:o?.position.toArray(),yaw:o?.rotation.y,rotor:o?.getObjectByName('rotor_1')?.rotation.y,hatch:o?.getObjectByName('roof_hatch_pivot')?.rotation.z};}));
+      diagnosticTime.current=performance.now();
     }
-    if (clawRef.current) clawRef.current.position.y = -(0.28 + cableLength) / DRONE_SCALE;
-    if (cargoRef.current) {
-      cargoRef.current.position.y = -(0.65 + anim.unloadProgress * 0.1) / DRONE_SCALE;
-      cargoRef.current.visible = anim.unloadProgress < 0.96;
-    }
-    visualUAVs.current[uav.id] = {
-      position: { x: bodyRef.current.position.x, y: bodyRef.current.position.y, z: bodyRef.current.position.z },
-      speed: Math.hypot(bodyRef.current.position.x - previousX, bodyRef.current.position.y - previousY, bodyRef.current.position.z - previousZ) / Math.max(delta, 0.001),
-      pickupOrderId: anim.orderId, pickupProgress: anim.pickupProgress,
-      cargoOrderId: uav.cargoOrderId, unloadProgress: anim.unloadProgress
-    };
-    rotorRefs.current.forEach((rotor) => { if (rotor) rotor.rotation.y += running ? delta * 18 : 0; });
-
-    const last = trailPoints.current[trailPoints.current.length - 1];
-    if (!last || last.distanceTo(bodyRef.current.position) > 0.18) trailPoints.current.push(bodyRef.current.position.clone());
-    if (trailPoints.current.length > 45) trailPoints.current.shift();
-    if (trailRef.current) {
-      const positions = trailRef.current.geometry.attributes.position.array;
-      trailPoints.current.forEach((point, pointIndex) => {
-        positions[pointIndex * 3] = point.x;
-        positions[pointIndex * 3 + 1] = point.y;
-        positions[pointIndex * 3 + 2] = point.z;
-      });
-      trailRef.current.geometry.setDrawRange(0, trailPoints.current.length);
-      trailRef.current.geometry.attributes.position.needsUpdate = true;
-    }
-  });
-
-  const rotorPositions = [[1.05, 0.1, 1.05], [-1.05, 0.1, 1.05], [1.05, 0.1, -1.05], [-1.05, 0.1, -1.05]];
-  return (
-    <group>
-      <primitive ref={trailRef} object={trailObject} />
-      <group ref={bodyRef} name={`device-uav-${uav.id}`} position={initialPosition.current} scale={DRONE_SCALE}>
-        <RoundedBox args={[1.8, 0.5, 1.25]} radius={0.24} smoothness={4} position={[0, 0, 0]} castShadow>
-          <meshStandardMaterial color="#26343c" metalness={0.72} roughness={0.23} />
-        </RoundedBox>
-        <RoundedBox args={[1.05, 0.25, 0.78]} radius={0.16} smoothness={3} position={[0, 0.34, 0]} castShadow>
-          <meshStandardMaterial color={DRONE_COLORS[index]} metalness={0.5} roughness={0.2} emissive={DRONE_COLORS[index]} emissiveIntensity={0.18} />
-        </RoundedBox>
-        <mesh position={[0, -0.42, 0]} castShadow><cylinderGeometry args={[0.32, 0.42, 0.55, 16]} /><meshStandardMaterial color="#101b22" metalness={0.62} roughness={0.26} /></mesh>
-        <mesh position={[0, -0.72, 0]}><sphereGeometry args={[0.14, 12, 8]} /><meshBasicMaterial color="#d5ffff" /></mesh>
-        <mesh position={[0, 0.02, 0]} rotation-y={Math.PI / 4}><boxGeometry args={[0.14, 0.12, 3.25]} /><meshStandardMaterial color="#425159" metalness={0.72} roughness={0.3} /></mesh>
-        <mesh position={[0, 0.02, 0]} rotation-y={-Math.PI / 4}><boxGeometry args={[0.14, 0.12, 3.25]} /><meshStandardMaterial color="#425159" metalness={0.72} roughness={0.3} /></mesh>
-        {rotorPositions.map((position, rotorIndex) => (
-          <group key={rotorIndex} ref={(node) => { rotorRefs.current[rotorIndex] = node; }} position={position}>
-            <mesh castShadow><cylinderGeometry args={[0.28, 0.28, 0.12, 16]} /><meshStandardMaterial color="#1b282f" metalness={0.65} roughness={0.24} /></mesh>
-            <mesh rotation-y={Math.PI / 4}><boxGeometry args={[1.35, 0.035, 0.1]} /><meshBasicMaterial color={DRONE_COLORS[index]} transparent opacity={0.8} /></mesh>
-            <mesh rotation-y={-Math.PI / 4}><boxGeometry args={[1.35, 0.035, 0.1]} /><meshBasicMaterial color="#d8ffff" transparent opacity={0.5} /></mesh>
-          </group>
-        ))}
-        <mesh position={[0, 0.3, 0.64]}><sphereGeometry args={[0.16, 12, 8]} /><meshBasicMaterial color="#aafcff" /></mesh>
-        <mesh ref={cableRef}><cylinderGeometry args={[0.016, 0.016, 1, 8]} /><meshStandardMaterial color="#d1d8d7" metalness={0.7} roughness={0.3} /></mesh>
-        <group ref={clawRef}>
-          <mesh><boxGeometry args={[1.8, 0.08, 0.22]} /><meshStandardMaterial color="#667b83" metalness={0.7} roughness={0.3} /></mesh>
-          {[-1, 1].map((side) => <mesh key={side} position={[side * 0.85, -0.1, 0]}><boxGeometry args={[0.08, 0.35, 0.22]} /><meshStandardMaterial color="#e1c186" metalness={0.55} roughness={0.4} /></mesh>)}
-        </group>
-        {uav.cargoOrderId != null && <group name={`cargo-parcel-uav-${uav.id}`} ref={cargoRef} scale={1 / DRONE_SCALE} position={[0, -0.65 / DRONE_SCALE, 0]}><ParcelModel orderId={uav.cargoOrderId} /></group>}
-      </group>
-    </group>
-  );
-}
-
-function Rover({ rover }) {
-  const bodyRef = useRef();
-  const target = useMemo(() => new THREE.Vector3(), []);
-  const trailRef = useRef();
-  const trailPoints = useRef([]);
-  const trailObject = useMemo(() => {
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(55 * 3), 3));
-    geometry.setDrawRange(0, 0);
-    return new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: '#4d7e87', transparent: true, opacity: 0.32 }));
-  }, []);
-  useEffect(() => () => { trailObject.geometry.dispose(); trailObject.material.dispose(); }, [trailObject]);
-
-  useFrame((_, delta) => {
-    const world = businessToWorld(rover.x, rover.y, 0);
-    target.set(world.x, campusSurfaceHeight(world.x, world.z) + 0.054, world.z);
-    if (!bodyRef.current) return;
-    const previous = bodyRef.current.position.clone();
-    bodyRef.current.position.lerp(target, 1 - Math.exp(-delta * 2.2));
-    const dx = bodyRef.current.position.x - previous.x;
-    const dz = bodyRef.current.position.z - previous.z;
-    if (Math.abs(dx) + Math.abs(dz) > 0.002) bodyRef.current.rotation.y = THREE.MathUtils.lerp(bodyRef.current.rotation.y, Math.atan2(dx, dz), 0.12);
-    const last = trailPoints.current[trailPoints.current.length - 1];
-    if (!last || last.distanceTo(bodyRef.current.position) > 0.15) trailPoints.current.push(bodyRef.current.position.clone());
-    if (trailPoints.current.length > 55) trailPoints.current.shift();
-    if (trailRef.current) {
-      const positions = trailRef.current.geometry.attributes.position.array;
-      trailPoints.current.forEach((point, pointIndex) => { positions[pointIndex * 3] = point.x; positions[pointIndex * 3 + 1] = 0.08; positions[pointIndex * 3 + 2] = point.z; });
-      trailRef.current.geometry.setDrawRange(0, trailPoints.current.length);
-      trailRef.current.geometry.attributes.position.needsUpdate = true;
-    }
-  });
-  return (
-    <group>
-      <primitive ref={trailRef} object={trailObject} />
-      <group ref={bodyRef} name="device-rover" scale={ROVER_SCALE}>
-        <RoundedBox args={[4.6, 1.45, 6.3]} radius={0.5} smoothness={4} position={[0, 1.05, 0]} castShadow receiveShadow>
-          <meshStandardMaterial color="#405d66" metalness={0.58} roughness={0.28} />
-        </RoundedBox>
-        <RoundedBox args={[3.75, 0.55, 4.9]} radius={0.22} smoothness={3} position={[0, 1.95, 0]} castShadow>
-          <meshStandardMaterial color="#8ec6c8" metalness={0.44} roughness={0.18} emissive="#1a555c" emissiveIntensity={0.12} />
-        </RoundedBox>
-        <mesh position={[0, 2.33, 0]} castShadow><cylinderGeometry args={[2.05, 2.05, 0.25, 32]} /><meshStandardMaterial color="#d6efe8" metalness={0.75} roughness={0.18} /></mesh>
-        <mesh position={[0, 2.48, 0]} rotation-x={Math.PI / 2}><torusGeometry args={[2.05, 0.08, 10, 48]} /><meshBasicMaterial color="#82f0dd" transparent opacity={0.9} /></mesh>
-        {[[-2.35, 0.72, 2.1], [2.35, 0.72, 2.1], [-2.35, 0.72, -2.1], [2.35, 0.72, -2.1]].map((position, index) => (
-          <mesh key={index} position={position} rotation-z={Math.PI / 2} castShadow><cylinderGeometry args={[0.82, 0.82, 0.48, 20]} /><meshStandardMaterial color="#18252b" metalness={0.45} roughness={0.65} /></mesh>
-        ))}
-        <mesh position={[0, 1.25, 3.18]}><boxGeometry args={[2.1, 0.5, 0.08]} /><meshBasicMaterial color="#b6ffff" transparent opacity={0.75} /></mesh>
-      </group>
-    </group>
-  );
+    samples.current.push(delta*1000);
+    if(performance.now()-last.current>2000){const values=samples.current.sort((a,b)=>a-b),avg=values.reduce((a,b)=>a+b,0)/values.length;const groups={};scene.traverseVisible(o=>{if(!o.isMesh)return;let parent=o,key='ground';while(parent){if(parent.name.startsWith('device-')){key=parent.name;break;}if(parent.name.startsWith('campus-building')){key='buildings';break;}if(parent.name.startsWith('nature-')){key='nature';break;}parent=parent.parent;}const entry=groups[key]||(groups[key]={meshes:0,triangles:0});entry.meshes++;entry.triangles+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3*(o.isInstancedMesh?o.count:1);});el.textContent=JSON.stringify({frames:values.length,averageMs:avg,p95Ms:values[Math.floor(values.length*.95)],calls:gl.info.render.calls,triangles:gl.info.render.triangles,visibility:document.visibilityState,focused:document.hasFocus(),viewport:[gl.domElement.width,gl.domElement.height],memory:gl.info.memory,groups});samples.current=[];last.current=performance.now();}
+  });return null;
 }
 
 function OrderMarker({ order, uavs, visualUAVs }) {
@@ -316,30 +90,24 @@ function OrderMarkers({ orders, uavs, visualUAVs }) {
   return orders.map((order) => <OrderMarker key={order.id} order={order} uavs={uavs} visualUAVs={visualUAVs} />);
 }
 
-function SceneContents({ snapshot, visualUAVs, running, speed }) {
-  return <>
-    <CampusGround />
-    <CampusFurniture />
-    <Suspense fallback={null}>
-      {BUILDINGS.map((building) => <BuildingAsset key={building.id} {...building} />)}
-    </Suspense>
-    <Landscape />
-    <DronePad position={[-12, 0, 0]} />
-    <DronePad position={[12, 0, 0]} />
-    {snapshot.uavs.length > 0 && <Rover key={snapshot.epoch} rover={snapshot.rover} />}
-    {snapshot.uavs.map((uav, index) => <Drone key={`${snapshot.epoch}-${uav.id}`} uav={uav} index={index} visualUAVs={visualUAVs} running={running} speed={speed} />)}
-    <OrderMarkers orders={snapshot.orders} uavs={snapshot.uavs} visualUAVs={visualUAVs} />
-  </>;
+function SceneContents({snapshot,visualUAVs,running}) {
+  return <Suspense fallback={null}>
+    <CampusShadowCache key={'shadow-'+snapshot.epoch} running={running}/><StaticCampus/>
+    <MotherAsset key={'mother-'+snapshot.epoch} rover={snapshot.rover} docking={snapshot.docking} running={running} orders={snapshot.orders} elapsed={snapshot.elapsedSeconds}/>
+    {snapshot.uavs.map((uav,index)=><DroneAsset key={snapshot.epoch+'-'+uav.id} uav={uav} index={index} visualUAVs={visualUAVs} running={running}/>)}
+    <OrderMarkers orders={snapshot.orders} uavs={snapshot.uavs} visualUAVs={visualUAVs}/>
+  </Suspense>;
 }
 
 function MapLabelProjector({ labelContainer, visualUAVs }) {
   const { scene, camera, size } = useThree();
   const point = useMemo(() => new THREE.Vector3(), []);
+  const objects=useRef(new Map());
   useFrame(() => {
     if (!labelContainer.current) return;
     for (const element of labelContainer.current.children) {
       const id = element.dataset.object;
-      const object = scene.getObjectByName(id);
+      let object=objects.current.get(id);if(!object){object=scene.getObjectByName(id);if(object)objects.current.set(id,object);}
       if (!object) { element.style.display = 'none'; continue; }
       if (element.classList.contains('picking')) {
         const visual = visualUAVs.current[element.dataset.uav];
@@ -350,6 +118,7 @@ function MapLabelProjector({ labelContainer, visualUAVs }) {
         }
       }
       object.getWorldPosition(point);
+      element.dataset.world=point.toArray().map(n=>n.toFixed(4)).join(',');
       point.y += object.userData.labelHeight ?? (id.startsWith('campus-building') ? BUILDING_HEIGHT + 3 : 2.3);
       point.project(camera);
       const visible = point.z < 1 && point.z > -1 && Math.abs(point.x) < 1 && Math.abs(point.y) < 1;
@@ -364,36 +133,32 @@ function MapLabelProjector({ labelContainer, visualUAVs }) {
 
 export function CampusProductionScene() {
   const simulation = useCampusBackend();
+  const assets = useProgress();
   const [wide, setWide] = useState(false);
   const [cameraRequest, setCameraRequest] = useState({ mode: 'presentation' });
   const [free, setFree] = useState(false);
   const orbitRef = useRef();
   const labelContainer = useRef();
   const exitFree = useCallback(() => setFree(false), []);
-  const selectCamera = (mode, position) => {
+  const selectCamera = (mode, position, objectId) => {
     setFree(false);
     if (mode === 'devices' && !position) {
       const rover = simulation.snapshot.rover;
       const world = businessToWorld(rover.x, rover.y, 0);
       position = new THREE.Vector3(world.x, 1.5, world.z);
     }
-    setCameraRequest({ mode, position });
+    setCameraRequest({ mode, position,objectId });
   };
   return (
     <div className={`campus-app ${wide ? 'wide' : ''}`}>
-      <div className="map-viewport">
-      <Canvas shadows={{ type: THREE.PCFShadowMap }} dpr={[1, 1.75]} camera={{ position: [160, 125, 175], fov: 38, near: 2, far: 1800 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 0.95, outputColorSpace: THREE.SRGBColorSpace }}>
+      <output id="render-audit" hidden aria-hidden="true"/><div className="map-viewport">
+      <Canvas shadows={{ type: THREE.PCFShadowMap,autoUpdate:false }} dpr={1} camera={{ position: [142, 112, 150], fov: 38, near: .1, far: 1000 }} gl={{ antialias: true,powerPreference:'high-performance', toneMapping: THREE.NeutralToneMapping, toneMappingExposure: 1.08, outputColorSpace: THREE.SRGBColorSpace }}>
         <PerformanceProbe />
-        <color attach="background" args={['#c7d4c5']} />
-        <fog attach="fog" args={['#c7d4c5', 650, 1300]} />
-        <ambientLight intensity={0.6} color="#fff5e9" />
-        <hemisphereLight intensity={0.8} color="#e0efff" groundColor="#657458" />
-        <directionalLight castShadow position={[-90, 140, 80]} intensity={2.2} shadow-mapSize={[4096, 4096]} shadow-camera-left={-165} shadow-camera-right={165} shadow-camera-top={165} shadow-camera-bottom={-165} shadow-camera-far={450} shadow-bias={-0.00015} />
         <SceneContents snapshot={simulation.snapshot} visualUAVs={simulation.visualUAVs} running={simulation.running} speed={simulation.speed} />
         <OrbitControls ref={orbitRef} makeDefault enabled={!free} enableDamping dampingFactor={0.08} minDistance={4} maxDistance={900} maxPolarAngle={Math.PI / 2.02} />
         <CampusCamera request={cameraRequest} orbitRef={orbitRef} free={free} />
         <FreeCameraControls enabled={free} onExit={exitFree} />
-        <MapLabelProjector labelContainer={labelContainer} visualUAVs={simulation.visualUAVs} />
+        <MapLabelProjector key={'labels-'+simulation.snapshot.epoch} labelContainer={labelContainer} visualUAVs={simulation.visualUAVs} />
       </Canvas>
       <div ref={labelContainer} className="map-labels">
         {BUILDINGS.map(({ id, name }) => <div key={id} data-object={`campus-building-${id}`} className="map-building-label"><b>{id}</b> {name}</div>)}
@@ -405,8 +170,9 @@ export function CampusProductionScene() {
         })}
       </div>
       </div>
-      <TaskConsole simulation={simulation} focus={(position) => selectCamera('target', new THREE.Vector3(...position))} />
-      <div className="asset-credit">建筑模型：<a href="https://sketchfab.com/3d-models/modern-tower-office-apartment-house-home-a057bf3379b24c23a18a82ec884e4f04" target="_blank" rel="noreferrer">zigurat architecture studio</a> · CC BY 4.0 · 已调整尺度</div>
+      {assets.active&&<div className="scene-loading" role="status"><b>正在构建园区</b><span>建筑与真实景观资源 · {Math.round(assets.progress)}%</span></div>}
+      <TaskConsole simulation={simulation} focus={(position,objectId) => selectCamera(objectId?'follow':'target', new THREE.Vector3(...position),objectId)} />
+      <div className="asset-credit"><a href="https://sketchfab.com/3d-models/office-building-af9782245c134c21ae0c8df7f57077e6" target="_blank" rel="noreferrer">办公楼 · Nikitos &amp; 3130</a> / <a href="https://sketchfab.com/3d-models/quadcopter-dji-matrice-300-rtk-6677d02d66df4b73aad0d8e7bb9e3d9c" target="_blank" rel="noreferrer">无人机 · 19vitali99</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a> · 已减面、调整材质与旋翼 · 原创母车/建筑细节 ISC · <a href="https://kenney.nl/assets/nature-kit" target="_blank" rel="noreferrer">圆润绿化 Kenney CC0（已改造）</a> · 座椅/环境 Poly Haven CC0</div>
       <div className="scene-expand">
         <button className={!free && cameraRequest.mode === 'presentation' ? 'selected' : ''} onClick={() => selectCamera('presentation')}>演示视角</button>
         <button className={!free && cameraRequest.mode === 'overview' ? 'selected' : ''} onClick={() => selectCamera('overview')}>园区总览</button>
@@ -419,5 +185,3 @@ export function CampusProductionScene() {
     </div>
   );
 }
-
-useGLTF.preload(CAMPUS_ASSETS.mainBuilding.url);

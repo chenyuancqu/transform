@@ -48,3 +48,12 @@ test('duplicate and delayed frames cannot resurrect a previous reset epoch', () 
   assert.equal(isNewSnapshot(a, current), false);
   assert.equal(isNewSnapshot({ ...current, seq: 2, timestamp: 2100 }, current), true);
 });
+
+test('bay queue and landing phases validate, hatch and wrapped heading interpolate coherently', () => {
+  const a=wire();a.rover.heading=Math.PI-.1;a.docking={owner:1,queue:[1,2],hatchProgress:.2};a.uavs[0].phase='waitingDock';a.uavs[1].phase='parking';
+  const b=structuredClone(a);b.seq=2;b.rover.heading=-Math.PI+.1;b.docking.hatchProgress=.8;
+  const half=interpolateSnapshots(decodeSnapshot(a),decodeSnapshot(b),.5);
+  assert.ok(Math.abs(half.rover.heading-Math.PI)<1e-10);
+  assert.ok(Math.abs(half.docking.hatchProgress-.5)<1e-10);
+  for(const mutate of [d=>{d.docking.hatchProgress=NaN;},d=>{d.docking.queue=[1,1];},d=>{d.docking.owner=3;},d=>{d.rover.heading=Infinity;}]){const bad=structuredClone(a);mutate(bad);assert.throws(()=>decodeSnapshot(bad));}
+});

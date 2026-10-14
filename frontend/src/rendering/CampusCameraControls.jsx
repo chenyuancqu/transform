@@ -3,24 +3,27 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
 export function CampusCamera({ request, orbitRef, free }) {
-  const { camera, size } = useThree();
+  const { camera, size,scene } = useThree();
+  const followed=useRef(null);
   // Only the full-campus preset needs to fit the viewport. Resizing during
   // exploration must not send the user back to the opening viewpoint.
   const fitAspect = request.mode === 'overview' ? size.width / size.height : 0;
   useEffect(() => {
-    camera.near = free ? 0.3 : 2;
+    camera.near = free ? 0.1 : 0.2;
     camera.updateProjectionMatrix();
   }, [camera, free]);
   useEffect(() => {
     const target = new THREE.Vector3(0, 12, 0);
-    if (request.mode === 'target') {
+    followed.current=null;
+    if (request.mode === 'target'||request.mode==='follow') {
       target.copy(request.position);
       camera.position.copy(target).add(new THREE.Vector3(9, 7, 11));
     } else if (request.mode === 'devices') {
       target.copy(request.position ?? new THREE.Vector3(0, 1.5, 0));
       camera.position.copy(target).add(new THREE.Vector3(12, 9, 15));
     } else if (request.mode === 'presentation') {
-      camera.position.set(160, 125, 175);
+      target.set(0, 10, -8);
+      camera.position.set(142, 112, 150);
     } else {
       target.set(0, 17, 0);
       const direction = new THREE.Vector3(1, 0.95, 1).normalize();
@@ -28,7 +31,7 @@ export function CampusCamera({ request, orbitRef, free }) {
       const up = new THREE.Vector3().crossVectors(direction, right).normalize();
       const tanVertical = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
       let distance = 0;
-      for (const x of [-123, 123]) for (const y of [0, 46]) for (const z of [-105, 105]) {
+      for (const x of [-130, 130]) for (const y of [0, 35]) for (const z of [-115, 115]) {
         const offset = new THREE.Vector3(x, y, z).sub(target);
         distance = Math.max(distance, offset.dot(direction) + Math.max(Math.abs(offset.dot(right)) / (tanVertical * fitAspect), Math.abs(offset.dot(up)) / tanVertical));
       }
@@ -41,6 +44,7 @@ export function CampusCamera({ request, orbitRef, free }) {
     }
     camera.updateProjectionMatrix();
   }, [camera, request, fitAspect, orbitRef]);
+  useFrame(()=>{if(free||request.mode!=='follow')return;const object=scene.getObjectByName(request.objectId);if(!object)return;const next=object.getWorldPosition(new THREE.Vector3());if(followed.current){const delta=next.clone().sub(followed.current);camera.position.add(delta);orbitRef.current?.target.add(delta);}followed.current=next;});
 
   const wasFree = useRef(free);
   const previousRequest = useRef(request);
