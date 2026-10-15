@@ -66,17 +66,25 @@
 | Grass ground | https://polyhaven.com/a/grass_ground | 草地 PBR；运行时 shader 调整为自然绿，保留法线/粗糙度 |
 | Grass path 2 | https://polyhaven.com/a/grass_path_2 | 已下载备用，当前主草地不使用 |
 | Kloofendal 48d partly cloudy puresky | https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky | 日光 HDRI 环境 |
+| Qwantani Noon pure sky | https://polyhaven.com/a/qwantani_noon_puresky | 当前任务地图的晴朗正午 HDRI；CC0 |
 
 ## 2026-10-14：圆润绿化与实时优化派生
 
 用户在本轮明确将美术方向调整为明快、圆润的动画风格。
 
 - **Kenney Nature Kit 2.1**：官方来源 [Nature Kit](https://kenney.nl/assets/nature-kit)，下载并核验日期 2026-10-14，CC0 1.0。官方 ZIP 附带许可允许个人、教学、商业项目使用；可改造及网页分发。无针对 AI 工具的额外限制。原文保留在 `asset-sources/kenney-nature/License.txt`，分发副本为 `public/assets/campus/stylized/nature/License-Kenney.txt`。
-- `cluster-tree.glb`：源 `tree_detailed.obj`；对原树冠拓扑做两次 Loop 细分、恢复丰满体积、重算平滑法线、重新配色，树干保留。
+- `cluster-tree.glb`：源 `tree_detailed.obj`；对原树冠拓扑做一次 Loop 细分、恢复丰满体积、重算平滑法线、重新配色，树干保留；运行版 1,240 面。
 - `broad-tree.glb`：源 `tree_fat.obj`；同样做树冠圆滑处理。
-- `rounded-shrub.glb`：复用 `tree_fat.obj` 原树冠制作低矮灌木，移除树干，拓宽树冠并调整颜色。
+- `rounded-shrub.glb`：复用 `tree_fat.obj` 原树冠制作低矮灌木，移除树干，拓宽树冠并调整颜色；运行版一次 Loop 细分、160 面。
 - `bench.glb`：Poly Haven Painted wooden bench，CC0；保留原几何，移除扫描贴图，改为暖色哑光材质。
 - `optimized/buildings/*.gltf`：获选 Sketchfab 办公楼的实时派生版本；移除室内椅子、合并静态网格，保留楼体外观和入口。玻璃使用透明混合，移除物理折射，日光配色在展示组件应用。沿用 CC BY 4.0、作者与原始来源。
 - `optimized/devices/*.gltf`：无人机及原创母车的几何 LOD；保留旋翼、车轮、转向和舱门枢轴。无人机远景合并接近的深色塑料材质；移除镜片物理折射。原无人机 CC BY 4.0、母车 ISC；模型几何及材质均有改造。
 
 当前主场景使用上述圆润绿化与浅色哑光地面；此前下载的 Poly Haven 写实树木、灌木与草地/道路扫描贴图保留为备选，不在默认任务场景加载。详细源文件、哈希、面数与处理记录见 `stylized/nature/assets.json` 和 `optimized/assets.json`。页面中已显示作者、来源、许可与改造说明。
+
+## 2026-10-15：科技感日光展示派生
+
+- `optimized/buildings/context-office.gltf` 由 Nikitos & 3130 的已授权办公楼运行版派生，删除室内及极小远景窗框细节并简化至 5,019 面，供 32 栋周边楼实例化展示；原始模型与主楼运行版均保留。继续适用 CC BY 4.0，预览页显示作者、原始作品页、许可与改造说明。
+- 玻璃反射格、太阳能板电池格、路面砖缝和园区标识由本项目代码在浏览器本地绘制，无新增第三方纹理。
+- 本轮树冠运行版已降为一次 Loop 细分；原始 Kenney OBJ 与许可证文本保留，转换后的面数和 SHA-256 记在 `stylized/nature/assets.json`。
+- 周边楼、设备和主要绿化的运行版清单与几何预算记在 `optimized/assets.json`、`stylized/nature/assets.json` 和 `output/rtx3060-20261014/asset-budget.json`。派生内容沿用源模型许可与署名要求。

@@ -9,9 +9,10 @@ export function CampusCamera({ request, orbitRef, free }) {
   // exploration must not send the user back to the opening viewpoint.
   const fitAspect = request.mode === 'overview' ? size.width / size.height : 0;
   useEffect(() => {
-    camera.near = free ? 0.1 : 0.2;
+    // A larger near plane gives the large campus scene useful depth precision.
+    camera.near = 0.5;
     camera.updateProjectionMatrix();
-  }, [camera, free]);
+  }, [camera]);
   useEffect(() => {
     const target = new THREE.Vector3(0, 12, 0);
     followed.current=null;
@@ -22,16 +23,16 @@ export function CampusCamera({ request, orbitRef, free }) {
       target.copy(request.position ?? new THREE.Vector3(0, 1.5, 0));
       camera.position.copy(target).add(new THREE.Vector3(12, 9, 15));
     } else if (request.mode === 'presentation') {
-      target.set(0, 10, -8);
-      camera.position.set(142, 112, 150);
+      target.set(-12, 10, -22);
+      camera.position.set(116, 96, 128);
     } else {
-      target.set(0, 17, 0);
-      const direction = new THREE.Vector3(1, 0.95, 1).normalize();
+      target.set(0, 18, 0);
+      const direction = new THREE.Vector3(1, 1.1, 1).normalize();
       const right = new THREE.Vector3().crossVectors(camera.up, direction).normalize();
       const up = new THREE.Vector3().crossVectors(direction, right).normalize();
       const tanVertical = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
       let distance = 0;
-      for (const x of [-130, 130]) for (const y of [0, 35]) for (const z of [-115, 115]) {
+      for (const x of [-145, 145]) for (const y of [0, 32]) for (const z of [-125, 125]) {
         const offset = new THREE.Vector3(x, y, z).sub(target);
         distance = Math.max(distance, offset.dot(direction) + Math.max(Math.abs(offset.dot(right)) / (tanVertical * fitAspect), Math.abs(offset.dot(up)) / tanVertical));
       }
@@ -66,33 +67,47 @@ export function FreeCameraControls({ enabled, onExit }) {
   const movement = useMemo(() => new THREE.Vector3(), []);
   const forward = useMemo(() => new THREE.Vector3(), []);
   const right = useMemo(() => new THREE.Vector3(), []);
+  const velocity = useMemo(() => new THREE.Vector3(), []);
   useEffect(() => {
     if (!enabled) return;
     const canvas = gl.domElement;
     const rotation = new THREE.Euler(0, 0, 0, 'YXZ');
-    const keys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight']);
+    const keys = new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','KeyQ','KeyE','Space','ControlLeft','ControlRight','ShiftLeft','ShiftRight']);
     let pointer = null;
     let lastX = 0;
     let lastY = 0;
-    const clear = () => { pressed.current.clear(); pointer = null; };
+    let wasLocked=false,exiting=false,lockFallback=null;
+    const clear = () => { pressed.current.clear(); pointer = null; velocity.set(0,0,0); };
+    const exitFree = () => {
+      exiting=true;clear();
+      if(document.pointerLockElement===canvas)document.exitPointerLock?.();
+      onExit();
+    };
     const keyDown = (event) => {
       if (event.target.matches('input, textarea, select, [contenteditable="true"]')) return;
-      if (event.code === 'Escape') { clear(); onExit(); return; }
+      if (event.code === 'Escape') { event.preventDefault();exitFree();return; }
       if (keys.has(event.code)) { event.preventDefault(); pressed.current.add(event.code); }
     };
     const keyUp = (event) => pressed.current.delete(event.code);
     const pointerDown = (event) => {
       if (event.button !== 2) return;
-      pointer = event.pointerId;
-      lastX = event.clientX;
-      lastY = event.clientY;
-      canvas.setPointerCapture(pointer);
+      event.preventDefault();
+      if(document.pointerLockElement===canvas){document.exitPointerLock?.();return;}
+      const beginDrag=()=>{if(exiting)return;pointer=event.pointerId;lastX=event.clientX;lastY=event.clientY;try{canvas.setPointerCapture(pointer);}catch{pointer=null;}};
+      try{
+        if(typeof canvas.requestPointerLock!=='function'){beginDrag();return;}
+        const result=canvas.requestPointerLock();
+        if(result&&typeof result.catch==='function')result.catch(beginDrag);
+        lockFallback=window.setTimeout(()=>{if(document.pointerLockElement!==canvas&&pointer===null)beginDrag();},120);
+      }catch{beginDrag();}
     };
     const pointerMove = (event) => {
-      if (event.pointerId !== pointer) return;
+      const locked=document.pointerLockElement===canvas;
+      if (!locked&&event.pointerId !== pointer) return;
       rotation.setFromQuaternion(camera.quaternion);
-      rotation.y -= (event.clientX - lastX) * 0.003;
-      rotation.x = THREE.MathUtils.clamp(rotation.x - (event.clientY - lastY) * 0.003, -Math.PI / 2 + 0.02, Math.PI / 2 - 0.02);
+      const dx=locked?event.movementX:event.clientX-lastX,dy=locked?event.movementY:event.clientY-lastY;
+      rotation.y -= dx * 0.0024;
+      rotation.x = THREE.MathUtils.clamp(rotation.x - dy * 0.0024, -Math.PI / 2 + 0.02, Math.PI / 2 - 0.02);
       camera.quaternion.setFromEuler(rotation);
       lastX = event.clientX;
       lastY = event.clientY;
@@ -106,7 +121,15 @@ export function FreeCameraControls({ enabled, onExit }) {
     const wheel = (event) => {
       event.preventDefault();
       camera.getWorldDirection(forward);
+      forward.y=0;
+      if(forward.lengthSq()<1e-5)forward.set(0,0,-1);
+      forward.normalize();
       camera.position.addScaledVector(forward, -Math.sign(event.deltaY) * 5);
+    };
+    const pointerLockChange=()=>{
+      const locked=document.pointerLockElement===canvas;
+      if(wasLocked&&!locked&&!exiting)exitFree();
+      wasLocked=locked;
     };
     const contextMenu = (event) => event.preventDefault();
     window.addEventListener('keydown', keyDown);
@@ -119,8 +142,11 @@ export function FreeCameraControls({ enabled, onExit }) {
     canvas.addEventListener('lostpointercapture', clear);
     canvas.addEventListener('wheel', wheel, { passive: false });
     canvas.addEventListener('contextmenu', contextMenu);
+    document.addEventListener('pointerlockchange',pointerLockChange);
     return () => {
+      exiting=true;window.clearTimeout(lockFallback);
       clear();
+      if(document.pointerLockElement===canvas)document.exitPointerLock?.();
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
       window.removeEventListener('blur', clear);
@@ -131,19 +157,27 @@ export function FreeCameraControls({ enabled, onExit }) {
       canvas.removeEventListener('lostpointercapture', clear);
       canvas.removeEventListener('wheel', wheel);
       canvas.removeEventListener('contextmenu', contextMenu);
+      document.removeEventListener('pointerlockchange',pointerLockChange);
     };
-  }, [enabled, camera, gl, forward, onExit]);
+  }, [enabled, camera, gl, forward, onExit, velocity]);
   useFrame((_, delta) => {
-    if (!enabled || !pressed.current.size) return;
+    if (!enabled) return;
     const keys = pressed.current;
     camera.getWorldDirection(forward);
+    forward.y=0;
+    if(forward.lengthSq()<1e-5)forward.set(0,0,-1);
+    forward.normalize();
     right.crossVectors(forward, camera.up).normalize();
+    const positive=code=>Number(keys.has(code)),key=(a,b)=>Math.max(positive(a),positive(b));
     movement.set(0, 0, 0)
-      .addScaledVector(forward, Number(keys.has('KeyW')) - Number(keys.has('KeyS')))
-      .addScaledVector(right, Number(keys.has('KeyD')) - Number(keys.has('KeyA')));
-    movement.y += Number(keys.has('KeyE')) - Number(keys.has('KeyQ'));
-    const speed = keys.has('ShiftLeft') || keys.has('ShiftRight') ? 60 : 22;
-    camera.position.addScaledVector(movement.normalize(), Math.min(delta, 0.05) * speed);
+      .addScaledVector(forward, key('KeyW','ArrowUp') - key('KeyS','ArrowDown'))
+      .addScaledVector(right, key('KeyD','ArrowRight') - key('KeyA','ArrowLeft'));
+    movement.y += Math.max(key('KeyE','Space'),positive('Space')) - Math.max(key('KeyQ','ControlLeft'),positive('ControlRight'));
+    if(movement.lengthSq()>0)movement.normalize().multiplyScalar(keys.has('ShiftLeft')||keys.has('ShiftRight')?52:18);
+    const dt=Math.min(delta,.05),ease=1-Math.exp(-8*dt);
+    velocity.lerp(movement,ease);
+    camera.position.addScaledVector(velocity,dt);
+    camera.position.y=THREE.MathUtils.clamp(camera.position.y,1.4,900);
   });
   return null;
 }

@@ -52,7 +52,7 @@
 
 ## 已取得的独立环境资源
 
-已从官方 Poly Haven API 下载真实树木 Island Tree 02、Shrub 01、Painted Wooden Bench、三套 2K PBR 材质（aerial_asphalt_01 / pavement_03 / grass_path_2）以及 Kloofendal 天空 HDRI。所有文件与官方 MD5 校验一致，清单为 `public/assets/campus/environment-assets.json`。
+已从官方 Poly Haven API 下载真实树木 Island Tree 02、Shrub 01、Painted Wooden Bench、三套 2K PBR 材质（aerial_asphalt_01 / pavement_03 / grass_path_2）以及 Kloofendal、Qwantani Noon 天空 HDRI。所有文件与官方 MD5 校验一致，清单为 `public/assets/campus/environment-assets.json`。
 
 来源：https://polyhaven.com/license ，均为 CC0。下载脚本：`scripts/acquire-visual-sample.py`。目前仅下载，尚未接入场景或完成浏览器视觉验收。
 

@@ -6,20 +6,20 @@
     "author": "Kenney",
     "sourceFile": "tree_detailed.obj",
     "license": "CC0-1.0",
-    "modification": "Two Loop subdivision passes on original canopy topology, restored fuller crown volumes, recomputed smooth normals, new pastel colours; original trunk retained for trees, canopy reused for shrubs.",
-    "triangles": 4600,
+    "modification": "One Loop subdivision passes on original canopy topology, restored fuller crown volumes, recomputed smooth normals; original trunk retained for trees, canopy reused for shrubs.",
+    "triangles": 1240,
     "parts": [
       {
         "name": "leafsGreen",
-        "triangles": 4480
+        "triangles": 1120
       },
       {
         "name": "woodBark",
         "triangles": 120
       }
     ],
-    "bytes": 113624,
-    "sha256": "f830b06e44a51f768d3ff626e225e8567906f9c036feff467fa92bebf3fb61cc"
+    "bytes": 32452,
+    "sha256": "f904eeba4a3738b64eee49a029d311dc1794c3fcfc2105686eaffe0494a8337d"
   },
   {
     "id": "broad-tree",
@@ -28,7 +28,7 @@
     "author": "Kenney",
     "sourceFile": "tree_fat.obj",
     "license": "CC0-1.0",
-    "modification": "Two Loop subdivision passes on original canopy topology, restored fuller crown volumes, recomputed smooth normals, new pastel colours; original trunk retained for trees, canopy reused for shrubs.",
+    "modification": "Two Loop subdivision passes on original canopy topology, restored fuller crown volumes, recomputed smooth normals; original trunk retained for trees, canopy reused for shrubs.",
     "triangles": 650,
     "parts": [
       {
@@ -50,16 +50,16 @@
     "author": "Kenney",
     "sourceFile": "tree_fat.obj",
     "license": "CC0-1.0",
-    "modification": "Two Loop subdivision passes on original canopy topology, restored fuller crown volumes, recomputed smooth normals, new pastel colours; original trunk retained for trees, canopy reused for shrubs.",
-    "triangles": 640,
+    "modification": "One Loop subdivision passes on original canopy topology, restored fuller crown volumes, recomputed smooth normals; original trunk retained for trees, canopy reused for shrubs.",
+    "triangles": 160,
     "parts": [
       {
         "name": "leafsGreen",
-        "triangles": 640
+        "triangles": 160
       }
     ],
-    "bytes": 16716,
-    "sha256": "53db7cf19b511d2a19d83db808bbf25d7fa74acf17f231737242b386f3236991"
+    "bytes": 5096,
+    "sha256": "8c969da95c6b193277d3d913af116abed63e97ce28f2d7bd2a14022c6c8aae9a"
   },
   {
     "id": "bench",

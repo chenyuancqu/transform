@@ -6,7 +6,7 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://polyhaven.com/license",
     "downloaded": "2026-10-13",
-    "verifiedAt": "2026-10-14",
+    "verifiedAt": "2026-10-15",
     "files": [
       {
         "path": "public/assets/campus/models/shrub_01/shrub_01_2k.gltf",
@@ -36,101 +36,13 @@
     ]
   },
   {
-    "id": "aerial_asphalt_01",
-    "kind": "materials",
-    "source": "https://polyhaven.com/a/aerial_asphalt_01",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "downloaded": "2026-10-13",
-    "verifiedAt": "2026-10-14",
-    "files": [
-      {
-        "path": "public/assets/campus/materials/aerial_asphalt_01/Diffuse.jpg",
-        "bytes": 2802005,
-        "md5": "4cb311fc7638c0b1d5e9641ca9c6ea78"
-      },
-      {
-        "path": "public/assets/campus/materials/aerial_asphalt_01/nor_gl.jpg",
-        "bytes": 2751902,
-        "md5": "2b2d543f7c6567030f11a6070f586e05"
-      },
-      {
-        "path": "public/assets/campus/materials/aerial_asphalt_01/Rough.jpg",
-        "bytes": 1392536,
-        "md5": "f46f34b5509cec4b7fccdff8dfe4dc59"
-      }
-    ]
-  },
-  {
-    "id": "painted_wooden_bench",
-    "kind": "models",
-    "source": "https://polyhaven.com/a/painted_wooden_bench",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "downloaded": "2026-10-13",
-    "verifiedAt": "2026-10-14",
-    "files": [
-      {
-        "path": "public/assets/campus/models/painted_wooden_bench/painted_wooden_bench_2k.gltf",
-        "bytes": 2835,
-        "md5": "2977ba5644963b449ad3372c3e5e7dc5"
-      },
-      {
-        "path": "public/assets/campus/models/painted_wooden_bench/textures/painted_wooden_bench_arm_2k.jpg",
-        "bytes": 2232819,
-        "md5": "85abb03024e970c08fcc2163a38b564c"
-      },
-      {
-        "path": "public/assets/campus/models/painted_wooden_bench/textures/painted_wooden_bench_nor_gl_2k.jpg",
-        "bytes": 3522953,
-        "md5": "02fe51467ced6a748de37c8563d3d543"
-      },
-      {
-        "path": "public/assets/campus/models/painted_wooden_bench/textures/painted_wooden_bench_diff_2k.jpg",
-        "bytes": 2210706,
-        "md5": "2b497deb0d615cae13454400672b724f"
-      },
-      {
-        "path": "public/assets/campus/models/painted_wooden_bench/painted_wooden_bench.bin",
-        "bytes": 25444,
-        "md5": "ed331b50f955852f007313c1a75c2e2d"
-      }
-    ]
-  },
-  {
-    "id": "grass_ground",
-    "kind": "materials",
-    "source": "https://polyhaven.com/a/grass_ground",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "downloaded": "2026-10-14",
-    "verifiedAt": "2026-10-14",
-    "files": [
-      {
-        "path": "public/assets/campus/materials/grass_ground/Diffuse.jpg",
-        "bytes": 3787330,
-        "md5": "fd97f2402677e6686b2d9159fc3a4256"
-      },
-      {
-        "path": "public/assets/campus/materials/grass_ground/nor_gl.jpg",
-        "bytes": 5968024,
-        "md5": "c8b2dd95f09868c4aacb91f62c673344"
-      },
-      {
-        "path": "public/assets/campus/materials/grass_ground/Rough.jpg",
-        "bytes": 1525000,
-        "md5": "0685285b42a7110ce0876f676a2f79c2"
-      }
-    ]
-  },
-  {
     "id": "pavement_03",
     "kind": "materials",
     "source": "https://polyhaven.com/a/pavement_03",
     "license": "CC0-1.0",
     "licenseUrl": "https://polyhaven.com/license",
     "downloaded": "2026-10-13",
-    "verifiedAt": "2026-10-14",
+    "verifiedAt": "2026-10-15",
     "files": [
       {
         "path": "public/assets/campus/materials/pavement_03/Diffuse.jpg",
@@ -156,38 +68,12 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://polyhaven.com/license",
     "downloaded": "2026-10-13",
-    "verifiedAt": "2026-10-14",
+    "verifiedAt": "2026-10-15",
     "files": [
       {
         "path": "public/assets/campus/environment/kloofendal_48d_partly_cloudy_puresky/sky.hdr",
         "bytes": 5451493,
         "md5": "2eba3a4d7eeb23cbfbeca364c97e7980"
-      }
-    ]
-  },
-  {
-    "id": "grass_path_2",
-    "kind": "materials",
-    "source": "https://polyhaven.com/a/grass_path_2",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "downloaded": "2026-10-13",
-    "verifiedAt": "2026-10-14",
-    "files": [
-      {
-        "path": "public/assets/campus/materials/grass_path_2/Diffuse.jpg",
-        "bytes": 2788295,
-        "md5": "e03c3884e3a1f13dc838a4eee9af4dab"
-      },
-      {
-        "path": "public/assets/campus/materials/grass_path_2/nor_gl.jpg",
-        "bytes": 2506245,
-        "md5": "f2496daebc75a5d9bc98ecd0c6a8657d"
-      },
-      {
-        "path": "public/assets/campus/materials/grass_path_2/Rough.jpg",
-        "bytes": 1329811,
-        "md5": "22fa874bdfd9a18f8c541342486493b0"
       }
     ]
   },
@@ -198,7 +84,7 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://polyhaven.com/license",
     "downloaded": "2026-10-13",
-    "verifiedAt": "2026-10-14",
+    "verifiedAt": "2026-10-15",
     "files": [
       {
         "path": "public/assets/campus/models/island_tree_02/island_tree_02_2k.gltf",
@@ -263,13 +149,143 @@
     ]
   },
   {
+    "id": "qwantani_noon_puresky",
+    "kind": "environment",
+    "source": "https://polyhaven.com/a/qwantani_noon_puresky",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-15",
+    "verifiedAt": "2026-10-15",
+    "files": [
+      {
+        "path": "public/assets/campus/environment/qwantani_noon_puresky/sky.hdr",
+        "bytes": 4184949,
+        "md5": "a316dccf04a17de5581240ed172790f0"
+      }
+    ]
+  },
+  {
+    "id": "aerial_asphalt_01",
+    "kind": "materials",
+    "source": "https://polyhaven.com/a/aerial_asphalt_01",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-13",
+    "verifiedAt": "2026-10-15",
+    "files": [
+      {
+        "path": "public/assets/campus/materials/aerial_asphalt_01/Diffuse.jpg",
+        "bytes": 2802005,
+        "md5": "4cb311fc7638c0b1d5e9641ca9c6ea78"
+      },
+      {
+        "path": "public/assets/campus/materials/aerial_asphalt_01/nor_gl.jpg",
+        "bytes": 2751902,
+        "md5": "2b2d543f7c6567030f11a6070f586e05"
+      },
+      {
+        "path": "public/assets/campus/materials/aerial_asphalt_01/Rough.jpg",
+        "bytes": 1392536,
+        "md5": "f46f34b5509cec4b7fccdff8dfe4dc59"
+      }
+    ]
+  },
+  {
+    "id": "grass_path_2",
+    "kind": "materials",
+    "source": "https://polyhaven.com/a/grass_path_2",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-13",
+    "verifiedAt": "2026-10-15",
+    "files": [
+      {
+        "path": "public/assets/campus/materials/grass_path_2/Diffuse.jpg",
+        "bytes": 2788295,
+        "md5": "e03c3884e3a1f13dc838a4eee9af4dab"
+      },
+      {
+        "path": "public/assets/campus/materials/grass_path_2/nor_gl.jpg",
+        "bytes": 2506245,
+        "md5": "f2496daebc75a5d9bc98ecd0c6a8657d"
+      },
+      {
+        "path": "public/assets/campus/materials/grass_path_2/Rough.jpg",
+        "bytes": 1329811,
+        "md5": "22fa874bdfd9a18f8c541342486493b0"
+      }
+    ]
+  },
+  {
+    "id": "grass_ground",
+    "kind": "materials",
+    "source": "https://polyhaven.com/a/grass_ground",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-14",
+    "verifiedAt": "2026-10-15",
+    "files": [
+      {
+        "path": "public/assets/campus/materials/grass_ground/Diffuse.jpg",
+        "bytes": 3787330,
+        "md5": "fd97f2402677e6686b2d9159fc3a4256"
+      },
+      {
+        "path": "public/assets/campus/materials/grass_ground/nor_gl.jpg",
+        "bytes": 5968024,
+        "md5": "c8b2dd95f09868c4aacb91f62c673344"
+      },
+      {
+        "path": "public/assets/campus/materials/grass_ground/Rough.jpg",
+        "bytes": 1525000,
+        "md5": "0685285b42a7110ce0876f676a2f79c2"
+      }
+    ]
+  },
+  {
+    "id": "painted_wooden_bench",
+    "kind": "models",
+    "source": "https://polyhaven.com/a/painted_wooden_bench",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "downloaded": "2026-10-13",
+    "verifiedAt": "2026-10-15",
+    "files": [
+      {
+        "path": "public/assets/campus/models/painted_wooden_bench/painted_wooden_bench_2k.gltf",
+        "bytes": 2835,
+        "md5": "2977ba5644963b449ad3372c3e5e7dc5"
+      },
+      {
+        "path": "public/assets/campus/models/painted_wooden_bench/textures/painted_wooden_bench_arm_2k.jpg",
+        "bytes": 2232819,
+        "md5": "85abb03024e970c08fcc2163a38b564c"
+      },
+      {
+        "path": "public/assets/campus/models/painted_wooden_bench/textures/painted_wooden_bench_nor_gl_2k.jpg",
+        "bytes": 3522953,
+        "md5": "02fe51467ced6a748de37c8563d3d543"
+      },
+      {
+        "path": "public/assets/campus/models/painted_wooden_bench/textures/painted_wooden_bench_diff_2k.jpg",
+        "bytes": 2210706,
+        "md5": "2b497deb0d615cae13454400672b724f"
+      },
+      {
+        "path": "public/assets/campus/models/painted_wooden_bench/painted_wooden_bench.bin",
+        "bytes": 25444,
+        "md5": "ed331b50f955852f007313c1a75c2e2d"
+      }
+    ]
+  },
+  {
     "id": "jacaranda_tree",
     "kind": "models",
     "source": "https://polyhaven.com/a/jacaranda_tree",
     "license": "CC0-1.0",
     "licenseUrl": "https://polyhaven.com/license",
     "downloaded": "2026-10-14",
-    "verifiedAt": "2026-10-14",
+    "verifiedAt": "2026-10-15",
     "files": [
       {
         "path": "public/assets/campus/models/jacaranda_tree/jacaranda_tree_2k.gltf",

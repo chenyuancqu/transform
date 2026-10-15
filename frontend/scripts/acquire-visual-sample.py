@@ -2,14 +2,17 @@
 import asyncio
 import hashlib
 import json
+from datetime import date
 from pathlib import Path
 
 import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
 DEST = ROOT / 'public/assets/campus'
+TODAY = date.today().isoformat()
 MODELS = ['island_tree_02', 'jacaranda_tree', 'shrub_01', 'painted_wooden_bench']
 MATERIALS = ['aerial_asphalt_01', 'pavement_03', 'grass_path_2', 'grass_ground']
+ENVIRONMENTS = ['kloofendal_48d_partly_cloudy_puresky', 'qwantani_noon_puresky']
 
 
 async def main():
@@ -50,15 +53,15 @@ async def main():
             await asyncio.gather(*(download(f, p) for f, p in selected))
             catalog.append(dict(id=name, kind=kind, source='https://polyhaven.com/a/' + name,
                                 license='CC0-1.0', licenseUrl='https://polyhaven.com/license',
-                                downloaded=previous.get(name, {}).get('downloaded','2026-10-14'),
-                                verifiedAt='2026-10-14',
+                                downloaded=previous.get(name, {}).get('downloaded', TODAY),
+                                verifiedAt=TODAY,
                                 files=[dict(path=str(p.relative_to(ROOT)).replace('\\', '/'),
                                             bytes=p.stat().st_size, md5=f['md5']) for f, p in selected]))
             print('Verified:', name, sum(p.stat().st_size for _, p in selected), 'bytes', flush=True)
 
         await asyncio.gather(*(asset(n, 'models') for n in MODELS),
                              *(asset(n, 'materials') for n in MATERIALS),
-                             asset('kloofendal_48d_partly_cloudy_puresky', 'environment'))
+                             *(asset(n, 'environment') for n in ENVIRONMENTS))
     (DEST / 'environment-assets.json').write_text(json.dumps(catalog, indent=2), encoding='utf-8')
 
 

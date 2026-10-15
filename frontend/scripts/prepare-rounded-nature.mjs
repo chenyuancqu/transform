@@ -38,7 +38,7 @@ for(const [id,file] of [['cluster-tree','tree_detailed'],['broad-tree','tree_fat
   for(const [name,original] of groups){
     const leaves=/leaf|green|grass/i.test(name);if(name==='_defaultMat'||(id==='rounded-shrub'&&!leaves))continue;
     const indices=new Map(),welded=new Map(),vertices=[],faces=original.map(face=>face.map(i=>{if(indices.has(i))return indices.get(i);const p=positions[i],key=p.map(x=>x.toFixed(6)).join(':');if(!welded.has(key)){welded.set(key,vertices.length);vertices.push(p);}indices.set(i,welded.get(key));return indices.get(i);}));
-    let shape={vertices,faces};if(leaves){for(let i=0;i<2;i++)shape=loop(shape.vertices,shape.faces);restoreCanopyVolume(shape,vertices,id==='rounded-shrub');}
+    let shape={vertices,faces};if(leaves){for(let i=0;i<(id==='broad-tree'?2:1);i++)shape=loop(shape.vertices,shape.faces);restoreCanopyVolume(shape,vertices,id==='rounded-shrub');}
     const geometry=new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(shape.vertices.flat(),3)).setIndex(shape.faces.flat());geometry.computeVertexNormals();
     const material=doc.createMaterial(leaves?'canopy-green':'warm-bark').setBaseColorFactor(new THREE.Color(leaves?'#6fae67':'#b78762').toArray().concat(1)).setMetallicFactor(0).setRoughnessFactor(.92);
     const attr=(name,type,array)=>doc.createAccessor(name).setBuffer(buffer).setType(type).setArray(array);
@@ -46,7 +46,7 @@ for(const [id,file] of [['cluster-tree','tree_detailed'],['broad-tree','tree_fat
     scene.addChild(doc.createNode(name).setMesh(doc.createMesh(name).addPrimitive(primitive)));triangles+=shape.faces.length;parts.push({name,triangles:shape.faces.length});geometry.dispose();
   }
   const bytes=await new NodeIO().writeBinary(doc);await writeFile(`${out}/${id}.glb`,bytes);
-  manifest.push({id,url:`/assets/campus/stylized/nature/${id}.glb`,source,author:'Kenney',sourceFile:file+'.obj',license:'CC0-1.0',modification:'Two Loop subdivision passes on original canopy topology, restored fuller crown volumes, recomputed smooth normals, new pastel colours; original trunk retained for trees, canopy reused for shrubs.',triangles,parts,bytes:bytes.byteLength,sha256:createHash('sha256').update(bytes).digest('hex')});
+  manifest.push({id,url:`/assets/campus/stylized/nature/${id}.glb`,source,author:'Kenney',sourceFile:file+'.obj',license:'CC0-1.0',modification:`${id==='broad-tree'?'Two':'One'} Loop subdivision passes on original canopy topology, restored fuller crown volumes, recomputed smooth normals; original trunk retained for trees, canopy reused for shrubs.`,triangles,parts,bytes:bytes.byteLength,sha256:createHash('sha256').update(bytes).digest('hex')});
 }
 await copyFile(`${input}/License.txt`,`${out}/License-Kenney.txt`);
 const bench=await new NodeIO().read('public/assets/campus/models/painted_wooden_bench/painted_wooden_bench_2k.gltf');

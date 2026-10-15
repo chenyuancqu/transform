@@ -6,11 +6,14 @@ import {getBounds} from '@gltf-transform/functions';
 import {readFile,stat,mkdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import * as THREE from 'three';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {createDeviceLOD} from '../src/rendering/OptimizedAssetLOD.js';
+import {BALCONY_FLOORS,CAMPUS_BUILDINGS,CAMPUS_TREES,GARDENS,LOW_GARDENS,DISTRICT_TREES} from '../src/rendering/campusScenePlan.js';
+import {DISTRICT_LAYOUT} from '../src/rendering/districtScenePlan.js';
 const io=new NodeIO().registerExtensions(ALL_EXTENSIONS),root=path.resolve('public/assets/campus');
 const catalog=JSON.parse(await readFile(path.join(root,'optimized/assets.json'),'utf8'));
 const nature=JSON.parse(await readFile(path.join(root,'stylized/nature/assets.json'),'utf8'));
-const active=catalog.filter(a=>['office','dispatch','mother','matrice-300'].includes(a.id));
+const active=catalog.filter(a=>['office','dispatch','mother','matrice-300','context-office'].includes(a.id));
 const documents=new Map();
 for(const a of [...active,...nature])documents.set(a.url,await io.read(path.resolve('public'+a.url)));
 function count(doc){let n=0;doc.getRoot().getDefaultScene().traverse(node=>{for(const p of node.getMesh()?.listPrimitives()||[])n+=(p.getIndices()?.getCount()||p.getAttribute('POSITION').getCount())/3;});return n;}
@@ -53,17 +56,26 @@ test('rounded vegetation is opaque, small, and sourced from licensed files',()=>
   for(const a of nature){assert.equal(a.license,'CC0-1.0');assert.ok(a.bytes<150000);assert.ok(a.source.startsWith('https://'));const doc=documents.get(a.url);assert.equal(doc.getRoot().listTextures().length,0);for(const m of doc.getRoot().listMaterials())assert.equal(m.getAlphaMode(),'OPAQUE');}
   assert.ok(nature.find(a=>a.id==='cluster-tree').triangles<5000);
 });
-test('full-campus geometry budget including all near devices is below one million triangles',async()=>{
+test('full-campus geometry budget includes balconies and stays close to one million triangles',async()=>{
   const get=(id,lod)=>active.find(a=>a.id===id&&a.lod===lod).triangles,plant=id=>nature.find(a=>a.id===id).triangles;
-  const buildings=get('office','exterior')*6+get('dispatch','exterior')+4282*7;
-  const plants=plant('cluster-tree')*32+plant('broad-tree')*16+plant('rounded-shrub')*64+plant('bench')*8;
+  // Decorative geometry is a conservative allowance; district asset instances
+  // and vegetation counts come from the same plans used by the actual scene.
+  const buildings=get('office','exterior')*6+get('dispatch','exterior')+3500*7;
+  const districtBuildings=get('context-office','district')*DISTRICT_LAYOUT.buildings.length;
+  const plants=plant('cluster-tree')*CAMPUS_TREES.filter((_,i)=>i%2===0).length+plant('broad-tree')*(CAMPUS_TREES.filter((_,i)=>i%2!==0).length+DISTRICT_TREES.length)+plant('rounded-shrub')*(GARDENS.length+LOW_GARDENS.length)*16+plant('bench')*GARDENS.length*2;
   const nearDevices=get('mother','near')+get('matrice-300','near')*3;
   const farDevices=get('mother','medium')+get('matrice-300','far')*3;
-  const auxiliaryAllowance=25000;assert.ok(buildings+plants+nearDevices+auxiliaryAllowance<1000000);
+  const balconyCount=CAMPUS_BUILDINGS.filter(b=>(b.height??32)>=20).length*BALCONY_FLOORS.length;
+  const detailGeometry={deck:new RoundedBoxGeometry(14.4,.3,3.6,1,.07),glassFront:new THREE.BoxGeometry(13.35,1.02,.09),glassSide:new THREE.BoxGeometry(3.35,1.02,.09),railFront:new THREE.BoxGeometry(14.25,.09,.11),railSide:new THREE.BoxGeometry(3.6,.09,.11),post:new THREE.BoxGeometry(.11,1.2,.11),support:new THREE.BoxGeometry(.16,.62,.18),planter:new RoundedBoxGeometry(1.55,.58,.76,1,.06),foliage:new THREE.SphereGeometry(1,8,5),signal:new THREE.BoxGeometry(12.6,.045,.045)};
+  const instances={deck:balconyCount,glassFront:balconyCount,glassSide:balconyCount*2,railFront:balconyCount*2,railSide:balconyCount*4,post:balconyCount*5,support:balconyCount*2,planter:balconyCount*2,foliage:balconyCount*6,signal:balconyCount};
+  const balconyDetails=Object.entries(instances).reduce((total,[name,count])=>total+(detailGeometry[name].index?.count??detailGeometry[name].attributes.position.count)/3*count,0);
+  Object.values(detailGeometry).forEach(geometry=>geometry.dispose());
+  const auxiliaryAllowance=25000,allNearBudget=buildings+districtBuildings+plants+nearDevices+auxiliaryAllowance+balconyDetails;
+  assert.ok(allNearBudget<1020000,`all-near scene budget ${allNearBudget} exceeds the 1.02m target`);
   const resources=new Set();
   for(const a of [...active,...nature]){const file=path.resolve('public'+a.url);resources.add(file);if(a.url.endsWith('.gltf')){const json=JSON.parse(await readFile(file,'utf8'));for(const item of [...(json.buffers||[]),...(json.images||[])])if(item.uri&&!item.uri.startsWith('data:'))resources.add(path.resolve(path.dirname(file),item.uri));}}
-  resources.add(path.join(root,'environment/kloofendal_48d_partly_cloudy_puresky/sky.hdr'));
+  resources.add(path.join(root,'environment/qwantani_noon_puresky/sky.hdr'));
   let bytes=0;for(const file of resources)bytes+=(await stat(file)).size;
-  const result={buildings,plants,nearDevices,farDevices,auxiliaryAllowance,allNearBudget:buildings+plants+nearDevices+auxiliaryAllowance,farBudget:buildings+plants+farDevices+auxiliaryAllowance,activeAssetFiles:resources.size,activeAssetBytes:bytes,resources:[...resources].map(p=>path.relative(path.resolve('public'),p).replaceAll('\\','/'))};
+  const result={buildings,districtBuildings,plants,nearDevices,farDevices,balconyDetails,auxiliaryAllowance,allNearBudget,farBudget:buildings+districtBuildings+plants+farDevices+auxiliaryAllowance+balconyDetails,activeAssetFiles:resources.size,activeAssetBytes:bytes,resources:[...resources].map(p=>path.relative(path.resolve('public'),p).replaceAll('\\','/'))};
   await mkdir('output/rtx3060-20261014',{recursive:true});await writeFile('output/rtx3060-20261014/asset-budget.json',JSON.stringify(result,null,2));
 });

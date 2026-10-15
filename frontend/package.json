@@ -12,7 +12,7 @@
     "test:backend": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v",
     "test:integration": "node tests/mqtt-integration.mjs",
     "test:assets": "node --test tests/optimized-assets.test.mjs",
-    "assets:optimize": "node scripts/optimize-campus-assets.mjs office dispatch matrice-300 mother && node scripts/prepare-rounded-nature.mjs"
+    "assets:optimize": "node scripts/optimize-campus-assets.mjs office dispatch matrice-300 mother && node scripts/prepare-rounded-nature.mjs && node scripts/prepare-tech-context.mjs"
   },
   "keywords": [
     "multi-agent",

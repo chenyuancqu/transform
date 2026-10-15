@@ -1,0 +1,615 @@
+{
+  "asset": {
+    "generator": "glTF-Transform v4.5.1",
+    "version": "2.0",
+    "extras": {
+      "author": "Nikitos & 3130 (https://sketchfab.com/vrcityphoto)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/office-building-af9782245c134c21ae0c8df7f57077e6",
+      "title": "Office building"
+    }
+  },
+  "accessors": [
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 8208,
+      "bufferView": 0,
+      "byteOffset": 0
+    },
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 1836,
+      "bufferView": 0,
+      "byteOffset": 16416
+    },
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 519,
+      "bufferView": 0,
+      "byteOffset": 20088
+    },
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 60,
+      "bufferView": 0,
+      "byteOffset": 21128
+    },
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 18,
+      "bufferView": 0,
+      "byteOffset": 21248
+    },
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 2973,
+      "bufferView": 0,
+      "byteOffset": 21284
+    },
+    {
+      "type": "SCALAR",
+      "componentType": 5123,
+      "count": 1443,
+      "bufferView": 0,
+      "byteOffset": 27232
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 5472,
+      "bufferView": 1,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 5472,
+      "max": [
+        255.926025390625,
+        17.37604522705078,
+        -0.15802001953125
+      ],
+      "min": [
+        -4.14235258102417,
+        -5.990286350250244,
+        -142.0778350830078
+      ],
+      "bufferView": 1,
+      "byteOffset": 12
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 1022,
+      "bufferView": 2,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 1022,
+      "max": [
+        53.10411834716797,
+        136.81292724609375,
+        83.5089111328125
+      ],
+      "min": [
+        -63.5869140625,
+        -153.231201171875,
+        -76.0220947265625
+      ],
+      "bufferView": 2,
+      "byteOffset": 12
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 330,
+      "bufferView": 3,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 330,
+      "max": [
+        100.05990600585938,
+        -25.94190216064453,
+        -646.2003784179688
+      ],
+      "min": [
+        -183.4727020263672,
+        -123.40260314941406,
+        -841.324462890625
+      ],
+      "bufferView": 3,
+      "byteOffset": 12
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 34,
+      "bufferView": 4,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 34,
+      "max": [
+        7.5612335205078125,
+        2.700000286102295,
+        -10.799872398376465
+      ],
+      "min": [
+        4.349872589111328,
+        2.0399997234344482,
+        -10.899874687194824
+      ],
+      "bufferView": 4,
+      "byteOffset": 12
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 12,
+      "bufferView": 5,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 12,
+      "max": [
+        7.5612335205078125,
+        2.549999952316284,
+        -10.849872589111328
+      ],
+      "min": [
+        4.349872589111328,
+        2.0399997234344482,
+        -10.87487506866455
+      ],
+      "bufferView": 5,
+      "byteOffset": 12
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 1588,
+      "bufferView": 6,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 1588,
+      "max": [
+        22.36678695678711,
+        27.625661849975586,
+        7.970359802246094
+      ],
+      "min": [
+        -23.25311851501465,
+        2.9211580753326416,
+        -7.970359802246094
+      ],
+      "bufferView": 6,
+      "byteOffset": 12
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 894,
+      "bufferView": 7,
+      "byteOffset": 0
+    },
+    {
+      "type": "VEC3",
+      "componentType": 5126,
+      "count": 894,
+      "max": [
+        23.30738639831543,
+        29.078872680664062,
+        8.02458381652832
+      ],
+      "min": [
+        -23.30729866027832,
+        2.9211580753326416,
+        -8.02458381652832
+      ],
+      "bufferView": 7,
+      "byteOffset": 12
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 30120,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 30120,
+      "byteLength": 131328,
+      "byteStride": 24,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 161448,
+      "byteLength": 24528,
+      "byteStride": 24,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 185976,
+      "byteLength": 7920,
+      "byteStride": 24,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 193896,
+      "byteLength": 816,
+      "byteStride": 24,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 194712,
+      "byteLength": 288,
+      "byteStride": 24,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 195000,
+      "byteLength": 38112,
+      "byteStride": 24,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 233112,
+      "byteLength": 21456,
+      "byteStride": 24,
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "context-office-0.bin",
+      "byteLength": 254568
+    }
+  ],
+  "materials": [
+    {
+      "name": "walls_exterior",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.4,
+          0.46,
+          0.47,
+          1
+        ],
+        "roughnessFactor": 0.44,
+        "metallicFactor": 0.18
+      }
+    },
+    {
+      "name": "glass",
+      "alphaMode": "BLEND",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.32,
+          0.46,
+          0.5,
+          0.43
+        ],
+        "roughnessFactor": 0.21,
+        "metallicFactor": 0.3
+      }
+    },
+    {
+      "name": "Material_17",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "roughnessFactor": 0.6,
+        "metallicFactor": 0
+      },
+      "emissiveFactor": [
+        0.035,
+        0.032,
+        0.025
+      ]
+    },
+    {
+      "name": "walls_BLD_OFFICE_05",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "roughnessFactor": 0.8929713596497552,
+        "metallicFactor": 0
+      },
+      "emissiveFactor": [
+        0.035,
+        0.032,
+        0.025
+      ]
+    },
+    {
+      "name": "material",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.88,
+          0.86,
+          0.8,
+          1
+        ],
+        "roughnessFactor": 0.78,
+        "metallicFactor": 0
+      }
+    },
+    {
+      "name": "Color_007",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.227451,
+          0.227451,
+          0.227451,
+          1
+        ],
+        "roughnessFactor": 0.9302134966,
+        "metallicFactor": 0
+      }
+    },
+    {
+      "name": "Blinds_Roman_Hobbled_Blue",
+      "doubleSided": true,
+      "pbrMetallicRoughness": {
+        "roughnessFactor": 0.9302134966,
+        "metallicFactor": 0
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "BLD_OFFICE_03_Material #17_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 7,
+            "POSITION": 8
+          },
+          "mode": 4,
+          "material": 2,
+          "indices": 0
+        }
+      ]
+    },
+    {
+      "name": "BLD_OFFICE_05_walls [BLD_OFFICE_05]_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 9,
+            "POSITION": 10
+          },
+          "mode": 4,
+          "material": 3,
+          "indices": 1
+        }
+      ]
+    },
+    {
+      "name": "BLD_OFFICE_06_w2_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 11,
+            "POSITION": 12
+          },
+          "mode": 4,
+          "material": 4,
+          "indices": 2
+        }
+      ]
+    },
+    {
+      "name": "BLD_OFFICE_08_Color_007_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 13,
+            "POSITION": 14
+          },
+          "mode": 4,
+          "material": 5,
+          "indices": 3
+        }
+      ]
+    },
+    {
+      "name": "BLD_OFFICE_08_Blinds_Roman_Hobbled_Blue_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 15,
+            "POSITION": 16
+          },
+          "mode": 4,
+          "material": 6,
+          "indices": 4
+        }
+      ]
+    },
+    {
+      "name": "rear-BLD_OFFICE_00_walls_exterior_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 17,
+            "POSITION": 18
+          },
+          "mode": 4,
+          "material": 0,
+          "indices": 5
+        }
+      ]
+    },
+    {
+      "name": "rear-BLD_OFFICE_01_glass_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 19,
+            "POSITION": 20
+          },
+          "mode": 4,
+          "material": 1,
+          "indices": 6
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "BLD_OFFICE_03_Material #17_0",
+      "translation": [
+        -21.266126339212807,
+        29.077600798019837,
+        3.493916621756505
+      ],
+      "rotation": [
+        -0.7071067811865476,
+        -1.0015352060549194e-16,
+        1.0015352060549196e-16,
+        0.7071067811865475
+      ],
+      "scale": [
+        0.16399820702033494,
+        0.16399820702033494,
+        0.16399820702033494
+      ],
+      "mesh": 0
+    },
+    {
+      "name": "BLD_OFFICE_05_walls [BLD_OFFICE_05]_0",
+      "translation": [
+        -1.2638338693874454,
+        15.388625214386504,
+        -1.112565132469725
+      ],
+      "rotation": [
+        -0.5283435356124773,
+        0.4699501126465527,
+        0.46995011264655273,
+        0.5283435356124764
+      ],
+      "scale": [
+        0.16399819724528011,
+        0.16399819724528011,
+        0.16399820702033496
+      ],
+      "mesh": 1
+    },
+    {
+      "name": "BLD_OFFICE_06_w2_0",
+      "translation": [
+        6.842728671855654,
+        137.97570343640882,
+        -12.327669702300508
+      ],
+      "rotation": [
+        -0.7071067811865476,
+        -1.0015352060549194e-16,
+        1.0015352060549196e-16,
+        0.7071067811865475
+      ],
+      "scale": [
+        0.16399820702033494,
+        0.16399820702033494,
+        0.16399820702033494
+      ],
+      "mesh": 2
+    },
+    {
+      "name": "BLD_OFFICE_08_Color_007_0",
+      "translation": [
+        -33.97897108302973,
+        25.31254949397126,
+        -1.4487351203092986
+      ],
+      "rotation": [
+        0.7071068809345343,
+        -1.2382965862241097e-7,
+        -0.7071066814385162,
+        -1.659765447971743e-7
+      ],
+      "scale": [
+        -1.0017187674484727,
+        1.001718767448472,
+        1.001718767448473
+      ],
+      "mesh": 3
+    },
+    {
+      "name": "BLD_OFFICE_08_Blinds_Roman_Hobbled_Blue_0",
+      "translation": [
+        -33.97897108302973,
+        25.31254949397126,
+        -1.4487351203092986
+      ],
+      "rotation": [
+        0.7071068809345343,
+        -1.2382965862241097e-7,
+        -0.7071066814385162,
+        -1.659765447971743e-7
+      ],
+      "scale": [
+        -1.0017187674484727,
+        1.001718767448472,
+        1.001718767448473
+      ],
+      "mesh": 4
+    },
+    {
+      "name": "rear-BLD_OFFICE_00_walls_exterior_0",
+      "mesh": 5
+    },
+    {
+      "name": "rear-BLD_OFFICE_01_glass_0",
+      "mesh": 6
+    }
+  ],
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        5,
+        6,
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ],
+  "scene": 0,
+  "extensionsUsed": [
+    "KHR_materials_transmission"
+  ]
+}

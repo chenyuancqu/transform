@@ -4,11 +4,26 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'backend'))
-from mission import Mission, aligned, pickup, world, dock
+from mission import Mission, PICKUP_LOCATIONS, aligned, pickup, world, dock
 from service import Policy
 
 
 class BackendMissionTests(unittest.TestCase):
+    def test_shared_parcel_locations_reach_backend_snapshot_unchanged(self):
+        m = Mission()
+        snapshot = m.snapshot({'status': 'ok'})
+        self.assertEqual(len([o for o in m.orders if o['pickupType'] == 'balcony']), 6)
+        self.assertEqual(len([o for o in m.orders if o['pickupType'] == 'courtyard']), 2)
+        for order, location, encoded in zip(m.orders, PICKUP_LOCATIONS, snapshot['orders']):
+            # The shared layout uses Three.js [x, height, z]; the backend wire
+            # pose uses its documented [x, horizontal-y, height] convention.
+            wire_position = [location['position'][0], location['position'][2], location['position'][1]]
+            self.assertEqual(world(order), wire_position)
+            self.assertEqual(encoded['position'], wire_position)
+            self.assertEqual(encoded['pickupType'], location['pickupType'])
+            self.assertEqual(encoded.get('buildingId'), location.get('buildingId'))
+            self.assertEqual(encoded.get('floor'), location.get('floor'))
+
     def test_arrival_requires_precise_pose_and_low_speed(self):
         m = Mission()
         order = m.orders[0]

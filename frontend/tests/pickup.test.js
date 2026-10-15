@@ -3,6 +3,31 @@ import assert from 'node:assert/strict';
 import { SimulationState } from '../src/core/SimulationState.js';
 import { PICKUP_RULES, WORLD_UNITS, missionToWorld, pickupPose } from '../src/core/MissionRules.js';
 import { AIEngine } from '../src/core/AIEngine.js';
+import pickupLocations from '../src/core/campusPickupLocations.json' with { type: 'json' };
+import { CAMPUS_BUILDINGS, OFFICE_DIMENSIONS } from '../src/rendering/campusScenePlan.js';
+
+test('shared balcony parcel coordinates sit on their rendered floors and courtyard orders stay low', () => {
+  const state = new SimulationState();
+  const balconies = state.orders.filter((order) => order.pickupType === 'balcony');
+  assert.equal(balconies.length, 6);
+  assert.equal(state.orders.filter((order) => order.pickupType === 'courtyard').length, 2);
+  for (const order of balconies) {
+    const location = pickupLocations.find((item) => item.id === order.id);
+    const building = CAMPUS_BUILDINGS.find((item) => item.id === order.buildingId);
+    const [, scaleY, scaleZ] = building.visualScale;
+    const localFront = OFFICE_DIMENSIONS.front - 0.12 + 2.3;
+    const yaw = building.yaw;
+    const expectedX = building.position[0] + Math.sin(yaw) * localFront * scaleZ;
+    const expectedZ = building.position[2] + Math.cos(yaw) * localFront * scaleZ;
+    const expectedPackageY = (32 * order.floor / 11) * scaleY + 0.25;
+    assert.ok(Math.abs(location.position[0] - expectedX) < 0.02, `order ${order.id} aligns with its balcony depth`);
+    assert.ok(Math.abs(location.position[2] - expectedZ) < 0.02, `order ${order.id} aligns with its balcony width`);
+    assert.ok(Math.abs(location.position[1] - expectedPackageY) < 0.02, `order ${order.id} rests on floor ${order.floor}`);
+    assert.ok(Math.abs(order.x * 200 - 100 - location.position[0]) < 1e-8);
+    assert.ok(Math.abs(order.y * 200 - 100 - location.position[2]) < 1e-8);
+    assert.ok(Math.abs(order.z * 50 - location.position[1]) < 1e-8);
+  }
+});
 
 function alignedMission() {
   const state = new SimulationState();

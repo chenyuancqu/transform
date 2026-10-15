@@ -351,217 +351,6 @@
     "sha256": "6c528a7525a6784768bba44c4ad111a84a7be2a36a8f7b1921b41c5dd6ee79ca"
   },
   {
-    "id": "office",
-    "lod": "exterior",
-    "source": "buildings/glass-office/daylight-ready.glb",
-    "sourceTriangles": 650371,
-    "removedInterior": [
-      {
-        "name": "office_chairs02__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs00_Color_007_0",
-        "triangles": 4041
-      },
-      {
-        "name": "office_chairs00_Color_002_0",
-        "triangles": 9602
-      },
-      {
-        "name": "office_chairs00_Color_003_0",
-        "triangles": 831
-      },
-      {
-        "name": "office_chairs00_Color_000_0",
-        "triangles": 11
-      },
-      {
-        "name": "office_chairs00_Color_001_0",
-        "triangles": 650
-      },
-      {
-        "name": "office_chairs00_FrontColor_0",
-        "triangles": 152
-      },
-      {
-        "name": "office_chairs01_Color_007_0",
-        "triangles": 505
-      },
-      {
-        "name": "office_chairs01_Color_003_0",
-        "triangles": 147
-      },
-      {
-        "name": "office_chairs01_FrontColor_0",
-        "triangles": 12
-      },
-      {
-        "name": "office_chairs01_Color_002_0",
-        "triangles": 14
-      },
-      {
-        "name": "office_chairs03_Color_001_0",
-        "triangles": 216
-      },
-      {
-        "name": "office_chairs03_Color_003_0",
-        "triangles": 126
-      },
-      {
-        "name": "office_chairs03_FrontColor_0",
-        "triangles": 34
-      },
-      {
-        "name": "office_chairs03_Color_007_0",
-        "triangles": 246
-      },
-      {
-        "name": "office_chairs004__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs005__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs006_Color_007_0",
-        "triangles": 4041
-      },
-      {
-        "name": "office_chairs006_Color_002_0",
-        "triangles": 9602
-      },
-      {
-        "name": "office_chairs006_Color_003_0",
-        "triangles": 831
-      },
-      {
-        "name": "office_chairs006_Color_000_0",
-        "triangles": 11
-      },
-      {
-        "name": "office_chairs006_Color_001_0",
-        "triangles": 650
-      },
-      {
-        "name": "office_chairs006_FrontColor_0",
-        "triangles": 152
-      },
-      {
-        "name": "office_chairs007_Color_007_0",
-        "triangles": 4041
-      },
-      {
-        "name": "office_chairs007_Color_002_0",
-        "triangles": 9602
-      },
-      {
-        "name": "office_chairs007_Color_003_0",
-        "triangles": 831
-      },
-      {
-        "name": "office_chairs007_Color_000_0",
-        "triangles": 11
-      },
-      {
-        "name": "office_chairs007_Color_001_0",
-        "triangles": 650
-      },
-      {
-        "name": "office_chairs007_FrontColor_0",
-        "triangles": 152
-      },
-      {
-        "name": "office_chairs012__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs013__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs017__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs018__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs019__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs023__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs024__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs025__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs029__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs030__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs031__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs035__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs036__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs037__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs041__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs042__0",
-        "triangles": 29194
-      },
-      {
-        "name": "office_chairs043__0",
-        "triangles": 29194
-      }
-    ],
-    "license": "CC BY 4.0",
-    "url": "/assets/campus/optimized/buildings/office.gltf",
-    "triangles": 19330,
-    "bounds": {
-      "min": [
-        -23.355974197387695,
-        0,
-        -8.073244261257827
-      ],
-      "max": [
-        23.355974197387695,
-        32.000000000000014,
-        8.073244094848633
-      ]
-    },
-    "primitives": 8,
-    "geometryBytes": 827004,
-    "resourceBytes": 3189182,
-    "sha256": "0bc7d1ac0bdce342c5341fd54a9ea23d583329312c84dfba589b0ce97d85a29f"
-  },
-  {
     "id": "dispatch",
     "lod": "exterior",
     "source": "buildings/glass-office/dispatch-centre.glb",
@@ -823,5 +612,238 @@
     "geometryBytes": 802544,
     "resourceBytes": 816115,
     "sha256": "fe062bc8abe3cc191e86fe52eead97d4a79a8e7f080e7fc6080fecdc991ae2db"
+  },
+  {
+    "id": "office",
+    "lod": "exterior",
+    "source": "buildings/glass-office/daylight-ready.glb",
+    "sourceTriangles": 650371,
+    "removedInterior": [
+      {
+        "name": "office_chairs02__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs00_Color_007_0",
+        "triangles": 4041
+      },
+      {
+        "name": "office_chairs00_Color_002_0",
+        "triangles": 9602
+      },
+      {
+        "name": "office_chairs00_Color_003_0",
+        "triangles": 831
+      },
+      {
+        "name": "office_chairs00_Color_000_0",
+        "triangles": 11
+      },
+      {
+        "name": "office_chairs00_Color_001_0",
+        "triangles": 650
+      },
+      {
+        "name": "office_chairs00_FrontColor_0",
+        "triangles": 152
+      },
+      {
+        "name": "office_chairs01_Color_007_0",
+        "triangles": 505
+      },
+      {
+        "name": "office_chairs01_Color_003_0",
+        "triangles": 147
+      },
+      {
+        "name": "office_chairs01_FrontColor_0",
+        "triangles": 12
+      },
+      {
+        "name": "office_chairs01_Color_002_0",
+        "triangles": 14
+      },
+      {
+        "name": "office_chairs03_Color_001_0",
+        "triangles": 216
+      },
+      {
+        "name": "office_chairs03_Color_003_0",
+        "triangles": 126
+      },
+      {
+        "name": "office_chairs03_FrontColor_0",
+        "triangles": 34
+      },
+      {
+        "name": "office_chairs03_Color_007_0",
+        "triangles": 246
+      },
+      {
+        "name": "office_chairs004__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs005__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs006_Color_007_0",
+        "triangles": 4041
+      },
+      {
+        "name": "office_chairs006_Color_002_0",
+        "triangles": 9602
+      },
+      {
+        "name": "office_chairs006_Color_003_0",
+        "triangles": 831
+      },
+      {
+        "name": "office_chairs006_Color_000_0",
+        "triangles": 11
+      },
+      {
+        "name": "office_chairs006_Color_001_0",
+        "triangles": 650
+      },
+      {
+        "name": "office_chairs006_FrontColor_0",
+        "triangles": 152
+      },
+      {
+        "name": "office_chairs007_Color_007_0",
+        "triangles": 4041
+      },
+      {
+        "name": "office_chairs007_Color_002_0",
+        "triangles": 9602
+      },
+      {
+        "name": "office_chairs007_Color_003_0",
+        "triangles": 831
+      },
+      {
+        "name": "office_chairs007_Color_000_0",
+        "triangles": 11
+      },
+      {
+        "name": "office_chairs007_Color_001_0",
+        "triangles": 650
+      },
+      {
+        "name": "office_chairs007_FrontColor_0",
+        "triangles": 152
+      },
+      {
+        "name": "office_chairs012__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs013__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs017__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs018__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs019__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs023__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs024__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs025__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs029__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs030__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs031__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs035__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs036__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs037__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs041__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs042__0",
+        "triangles": 29194
+      },
+      {
+        "name": "office_chairs043__0",
+        "triangles": 29194
+      }
+    ],
+    "license": "CC BY 4.0",
+    "url": "/assets/campus/optimized/buildings/office.gltf",
+    "triangles": 19330,
+    "bounds": {
+      "min": [
+        -23.355974197387695,
+        0,
+        -8.073244261257827
+      ],
+      "max": [
+        23.355974197387695,
+        32.000000000000014,
+        8.073244094848633
+      ]
+    },
+    "primitives": 8,
+    "geometryBytes": 827004,
+    "resourceBytes": 3189182,
+    "sha256": "0bc7d1ac0bdce342c5341fd54a9ea23d583329312c84dfba589b0ce97d85a29f"
+  },
+  {
+    "id": "context-office",
+    "lod": "district",
+    "source": "optimized/buildings/office.gltf",
+    "url": "/assets/campus/optimized/buildings/context-office.gltf",
+    "triangles": 5019,
+    "bounds": {
+      "min": [
+        -23.30729866027832,
+        0,
+        -8.073244261257827
+      ],
+      "max": [
+        23.30738639831543,
+        32.000000000000014,
+        8.02458381652832
+      ]
+    },
+    "license": "CC-BY-4.0",
+    "author": "Nikitos & 3130",
+    "modification": "Approved office exterior simplified for distant instanced district buildings; scanned maps omitted."
   }
 ]

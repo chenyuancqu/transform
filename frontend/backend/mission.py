@@ -4,9 +4,14 @@ Only the wire/rendering boundary uses metres [horizontal x, horizontal y, height
 No renderer feedback or browser timer participates in arrival or completion.
 """
 import copy
+import json
 import math
 import time
 import uuid
+from pathlib import Path
+
+
+PICKUP_LOCATIONS = json.loads((Path(__file__).resolve().parents[1] / 'src' / 'core' / 'campusPickupLocations.json').read_text(encoding='utf-8'))
 
 
 def world(p):
@@ -66,10 +71,14 @@ class Mission:
                           cargoOrderId=None, stableElapsed=0., pickupProgress=0., unloadProgress=0.,
                           enabled=True, preferredArea=None, energyLimit=None, missionEnergy=0.,retractProgress=0.)
                      for i, x in enumerate([.5, .55, .45])]
-        points = [(.2, .3), (.8, .3), (.3, .7), (.7, .7), (.15, .5), (.85, .5), (.5, .2), (.5, .8)]
-        self.orders = [dict(id=i + 1, x=x, y=y, z=.012, area=('A' if y < .4 else 'B' if y > .6 else 'C'),
-                            completed=False, status='waiting', reservedBy=None, deliveredAt=None)
-                       for i, (x, y) in enumerate(points)]
+        self.orders = []
+        for location in PICKUP_LOCATIONS:
+            x, height, z = location['position']
+            bx, by = (x + 100) / 200, (z + 100) / 200
+            self.orders.append(dict(id=location['id'], x=bx, y=by, z=height / 50,
+                                    pickupType=location['pickupType'], buildingId=location.get('buildingId'),
+                                    floor=location.get('floor'), area=('A' if by < .4 else 'B' if by > .6 else 'C'),
+                                    completed=False, status='waiting', reservedBy=None, deliveredAt=None))
         self.stats = dict(stepCount=0, completedOrders=0, deliveredOrders=0, uavDistanceMeters=0.,
                           roverDistanceMeters=0., energyConsumed=0., averageDelaySeconds=None)
         self.events = []

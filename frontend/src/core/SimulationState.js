@@ -4,6 +4,7 @@
  */
 
 import { PICKUP_RULES, WORLD_UNITS, distanceMeters, isAtPickup, missionToWorld, moveTowards, pickupPose, returnPose } from './MissionRules.js';
+import pickupLocations from './campusPickupLocations.json' with { type: 'json' };
 
 export class SimulationState {
   constructor() {
@@ -27,20 +28,14 @@ export class SimulationState {
     ];
     this.uavs.forEach((uav) => Object.assign(uav, { phase: 'idle', targetOrderId: null, cargoOrderId: null, stableElapsed: 0, pickupElapsed: 0, unloadElapsed: 0 }));
 
-    // 8个订单点（分布在园区不同位置和高度）
-    this.orders = [
-      { id: 1, x: 0.2, y: 0.3, z: 0.15, completed: false },
-      { id: 2, x: 0.8, y: 0.3, z: 0.12, completed: false },
-      { id: 3, x: 0.3, y: 0.7, z: 0.18, completed: false },
-      { id: 4, x: 0.7, y: 0.7, z: 0.10, completed: false },
-      { id: 5, x: 0.15, y: 0.5, z: 0.20, completed: false },
-      { id: 6, x: 0.85, y: 0.5, z: 0.14, completed: false },
-      { id: 7, x: 0.5, y: 0.2, z: 0.16, completed: false },
-      { id: 8, x: 0.5, y: 0.8, z: 0.22, completed: false }
-    ];
-    // Ground collection trays: parcel centre is 0.6m above the world floor.
-    // Horizontal locations stay unchanged; packages no longer float 5–11m up.
-    this.orders.forEach((order) => Object.assign(order, { z: 0.6 / WORLD_UNITS.heightScale, reservedBy: null, status: 'waiting' }));
+    // Six parcels live on real balcony decks; two remain in the courtyard.
+    // The shared metre positions also configure the authoritative MEC mission.
+    this.orders = pickupLocations.map(({ id, pickupType, buildingId, floor, position }) => ({
+      id, x: (position[0] + 100) / WORLD_UNITS.coordScale,
+      y: (position[2] + 100) / WORLD_UNITS.coordScale,
+      z: position[1] / WORLD_UNITS.heightScale,
+      pickupType, buildingId, floor, completed: false, reservedBy: null, status: 'waiting'
+    }));
 
     // 统计数据
     this.stats = {

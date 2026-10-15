@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { useCampusBackend } from '../services/useCampusBackend.js';
 import { TaskConsole } from '../ui/TaskConsole.jsx';
 import '../ui/task-console.css';
-import '../ui/task-console-day.css';
+import '../ui/task-console-tech.css';
 import { businessToWorld } from './CoordinateSystem.js';
 import {CampusBuildings, DesignedCampusGround, CampusLandscape, CampusDaylight, CampusShadowCache, campusSurfaceHeight} from './CampusVisualEnvironment.jsx';
 import {CAMPUS_BUILDINGS} from './campusScenePlan.js';
@@ -44,6 +44,8 @@ function PerformanceProbe() {
 function OrderMarker({ order, uavs, visualUAVs }) {
   const world = businessToWorld(order.x, order.y, order.z);
   const ground = campusSurfaceHeight(world.x, world.z) + 0.018;
+  const balcony = order.pickupType === 'balcony';
+  const markerSurface = balcony ? world.y - 0.25 : ground;
   const pulse = useRef();
   const parcelRef = useRef();
   const confirmationRef = useRef();
@@ -71,18 +73,18 @@ function OrderMarker({ order, uavs, visualUAVs }) {
     }
   });
   return <group position={[world.x, 0, world.z]}>
-    <mesh position={[0, ground, 0]} rotation-x={-Math.PI / 2}>
+    <mesh position={[0, markerSurface, 0]} rotation-x={-Math.PI / 2}>
       <ringGeometry args={[1.2, 1.4, 64]} /><meshBasicMaterial color={order.completed || order.status === 'picking' ? '#24d7ad' : '#ff8a16'} transparent opacity={order.completed ? 0.35 : 0.95} depthWrite={false} />
     </mesh>
-    <mesh ref={pulse} position={[0, ground + 0.025, 0]} rotation-x={-Math.PI / 2}>
+    <mesh ref={pulse} position={[0, markerSurface + 0.025, 0]} rotation-x={-Math.PI / 2}>
       <ringGeometry args={[1.4, 1.55, 64]} /><meshBasicMaterial color="#ff941a" transparent depthWrite={false} />
     </mesh>
-    <mesh position={[0, (world.y - 0.25 + ground) / 2, 0]} castShadow receiveShadow>
+    {!balcony && <mesh position={[0, (world.y - 0.25 + ground) / 2, 0]} castShadow receiveShadow>
       <boxGeometry args={[0.95, world.y - 0.25 - ground, 0.8]} /><meshStandardMaterial color="#52666b" metalness={0.25} roughness={0.7} />
-    </mesh>
+    </mesh>}
     <group name={`order-target-${order.id}`} position={[0, world.y, 0]} userData={{ kind: 'order', labelHeight: 1.6 }} />
     {!order.completed && <group name={`source-parcel-${order.id}`} ref={parcelRef} position={[0, world.y, 0]}><ParcelModel orderId={order.id} /></group>}
-    <mesh ref={confirmationRef} visible={false} position={[0, ground + 0.04, 0]} rotation-x={-Math.PI / 2}><ringGeometry args={[1.55, 1.8, 48]} /><meshBasicMaterial color="#21e2b0" transparent opacity={0.8} depthWrite={false} /></mesh>
+    <mesh ref={confirmationRef} visible={false} position={[0, markerSurface + 0.04, 0]} rotation-x={-Math.PI / 2}><ringGeometry args={[1.55, 1.8, 48]} /><meshBasicMaterial color="#21e2b0" transparent opacity={0.8} depthWrite={false} /></mesh>
   </group>;
 }
 
@@ -120,8 +122,10 @@ function MapLabelProjector({ labelContainer, visualUAVs }) {
       object.getWorldPosition(point);
       element.dataset.world=point.toArray().map(n=>n.toFixed(4)).join(',');
       point.y += object.userData.labelHeight ?? (id.startsWith('campus-building') ? BUILDING_HEIGHT + 3 : 2.3);
+      const distance=point.distanceTo(camera.position);
+      element.classList.toggle('detail',distance<(id.startsWith('campus-building')?115:65));
       point.project(camera);
-      const visible = point.z < 1 && point.z > -1 && Math.abs(point.x) < 1 && Math.abs(point.y) < 1;
+      const visible = point.z < 1 && point.z > -1 && Math.abs(point.x) < 1 && Math.abs(point.y) < 1 && (element.tagName!=='BUTTON'||distance<650);
       element.style.display = visible ? (element.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
       const offsets = { 'device-rover': [0, 14], 'device-uav-1': [0, -36], 'device-uav-2': [25, -10], 'device-uav-3': [-25, -10] };
       const [dx, dy] = offsets[id] || [0, 0];
@@ -152,27 +156,28 @@ export function CampusProductionScene() {
   return (
     <div className={`campus-app ${wide ? 'wide' : ''}`}>
       <output id="render-audit" hidden aria-hidden="true"/><div className="map-viewport">
-      <Canvas shadows={{ type: THREE.PCFShadowMap,autoUpdate:false }} dpr={1} camera={{ position: [142, 112, 150], fov: 38, near: .1, far: 1000 }} gl={{ antialias: true,powerPreference:'high-performance', toneMapping: THREE.NeutralToneMapping, toneMappingExposure: 1.08, outputColorSpace: THREE.SRGBColorSpace }}>
+      <Canvas shadows={{ type: THREE.PCFShadowMap,autoUpdate:false }} dpr={1} camera={{ position: [142, 112, 150], fov: 38, near: .5, far: 2200 }} gl={{ antialias: true,powerPreference:'high-performance', toneMapping: THREE.NeutralToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace }}>
         <PerformanceProbe />
         <SceneContents snapshot={simulation.snapshot} visualUAVs={simulation.visualUAVs} running={simulation.running} speed={simulation.speed} />
-        <OrbitControls ref={orbitRef} makeDefault enabled={!free} enableDamping dampingFactor={0.08} minDistance={4} maxDistance={900} maxPolarAngle={Math.PI / 2.02} />
+        <OrbitControls ref={orbitRef} makeDefault enabled={!free} enableDamping dampingFactor={0.08} minDistance={4} maxDistance={1800} maxPolarAngle={Math.PI / 2.02} />
         <CampusCamera request={cameraRequest} orbitRef={orbitRef} free={free} />
         <FreeCameraControls enabled={free} onExit={exitFree} />
         <MapLabelProjector key={'labels-'+simulation.snapshot.epoch} labelContainer={labelContainer} visualUAVs={simulation.visualUAVs} />
       </Canvas>
       <div ref={labelContainer} className="map-labels">
-        {BUILDINGS.map(({ id, name }) => <div key={id} data-object={`campus-building-${id}`} className="map-building-label"><b>{id}</b> {name}</div>)}
+        {BUILDINGS.map(({ id, name }) => <div key={id} data-object={`campus-building-${id}`} className="map-building-label" aria-label={`${id} ${name}`}><b>{id}</b><span>{name}</span></div>)}
         {simulation.snapshot.uavs.map(({ id, phase, cargoOrderId }) => <div key={id} data-object={`device-uav-${id}`} className="device-label">UAV {id} · {PHASE_LABELS[phase]}{cargoOrderId != null ? ` / 包裹${cargoOrderId}` : ''}</div>)}
         <div data-object="device-rover" className="device-label">移动母车</div>
         {simulation.snapshot.orders.filter((order) => !order.completed).map((order) => {
           const world = businessToWorld(order.x, order.y, order.z);
-          return <button key={`order-${order.id}`} data-object={`order-target-${order.id}`} data-uav={order.reservedBy} className={`map-target-label ${order.status === 'picking' ? 'picking' : ''}`} title={`查看包裹 ${order.id} 的取件过程`} onClick={() => selectCamera('target', new THREE.Vector3(world.x, world.y, world.z))}><b>{String(order.id).padStart(2, '0')}</b><span>快递包裹<small>{ORDER_LABELS[order.status]}{order.reservedBy ? ` · UAV ${order.reservedBy}` : ''} · 点击查看</small></span></button>;
+          const location = order.pickupType === 'balcony' ? `${order.buildingId} · ${order.floor}F 阳台` : '中庭';
+          return <button key={`order-${order.id}`} data-object={`order-target-${order.id}`} data-uav={order.reservedBy} className={`map-target-label ${order.reservedBy?'active':''} ${order.status === 'picking' ? 'picking' : ''}`} title={`查看${location}包裹 ${order.id} 的取件过程`} onClick={() => selectCamera('target', new THREE.Vector3(world.x, world.y, world.z))}><b>{String(order.id).padStart(2, '0')}</b><span>包裹<small>{location} · {ORDER_LABELS[order.status]}{order.reservedBy ? ` · UAV ${order.reservedBy}` : ''}</small></span></button>;
         })}
       </div>
       </div>
       {assets.active&&<div className="scene-loading" role="status"><b>正在构建园区</b><span>建筑与真实景观资源 · {Math.round(assets.progress)}%</span></div>}
       <TaskConsole simulation={simulation} focus={(position,objectId) => selectCamera(objectId?'follow':'target', new THREE.Vector3(...position),objectId)} />
-      <div className="asset-credit"><a href="https://sketchfab.com/3d-models/office-building-af9782245c134c21ae0c8df7f57077e6" target="_blank" rel="noreferrer">办公楼 · Nikitos &amp; 3130</a> / <a href="https://sketchfab.com/3d-models/quadcopter-dji-matrice-300-rtk-6677d02d66df4b73aad0d8e7bb9e3d9c" target="_blank" rel="noreferrer">无人机 · 19vitali99</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a> · 已减面、调整材质与旋翼 · 原创母车/建筑细节 ISC · <a href="https://kenney.nl/assets/nature-kit" target="_blank" rel="noreferrer">圆润绿化 Kenney CC0（已改造）</a> · 座椅/环境 Poly Haven CC0</div>
+      <details className="asset-credit"><summary>素材与许可 ↗</summary><p><a href="https://sketchfab.com/3d-models/office-building-af9782245c134c21ae0c8df7f57077e6" target="_blank" rel="noreferrer">办公楼 · Nikitos &amp; 3130</a> / <a href="https://sketchfab.com/3d-models/quadcopter-dji-matrice-300-rtk-6677d02d66df4b73aad0d8e7bb9e3d9c" target="_blank" rel="noreferrer">无人机 · 19vitali99</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>（已改造） · 原创母车/建筑细节 ISC · <a href="https://kenney.nl/assets/nature-kit" target="_blank" rel="noreferrer">绿化 Kenney CC0（已改造）</a> · 座椅/环境 Poly Haven CC0</p></details>
       <div className="scene-expand">
         <button className={!free && cameraRequest.mode === 'presentation' ? 'selected' : ''} onClick={() => selectCamera('presentation')}>演示视角</button>
         <button className={!free && cameraRequest.mode === 'overview' ? 'selected' : ''} onClick={() => selectCamera('overview')}>园区总览</button>
@@ -180,7 +185,7 @@ export function CampusProductionScene() {
         <button className={free ? 'selected' : ''} aria-pressed={free} onClick={() => setFree(!free)}>{free ? '退出漫游' : '自由漫游'}</button>
         <button onClick={() => setWide(!wide)}>{wide ? '返回监控大屏' : '展开园区场景'}</button>
       </div>
-      <div className="camera-hint">{free ? 'WASD 移动 · Q/E 降低/升高 · 按住右键转向 · Shift 加速 · Esc 退出' : '左键旋转 · 右键平移 · 滚轮缩放 · 点击包裹编号，近看悬停取件过程'}</div>
+      <div className="camera-hint">{free ? 'WASD 移动 · 空格/Ctrl 或 Q/E 升降 · 右键锁定鼠标转向 · Shift 冲刺 · Esc 退出' : '左键旋转 · 右键平移 · 滚轮缩放 · 点击包裹编号，近看悬停取件过程'}</div>
       {wide && <div className="wide-controls"><button onClick={simulation.start} disabled={simulation.loading}>开始任务</button><button onClick={simulation.pause}>暂停</button><button onClick={simulation.reset}>重置</button></div>}
     </div>
   );
