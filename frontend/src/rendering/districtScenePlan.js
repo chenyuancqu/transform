@@ -1,11 +1,42 @@
 export const DISTRICT_STREETS=[-390,-300,-210,-120,120,210,300,390];
+const DISTRICT_HALF_EXTENT=420;
+const ROAD_WIDTH=8.4;
+const SIDEWALK_WIDTH=1.55;
+
+function subtractIntervals(start,end,intervals){
+  const cuts=intervals.map(([a,b])=>[Math.max(start,a),Math.min(end,b)]).filter(([a,b])=>b>a).sort((a,b)=>a[0]-b[0]);
+  const segments=[];let cursor=start;
+  for(const [cutStart,cutEnd] of cuts){
+    if(cutStart>cursor)segments.push([cursor,cutStart]);
+    cursor=Math.max(cursor,cutEnd);
+    if(cursor>=end)break;
+  }
+  if(cursor<end)segments.push([cursor,end]);
+  return segments.filter(([a,b])=>b-a>1e-5);
+}
+
 export const DISTRICT_LAYOUT=(()=>{
   const roads=[],sidewalks=[],paint=[],buildings=[];
+  const roadHalf=ROAD_WIDTH/2,sidewalkHalf=SIDEWALK_WIDTH/2;
+
+  // Let each north/south street own its junction. East/west streets are cut
+  // at the curb edges so the crossing never contains two coplanar road faces.
   for(const line of DISTRICT_STREETS){
-    // Keep orthogonal streets level with each other. Set sidewalks 2 cm lower
-    // so their different paving material cannot z-fight with a crossing road.
-    roads.push({x:0,y:-.02,z:line,w:840,d:8.4},{x:line,y:-.02,z:0,w:8.4,d:840});
-    for(const edge of [-1,1])sidewalks.push({x:0,y:-.04,z:line+edge*5.3,w:840,d:1.55},{x:line+edge*5.3,y:-.04,z:0,w:1.55,d:840});
+    roads.push({x:line,y:-.02,z:0,w:ROAD_WIDTH,d:DISTRICT_HALF_EXTENT*2});
+    for(const edge of [-1,1])sidewalks.push({x:line+edge*5.3,y:-.04,z:0,w:SIDEWALK_WIDTH,d:DISTRICT_HALF_EXTENT*2});
+  }
+  const roadJunctionCuts=DISTRICT_STREETS.map(line=>[line-roadHalf,line+roadHalf]);
+  const sidewalkJunctionCenters=DISTRICT_STREETS.flatMap(line=>[-1,1].map(edge=>line+edge*5.3));
+  for(const line of DISTRICT_STREETS){
+    for(const [start,end] of subtractIntervals(-DISTRICT_HALF_EXTENT,DISTRICT_HALF_EXTENT,roadJunctionCuts))
+      roads.push({x:(start+end)/2,y:-.02,z:line,w:end-start,d:ROAD_WIDTH});
+    // The north/south sidewalk owns each corner square; clip the perpendicular
+    // sidewalk strips around those footprints rather than stacking equal faces.
+    const sidewalkCuts=sidewalkJunctionCenters.map(center=>[center-sidewalkHalf,center+sidewalkHalf]);
+    for(const edge of [-1,1])for(const [start,end] of subtractIntervals(-DISTRICT_HALF_EXTENT,DISTRICT_HALF_EXTENT,sidewalkCuts))
+      sidewalks.push({x:(start+end)/2,y:-.04,z:line+edge*5.3,w:end-start,d:SIDEWALK_WIDTH});
+  }
+  for(const line of DISTRICT_STREETS){
     for(let offset=-414;offset<=414;offset+=14){
       if(DISTRICT_STREETS.some(other=>Math.abs(offset-other)<7))continue;
       paint.push({x:offset,y:.008,z:line,w:2.5,d:.12},{x:line,y:.008,z:offset,w:.12,d:2.5});

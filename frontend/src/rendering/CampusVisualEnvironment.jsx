@@ -36,7 +36,7 @@ export function OfficeBuilding({id,name,position,yaw,height=32,visualScale=[1,1,
 function MetrePlaneGeometry({args}){const geometry=useMemo(()=>{const g=new THREE.PlaneGeometry(...args),position=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,position.getX(i),position.getY(i));return g;},[args[0],args[1]]);useEffect(()=>()=>geometry.dispose(),[geometry]);return <primitive attach="geometry" object={geometry}/>;}
 function roundedPath(w,h,r,Path=THREE.Shape){const s=new Path(),x=-w/2,y=-h/2;s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);s.closePath();return s;}
 function RingSurface({w,h,width,r,y,material}){const g=useMemo(()=>{const s=roundedPath(w,h,r);s.holes.push(roundedPath(w-width*2,h-width*2,Math.max(.3,r-width),THREE.Path));return new THREE.ShapeGeometry(s,20);},[w,h,width,r]);return <mesh geometry={g} rotation-x={-Math.PI/2} position={[0,y,0]} receiveShadow><meshStandardMaterial {...material}/></mesh>;}
-function Path({from,to,width,material}){const dx=to[0]-from[0],dz=to[1]-from[1];return <mesh position={[(from[0]+to[0])/2,.012,(from[1]+to[1])/2]} rotation={[-Math.PI/2,0,Math.atan2(dx,dz)]} receiveShadow><MetrePlaneGeometry args={[width,Math.hypot(dx,dz)]}/><meshStandardMaterial {...material}/></mesh>;}
+function Path({from,to,width,material,y=.012}){const dx=to[0]-from[0],dz=to[1]-from[1];return <mesh position={[(from[0]+to[0])/2,y,(from[1]+to[1])/2]} rotation={[-Math.PI/2,0,Math.atan2(dx,dz)]} receiveShadow><MetrePlaneGeometry args={[width,Math.hypot(dx,dz)]}/><meshStandardMaterial {...material}/></mesh>;}
 export function CampusDaylight(){
   return <>
     <color attach="background" args={[A.sky]}/>
@@ -68,10 +68,10 @@ export function DesignedCampusGround(){
     <mesh rotation-x={-Math.PI/2} position={[0,-.075,0]} receiveShadow><MetrePlaneGeometry args={[1800,1600]}/><meshStandardMaterial {...grass}/></mesh>
     <GrassColourVariation/>
     <RingSurface w={163} h={143} width={1.3} r={13} y={.035} material={{color:A.curb,roughness:.88}}/>
-    <RingSurface w={160.4} h={140.4} width={6.4} r={11.7} y={-.005} material={roadMat}/>
+    <RingSurface w={160.4} h={140.4} width={6.4} r={11.7} y={.01} material={roadMat}/>
     <RingSurface w={147.6} h={127.6} width={1.4} r={5.3} y={.025} material={{color:A.curb,roughness:.85}}/>
     <RingSurface w={119.2} h={95.2} width={.55} r={22.6} y={.032} material={{color:A.curb,roughness:.86}}/>
-    <RingSurface w={118} h={94} width={5.2} r={22} y={.004} material={roadMat}/>
+    <RingSurface w={118} h={94} width={5.2} r={22} y={.01} material={roadMat}/>
     <RingSurface w={107.6} h={83.6} width={.55} r={16.8} y={.032} material={{color:A.curb,roughness:.86}}/>
     <mesh rotation-x={-Math.PI/2} receiveShadow><MetrePlaneGeometry args={[64,64]}/><meshStandardMaterial color="white" map={COURTYARD_TEXTURE} roughness={.92}/></mesh>
     <RingSurface w={65} h={65} width={.45} r={3} y={.009} material={{color:'#96aebd',roughness:.9}}/>
@@ -79,9 +79,9 @@ export function DesignedCampusGround(){
     <Path from={[0,-72]} to={[0,72]} width={3.2} material={pathMat}/><Path from={[-78,0]} to={[78,0]} width={3.2} material={pathMat}/>
     {[[[-32,-32],[-60,-40]],[[32,-32],[60,-40]],[[-32,32],[-40,40]],[[32,32],[40,40]]].map(([from,to],i)=><Path key={i} from={from} to={to} width={2.6} material={pathMat}/>)}
     {CAMPUS_BUILDINGS.map(b=>{const x=b.position[0],z=b.position[2];return <mesh key={b.id} position={[x,.013,z]} rotation={[-Math.PI/2,0,-b.yaw]} receiveShadow><MetrePlaneGeometry args={[b.height<20?47:53,26]}/><meshStandardMaterial {...pathMat}/></mesh>;})}
-    {[[0,-47,0,-70],[0,47,0,70],[-59,0,-80,0],[59,0,80,0]].map(([x1,z1,x2,z2],i)=><Path key={'loop-link-'+i} from={[x1,z1]} to={[x2,z2]} width={4.6} material={roadMat}/>)}
-    {[-1,1].flatMap(side=>(side<0?[-50,0,50]:[-33,33]).map(x=><Path key={'building-spur-'+side+'-'+x} from={[x,side*70]} to={[x,side*78]} width={4.6} material={roadMat}/>))}
-    {[-1,1].map(side=><Path key={'side-spur-'+side} from={[side*80,0]} to={[side*90,0]} width={4.6} material={roadMat}/>)}
+    {[[0,-47,0,-63.8],[0,47,0,63.8],[-59,0,-73.8,0],[59,0,73.8,0]].map(([x1,z1,x2,z2],i)=><Path key={'loop-link-'+i} from={[x1,z1]} to={[x2,z2]} width={4.6} material={roadMat} y={.01}/>)}
+    {[-1,1].flatMap(side=>(side<0?[-50,0,50]:[-33,33]).map(x=><Path key={'building-spur-'+side+'-'+x} from={[x,side*70.2]} to={[x,side*78]} width={4.6} material={roadMat} y={.01}/>))}
+    {[-1,1].map(side=><Path key={'side-spur-'+side} from={[side*80.2,0]} to={[side*90,0]} width={4.6} material={roadMat} y={.01}/>)}
     {[...GARDENS,...LOW_GARDENS].map(([x,z],i)=><group key={i} position={[x,0,z]}><mesh rotation-x={-Math.PI/2} position={[0,.025,0]} receiveShadow><shapeGeometry args={[roundedPath(17,11,2.3)]}/><meshStandardMaterial color={A.curb} roughness={.85}/></mesh><mesh rotation-x={-Math.PI/2} position={[0,.045,0]} receiveShadow><shapeGeometry args={[roundedPath(15.5,9.5,2)]}/><meshStandardMaterial {...grass}/></mesh></group>)}
     <RoadPaint/>
     <Path from={[77,67]} to={[112,67]} width={4.8} material={roadMat}/>
@@ -94,12 +94,12 @@ function RoadPaint(){
   const placements=useMemo(()=>{
     const placements=[];
     for(const s of [-1,1]){
-      for(let i=0;i<23;i++){const t=-61+i*5.5;placements.push([t,.008,s*67,2.2,.12,'#e6e4d3'],[s*77,.008,t,.12,2.2,'#e6e4d3']);}
+      for(let i=0;i<23;i++){const t=-61+i*5.5;placements.push([t,.018,s*67,2.2,.12,'#e6e4d3'],[s*77,.018,t,.12,2.2,'#e6e4d3']);}
       // Short, low-contrast centre dashes make the inner campus loop read as a
       // shared two-way road instead of another wide blank strip of asphalt.
-      for(let i=0;i<12;i++)placements.push([-30+i*5.5,.01,s*44.4,2.35,.11,'#d8ddd2']);
-      for(let i=0;i<7;i++)placements.push([s*56.4,.01,-16.5+i*5.5,.11,2.35,'#d8ddd2']);
-      for(let i=0;i<9;i++)placements.push([-3+i*.75,.012,s*67,.4,6.1,'#e9e9d9']);
+      for(let i=0;i<12;i++)placements.push([-30+i*5.5,.018,s*44.4,2.35,.11,'#d8ddd2']);
+      for(let i=0;i<7;i++)placements.push([s*56.4,.018,-16.5+i*5.5,.11,2.35,'#d8ddd2']);
+      for(let i=0;i<9;i++)placements.push([-3+i*.75,.018,s*67,.4,6.1,'#e9e9d9']);
     }
     for(const side of [-1,1]){
       for(let i=0;i<10;i++){
@@ -120,7 +120,7 @@ function RoadPaint(){
     placements.forEach(([x,y,z,w,h,colour],i)=>{ref.current.setMatrixAt(i,new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),rotation,new THREE.Vector3(w,h,1)));ref.current.setColorAt(i,new THREE.Color(colour));});
     ref.current.instanceMatrix.needsUpdate=true;ref.current.instanceColor.needsUpdate=true;ref.current.computeBoundingSphere();
   },[placements]);
-  return <instancedMesh ref={ref} args={[undefined,undefined,placements.length]} name="campus-road-paint"><planeGeometry args={[1,1]}/><meshStandardMaterial color="white" roughness={.9}/></instancedMesh>;
+  return <instancedMesh ref={ref} args={[undefined,undefined,placements.length]} name="campus-road-paint"><planeGeometry args={[1,1]}/><meshStandardMaterial color="white" roughness={.9} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1}/></instancedMesh>;
 }
 function GrassColourVariation(){
   const refs=useRef([]);
