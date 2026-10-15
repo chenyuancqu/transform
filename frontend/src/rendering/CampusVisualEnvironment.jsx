@@ -1,6 +1,6 @@
 import React,{useMemo,useEffect,useLayoutEffect,useRef} from 'react';
 import {useThree,useFrame} from '@react-three/fiber';
-import {useGLTF,Environment} from '@react-three/drei';
+import {useGLTF,Environment,Stars} from '@react-three/drei';
 import * as THREE from 'three';
 import {prepareOffice,disposeOffice} from './OfficeArchitecture.js';
 import {StylizedLandscape,DistrictStreetTrees} from './StylizedLandscape.jsx';
@@ -20,16 +20,16 @@ export function CampusShadowCache({running=false}){
 }
 export const campusSurfaceHeight=()=>0;
 export const OFFICE_URL='/assets/campus/optimized/buildings/office.gltf';
-export function CampusBuildings(){
+export function CampusBuildings({nightMode=false}){
   const {scene}=useGLTF(OFFICE_URL),offices=CAMPUS_BUILDINGS.filter(b=>(b.height??32)>=20),low=CAMPUS_BUILDINGS.filter(b=>(b.height??32)<20);
-  const template=useMemo(()=>prepareOffice(scene,'NEXUS / INNOVATION',32),[scene]);
+  const template=useMemo(()=>prepareOffice(scene,'NEXUS / INNOVATION',32,true,nightMode),[scene,nightMode]);
   const parts=useMemo(()=>{template.updateMatrixWorld(true);const parts=[];template.traverse(mesh=>{if(!mesh.isMesh)return;parts.push({geometry:mesh.geometry,material:mesh.material,matrices:offices.map(b=>new THREE.Matrix4().compose(new THREE.Vector3(...b.position),new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),b.yaw),new THREE.Vector3(...(b.visualScale||[1,1,1]))).multiply(mesh.matrixWorld))});});return parts;},[template]);
   useEffect(()=>()=>disposeOffice(template),[template]);
-  return <><group name="campus-buildings-batch">{parts.map((p,i)=><StaticInstances key={i} {...p}/>)}</group>{offices.map(b=><group key={b.id} name={'campus-building-'+b.id} position={b.position} userData={{labelHeight:33.44*(b.visualScale?.[1]||1)+1}}/>)}{low.map(b=><OfficeBuilding key={b.id} {...b}/>) }<CampusBuildingDetails/></>;
+  return <><group name="campus-buildings-batch">{parts.map((p,i)=><StaticInstances key={i} {...p}/>)}</group>{offices.map(b=><group key={b.id} name={'campus-building-'+b.id} position={b.position} userData={{labelHeight:33.44*(b.visualScale?.[1]||1)+1}}/>)}{low.map(b=><OfficeBuilding key={b.id} {...b} nightMode={nightMode}/>) }<CampusBuildingDetails/></>;
 }
-export function OfficeBuilding({id,name,position,yaw,height=32,visualScale=[1,1,1]}){
+export function OfficeBuilding({id,name,position,yaw,height=32,visualScale=[1,1,1],nightMode=false}){
   const {scene}=useGLTF(height<20?'/assets/campus/optimized/buildings/dispatch.gltf':OFFICE_URL);
-  const object=useMemo(()=>prepareOffice(scene,`${id} / NEXUS INNOVATION`,height),[scene,id,height]);
+  const object=useMemo(()=>prepareOffice(scene,`${id} / NEXUS INNOVATION`,height,true,nightMode),[scene,id,height,nightMode]);
   useEffect(()=>()=>disposeOffice(object),[object]);
   return <group position={position} rotation-y={yaw} scale={visualScale} name={`campus-building-${id}`} userData={{labelHeight:height*visualScale[1]+1}}><primitive object={object}/></group>;
 }
@@ -37,16 +37,18 @@ function MetrePlaneGeometry({args}){const geometry=useMemo(()=>{const g=new THRE
 function roundedPath(w,h,r,Path=THREE.Shape){const s=new Path(),x=-w/2,y=-h/2;s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);s.closePath();return s;}
 function RingSurface({w,h,width,r,y,material}){const g=useMemo(()=>{const s=roundedPath(w,h,r);s.holes.push(roundedPath(w-width*2,h-width*2,Math.max(.3,r-width),THREE.Path));return new THREE.ShapeGeometry(s,20);},[w,h,width,r]);return <mesh geometry={g} rotation-x={-Math.PI/2} position={[0,y,0]} receiveShadow><meshStandardMaterial {...material}/></mesh>;}
 function Path({from,to,width,material,y=.012}){const dx=to[0]-from[0],dz=to[1]-from[1];return <mesh position={[(from[0]+to[0])/2,y,(from[1]+to[1])/2]} rotation={[-Math.PI/2,0,Math.atan2(dx,dz)]} receiveShadow><MetrePlaneGeometry args={[width,Math.hypot(dx,dz)]}/><meshStandardMaterial {...material}/></mesh>;}
-export function CampusDaylight(){
+export function CampusDaylight({nightMode=false}){
+  const sky=nightMode?'#10243c':A.sky;
+  const horizon=nightMode?'#24445f':'#c8e5ef';
   return <>
-    <color attach="background" args={[A.sky]}/>
-    <fog attach="fog" args={['#c8e5ef',1050,3100]}/>
-    <hemisphereLight intensity={.82} color="#eaf7ff" groundColor="#9bb879"/>
-    <ambientLight intensity={.12} color="#fff0d5"/>
+    <color attach="background" args={[sky]}/>
+    <fog attach="fog" args={[horizon,nightMode?760:1050,nightMode?2250:3100]}/>
+    <hemisphereLight intensity={nightMode?.5:.82} color={nightMode?'#a9c9f3':'#eaf7ff'} groundColor={nightMode?'#334456':'#9bb879'}/>
+    <ambientLight intensity={nightMode?.34:.12} color={nightMode?'#9eb5d7':'#fff0d5'}/>
     <directionalLight
       position={[-92,145,72]}
-      intensity={3.1}
-      color="#fff0cf"
+      intensity={nightMode?.58:3.1}
+      color={nightMode?'#aec8ff':'#fff0cf'}
       castShadow
       shadow-mapSize={[2048,2048]}
       shadow-camera-left={-140}
@@ -57,13 +59,28 @@ export function CampusDaylight(){
       shadow-bias={-.00008}
       shadow-normalBias={.018}
     />
-    <Environment files="/assets/campus/environment/qwantani_noon_puresky/sky.hdr" environmentIntensity={.28}/>
+    <Environment files="/assets/campus/environment/qwantani_noon_puresky/sky.hdr" environmentIntensity={nightMode?.045:.28}/>
+    {nightMode&&<>
+      <Stars radius={1100} depth={90} count={720} factor={1.25} saturation={.1} fade speed={.06}/>
+      <mesh position={[-280,300,-480]}>
+        <sphereGeometry args={[13,32,24]}/>
+        <meshBasicMaterial color="#ffe7b3" toneMapped={false}/>
+      </mesh>
+      <mesh position={[-280,300,-480]}>
+        <sphereGeometry args={[18,32,24]}/>
+        <meshBasicMaterial color="#ffdaa0" transparent opacity={.1} depthWrite={false} side={THREE.BackSide} toneMapped={false}/>
+      </mesh>
+    </>}
   </>;
 }
 export function DesignedCampusGround(){
   const grass={color:A.lawn,roughness:1},paving={color:A.paving,roughness:.92},asphalt={color:A.road,roughness:.92};
   // Shape UVs are metre coordinates; repeat .17 means one asphalt tile / 6m.
-  const pathMat=paving,roadMat=asphalt;
+  // Pedestrian paths intentionally cross the loop roads. At a distant or
+  // grazing camera angle their 2 mm height difference can quantize to the
+  // same depth-buffer value, so bias the paving toward the camera as well as
+  // keeping it slightly above the asphalt.
+  const pathMat={...paving,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4},roadMat=asphalt;
   return <group>
     <mesh rotation-x={-Math.PI/2} position={[0,-.075,0]} receiveShadow><MetrePlaneGeometry args={[1800,1600]}/><meshStandardMaterial {...grass}/></mesh>
     <GrassColourVariation/>
@@ -120,7 +137,7 @@ function RoadPaint(){
     placements.forEach(([x,y,z,w,h,colour],i)=>{ref.current.setMatrixAt(i,new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),rotation,new THREE.Vector3(w,h,1)));ref.current.setColorAt(i,new THREE.Color(colour));});
     ref.current.instanceMatrix.needsUpdate=true;ref.current.instanceColor.needsUpdate=true;ref.current.computeBoundingSphere();
   },[placements]);
-  return <instancedMesh ref={ref} args={[undefined,undefined,placements.length]} name="campus-road-paint"><planeGeometry args={[1,1]}/><meshStandardMaterial color="white" roughness={.9} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1}/></instancedMesh>;
+  return <instancedMesh ref={ref} args={[undefined,undefined,placements.length]} name="campus-road-paint"><planeGeometry args={[1,1]}/><meshStandardMaterial color="white" roughness={.9} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-4}/></instancedMesh>;
 }
 function GrassColourVariation(){
   const refs=useRef([]);
@@ -140,15 +157,15 @@ function GrassColourVariation(){
   return <group name="grass-colour-variation">{patches.map((set,i)=><instancedMesh key={set.colour} ref={node=>refs.current[i]=node} args={[geometry,undefined,set.items.length]} castShadow={false} receiveShadow={false}><meshStandardMaterial color={set.colour} roughness={1}/></instancedMesh>)}</group>;
 }
 function StaticInstances({geometry,material,matrices}){const ref=useRef();useLayoutEffect(()=>{matrices.forEach((m,i)=>ref.current.setMatrixAt(i,m));ref.current.instanceMatrix.needsUpdate=true;ref.current.computeBoundingSphere();},[matrices]);return <instancedMesh ref={ref} args={[geometry,material,matrices.length]} castShadow receiveShadow dispose={null}/>;}
-export function CampusLandscape(){return <><CampusDistrictContext/><StylizedLandscape/><DistrictStreetTrees/><CampusLamps/></>;}
-function CampusLamps(){
+export function CampusLandscape({nightMode=false}){return <><CampusDistrictContext nightMode={nightMode}/><StylizedLandscape/><DistrictStreetTrees/><CampusLamps nightMode={nightMode}/></>;}
+function CampusLamps({nightMode=false}){
   const placements=useMemo(()=>[-1,1].flatMap(s=>[-52,-18,18,52].map(x=>[x,s*61])),[]);
   const parts=useMemo(()=>{
     const metal=new THREE.MeshStandardMaterial({color:'#526267',metalness:.75,roughness:.35});
-    const light=new THREE.MeshStandardMaterial({color:'#fff4d9',emissive:'#f6f1db',emissiveIntensity:.05,side:THREE.DoubleSide});
+    const light=new THREE.MeshStandardMaterial({color:nightMode?'#ffe1ae':'#fff4d9',emissive:nightMode?'#ffd08a':'#f6f1db',emissiveIntensity:nightMode?1.05:.05,side:THREE.DoubleSide});
     return [[new THREE.CylinderGeometry(.05,.075,4.6,16),metal,[0,2.3,0]],[new THREE.BoxGeometry(1.05,.12,.28),metal,[.45,4.6,0]],[new THREE.PlaneGeometry(.9,.23),light,[.45,4.525,0]]].map(([geometry,material,offset])=>({geometry,material,matrices:placements.map(([x,z])=>new THREE.Matrix4().makeTranslation(x+offset[0],offset[1],z))}));
-  },[placements]);
+  },[placements,nightMode]);
   useEffect(()=>()=>{parts.forEach(p=>p.geometry.dispose());new Set(parts.map(p=>p.material)).forEach(m=>m.dispose());},[parts]);
-  return <group name="campus-lamps">{parts.map((p,i)=><StaticInstances key={i} {...p}/>)}</group>;
+  return <group name="campus-lamps">{parts.map((p,i)=><StaticInstances key={i} {...p}/>)}{nightMode&&placements.map(([x,z],i)=><pointLight key={'lamp-light-'+i} position={[x+.45,4.48,z]} color="#ffd49a" intensity={260} distance={26} decay={2}/>)}</group>;
 }
 useGLTF.preload(OFFICE_URL);

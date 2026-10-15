@@ -19,7 +19,7 @@ import { CampusCamera, FreeCameraControls } from './CampusCameraControls.jsx';
 const pickupLift = progress => { const t = Math.max(0, Math.min(1, (progress - .28) / .47)); return t * t * (3 - 2 * t); };
 import { ParcelModel } from './ParcelModel.jsx';
 
-const StaticCampus=React.memo(function StaticCampus(){return <><CampusDaylight/><DesignedCampusGround/><CampusBuildings/><CampusLandscape/></>;});
+const StaticCampus=React.memo(function StaticCampus({nightMode=false}){return <><CampusDaylight nightMode={nightMode}/><DesignedCampusGround/><CampusBuildings nightMode={nightMode}/><CampusLandscape nightMode={nightMode}/></>;});
 const BUILDING_HEIGHT=32;
 const BUILDINGS=CAMPUS_BUILDINGS;
 const PHASE_LABELS={idle:'待命',takingOff:'起飞爬升',cruising:'前往取件',approaching:'减速对准',aligning:'稳定悬停',picking:'装载包裹',returning:'携货返航',waitingDock:'排队返航',unloading:'母车入舱',clearingBay:'吊具回收',parking:'离舱归位'};
@@ -92,11 +92,11 @@ function OrderMarkers({ orders, uavs, visualUAVs }) {
   return orders.map((order) => <OrderMarker key={order.id} order={order} uavs={uavs} visualUAVs={visualUAVs} />);
 }
 
-function SceneContents({snapshot,visualUAVs,running}) {
+function SceneContents({snapshot,visualUAVs,running,showTrajectories,selectedAgentId,nightMode}) {
   return <Suspense fallback={null}>
-    <CampusShadowCache key={'shadow-'+snapshot.epoch} running={running}/><StaticCampus/>
-    <MotherAsset key={'mother-'+snapshot.epoch} rover={snapshot.rover} docking={snapshot.docking} running={running} orders={snapshot.orders} elapsed={snapshot.elapsedSeconds}/>
-    {snapshot.uavs.map((uav,index)=><DroneAsset key={snapshot.epoch+'-'+uav.id} uav={uav} index={index} visualUAVs={visualUAVs} running={running}/>)}
+    <CampusShadowCache key={'shadow-'+snapshot.epoch} running={running}/><StaticCampus nightMode={nightMode}/>
+    <MotherAsset key={'mother-'+snapshot.epoch} rover={snapshot.rover} docking={snapshot.docking} running={running} orders={snapshot.orders} elapsed={snapshot.elapsedSeconds} showTrajectories={showTrajectories} selected={selectedAgentId==='mother'}/>
+    {snapshot.uavs.map((uav,index)=><DroneAsset key={snapshot.epoch+'-'+uav.id} uav={uav} index={index} visualUAVs={visualUAVs} running={running} orders={snapshot.orders} rover={snapshot.rover} showTrajectories={showTrajectories} selected={selectedAgentId===`uav-${uav.id}`} nightMode={nightMode}/>)}
     <OrderMarkers orders={snapshot.orders} uavs={snapshot.uavs} visualUAVs={visualUAVs}/>
   </Suspense>;
 }
@@ -141,11 +141,17 @@ export function CampusProductionScene() {
   const [wide, setWide] = useState(false);
   const [cameraRequest, setCameraRequest] = useState({ mode: 'presentation' });
   const [free, setFree] = useState(false);
+  const [showTrajectories, setShowTrajectories] = useState(true);
+  const [nightMode, setNightMode] = useState(true);
+  const [selectedAgentId, setSelectedAgentId] = useState(null);
   const orbitRef = useRef();
   const labelContainer = useRef();
   const exitFree = useCallback(() => setFree(false), []);
   const selectCamera = (mode, position, objectId) => {
     setFree(false);
+    if (objectId === 'device-rover') setSelectedAgentId('mother');
+    else if (objectId?.startsWith('device-uav-')) setSelectedAgentId(`uav-${objectId.slice('device-uav-'.length)}`);
+    else if (mode !== 'target') setSelectedAgentId(null);
     if (mode === 'devices' && !position) {
       const rover = simulation.snapshot.rover;
       const world = businessToWorld(rover.x, rover.y, 0);
@@ -154,11 +160,11 @@ export function CampusProductionScene() {
     setCameraRequest({ mode, position,objectId });
   };
   return (
-    <div className={`campus-app ${wide ? 'wide' : ''}`}>
+    <div className={`campus-app ${wide ? 'wide' : ''} ${nightMode ? 'night-mode' : ''}`}>
       <output id="render-audit" hidden aria-hidden="true"/><div className="map-viewport">
       <Canvas shadows={{ type: THREE.PCFShadowMap,autoUpdate:false }} dpr={1} camera={{ position: [142, 112, 150], fov: 38, near: .5, far: 2200 }} gl={{ antialias: true,powerPreference:'high-performance', toneMapping: THREE.NeutralToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace }}>
         <PerformanceProbe />
-        <SceneContents snapshot={simulation.snapshot} visualUAVs={simulation.visualUAVs} running={simulation.running} speed={simulation.speed} />
+        <SceneContents snapshot={simulation.snapshot} visualUAVs={simulation.visualUAVs} running={simulation.running} showTrajectories={showTrajectories} selectedAgentId={selectedAgentId} nightMode={nightMode} />
         <OrbitControls ref={orbitRef} makeDefault enabled={!free} enableDamping dampingFactor={0.08} minDistance={4} maxDistance={1800} maxPolarAngle={Math.PI / 2.02} />
         <CampusCamera request={cameraRequest} orbitRef={orbitRef} free={free} />
         <FreeCameraControls enabled={free} onExit={exitFree} />
@@ -171,17 +177,19 @@ export function CampusProductionScene() {
         {simulation.snapshot.orders.filter((order) => !order.completed).map((order) => {
           const world = businessToWorld(order.x, order.y, order.z);
           const location = order.pickupType === 'balcony' ? `${order.buildingId} · ${order.floor}F 阳台` : '中庭';
-          return <button key={`order-${order.id}`} data-object={`order-target-${order.id}`} data-uav={order.reservedBy} className={`map-target-label ${order.reservedBy?'active':''} ${order.status === 'picking' ? 'picking' : ''}`} title={`查看${location}包裹 ${order.id} 的取件过程`} onClick={() => selectCamera('target', new THREE.Vector3(world.x, world.y, world.z))}><b>{String(order.id).padStart(2, '0')}</b><span>包裹<small>{location} · {ORDER_LABELS[order.status]}{order.reservedBy ? ` · UAV ${order.reservedBy}` : ''}</small></span></button>;
+          return <button key={`order-${order.id}`} data-object={`order-target-${order.id}`} data-uav={order.reservedBy} className={`map-target-label ${order.reservedBy?'active':''} ${order.status === 'picking' ? 'picking' : ''}`} title={`查看${location}包裹 ${order.id} 的取件过程`} onClick={() => {setSelectedAgentId(order.reservedBy ? `uav-${order.reservedBy}` : null);selectCamera('target', new THREE.Vector3(world.x, world.y, world.z));}}><b>{String(order.id).padStart(2, '0')}</b><span>包裹<small>{location} · {ORDER_LABELS[order.status]}{order.reservedBy ? ` · UAV ${order.reservedBy}` : ''}</small></span></button>;
         })}
       </div>
       </div>
       {assets.active&&<div className="scene-loading" role="status"><b>正在构建园区</b><span>建筑与真实景观资源 · {Math.round(assets.progress)}%</span></div>}
-      <TaskConsole simulation={simulation} focus={(position,objectId) => selectCamera(objectId?'follow':'target', new THREE.Vector3(...position),objectId)} />
+      <TaskConsole simulation={simulation} selectedAgentId={selectedAgentId} onSelectAgent={setSelectedAgentId} focus={(position,objectId) => selectCamera(objectId?'follow':'target', new THREE.Vector3(...position),objectId)} />
       <details className="asset-credit"><summary>素材与许可 ↗</summary><p><a href="https://sketchfab.com/3d-models/office-building-af9782245c134c21ae0c8df7f57077e6" target="_blank" rel="noreferrer">办公楼 · Nikitos &amp; 3130</a> / <a href="https://sketchfab.com/3d-models/quadcopter-dji-matrice-300-rtk-6677d02d66df4b73aad0d8e7bb9e3d9c" target="_blank" rel="noreferrer">无人机 · 19vitali99</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>（已改造） · 原创母车/建筑细节 ISC · <a href="https://kenney.nl/assets/nature-kit" target="_blank" rel="noreferrer">绿化 Kenney CC0（已改造）</a> · 座椅/环境 Poly Haven CC0</p></details>
       <div className="scene-expand">
+        <button className={nightMode ? 'selected' : ''} aria-pressed={nightMode} onClick={() => setNightMode(value => !value)}>{nightMode ? '☼ 切到日景' : '☾ 切到夜景'}</button>
         <button className={!free && cameraRequest.mode === 'presentation' ? 'selected' : ''} onClick={() => selectCamera('presentation')}>演示视角</button>
         <button className={!free && cameraRequest.mode === 'overview' ? 'selected' : ''} onClick={() => selectCamera('overview')}>园区总览</button>
         <button className={!free && cameraRequest.mode === 'devices' ? 'selected' : ''} onClick={() => selectCamera('devices')}>设备近景</button>
+        <button className={showTrajectories ? 'selected' : ''} aria-pressed={showTrajectories} title="显示设备实际尾迹和任务引导走廊" onClick={() => setShowTrajectories(value => !value)}>{showTrajectories ? '轨迹显示' : '轨迹隐藏'}</button>
         <button className={free ? 'selected' : ''} aria-pressed={free} onClick={() => setFree(!free)}>{free ? '退出漫游' : '自由漫游'}</button>
         <button onClick={() => setWide(!wide)}>{wide ? '返回监控大屏' : '展开园区场景'}</button>
       </div>

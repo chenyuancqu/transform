@@ -20,6 +20,20 @@ export const OFFICE_GLASS_TEXTURE=makeTexture(512,512,(ctx,w,h)=>{
   ctx.fillStyle='#e6f3ff20';ctx.beginPath();ctx.moveTo(w*.14,0);ctx.lineTo(w*.35,0);ctx.lineTo(w*.6,h);ctx.lineTo(w*.46,h);ctx.closePath();ctx.fill();
   ctx.fillStyle='#e6f3ff12';ctx.beginPath();ctx.moveTo(w*.7,0);ctx.lineTo(w*.87,0);ctx.lineTo(w,h*.6);ctx.lineTo(w*.83,h*.6);ctx.closePath();ctx.fill();
 });
+export const OFFICE_NIGHT_GLASS_TEXTURE=makeTexture(512,512,(ctx,w,h)=>{
+  const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#102842');sky.addColorStop(.55,'#0a1d32');sky.addColorStop(1,'#07182b');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+  const columns=20,rows=11,cw=w/columns,ch=h/rows;
+  for(let row=0;row<rows;row++)for(let col=0;col<columns;col++){
+    const seed=(col*37+row*19+col*row*7)%17,lit=seed<3;
+    const x=col*cw+2,y=row*ch+2,paneW=cw-4,paneH=ch-4;
+    ctx.fillStyle=lit?(seed%3===0?'#b99161':'#d5b47e'):(seed%4===0?'#183b58':'#102b45');
+    ctx.fillRect(x,y,paneW,paneH);
+    if(lit){ctx.fillStyle='#fff0bd24';ctx.fillRect(x+2,y+2,paneW-4,Math.max(2,paneH*.12));ctx.fillStyle='#13283d55';ctx.fillRect(x+paneW*.72,y+3,2,paneH-6);}
+  }
+  ctx.strokeStyle='#34526b';ctx.lineWidth=2;
+  for(let col=1;col<columns;col++){ctx.beginPath();ctx.moveTo(col*cw,0);ctx.lineTo(col*cw,h);ctx.stroke();}
+  for(let row=1;row<rows;row++){ctx.beginPath();ctx.moveTo(0,row*ch);ctx.lineTo(w,row*ch);ctx.stroke();}
+});
 export const OFFICE_SOLAR_TEXTURE=makeTexture(512,256,(ctx,w,h)=>{
   const base=ctx.createLinearGradient(0,0,w,h);base.addColorStop(0,'#254b6c');base.addColorStop(.5,'#345d7e');base.addColorStop(1,'#1e3f5b');
   ctx.fillStyle=base;ctx.fillRect(0,0,w,h);
@@ -38,12 +52,12 @@ const CONTEXT_GLASS_TEXTURE=makeTexture(256,256,(ctx,w,h)=>{
 
 // Original architectural additions to the licensed GLB, in physical metres.
 // Main structure, facades and interior remain the downloaded model.
-export function createOfficeArchitecture(label='NEXUS / INNOVATION',roofHeight=32) {
+export function createOfficeArchitecture(label='NEXUS / INNOVATION',roofHeight=32,nightMode=false) {
   const root=new THREE.Group();root.name='original-office-accents';
   const stone=new THREE.MeshStandardMaterial({color:A.wall,roughness:.84});
   const softTrim=new THREE.MeshStandardMaterial({color:'#e9f0f5',roughness:.8});
   const metal=new THREE.MeshStandardMaterial({color:A.metal,metalness:.18,roughness:.58});
-  const glass=new THREE.MeshStandardMaterial({map:OFFICE_GLASS_TEXTURE,color:'#ffffff',metalness:.12,roughness:.4,envMapIntensity:.3});
+  const glass=new THREE.MeshStandardMaterial({map:nightMode?OFFICE_NIGHT_GLASS_TEXTURE:OFFICE_GLASS_TEXTURE,emissive:nightMode?'#edc78f':'#000000',emissiveMap:nightMode?OFFICE_NIGHT_GLASS_TEXTURE:null,emissiveIntensity:nightMode?.3:0,color:'#ffffff',metalness:.12,roughness:nightMode?.62:.4,envMapIntensity:nightMode?.08:.3});
   const solar=new THREE.MeshStandardMaterial({map:OFFICE_SOLAR_TEXTURE,color:'#ffffff',metalness:.06,roughness:.65});
   const cyan=new THREE.MeshStandardMaterial({color:A.cyan,emissive:A.cyan,emissiveIntensity:.12,roughness:.5});
   const add=(name,size,position,material,parent=root)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(...size),material);m.name=name;m.position.set(...position);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
@@ -100,7 +114,7 @@ export function createOfficeArchitecture(label='NEXUS / INNOVATION',roofHeight=3
   return mergeStaticChildren(root);
 }
 
-export function prepareOffice(scene,label,height,details=true){
+export function prepareOffice(scene,label,height,details=true,nightMode=false){
   const object=scene.clone(true),materials=new Map();object.updateMatrixWorld(true);
   object.traverse(o=>{if(!o.isMesh)return;const source=o.material;if(!materials.has(source)){let m=source.clone();m.forceSinglePass=true;
     // Remove the scanned photo surfaces from the display copy. The source GLB
@@ -114,9 +128,9 @@ export function prepareOffice(scene,label,height,details=true){
     };
     if(m.name==='glass'){
       const name=m.name;m.dispose();
-      m=new THREE.MeshStandardMaterial({name,map:details?OFFICE_GLASS_TEXTURE:CONTEXT_GLASS_TEXTURE,color:'#ffffff',roughness:.4,metalness:.12,envMapIntensity:.3,side:THREE.DoubleSide});
+      m=new THREE.MeshStandardMaterial({name,map:nightMode?OFFICE_NIGHT_GLASS_TEXTURE:details?OFFICE_GLASS_TEXTURE:CONTEXT_GLASS_TEXTURE,emissive:nightMode?'#edc78f':'#000000',emissiveMap:nightMode?OFFICE_NIGHT_GLASS_TEXTURE:null,emissiveIntensity:nightMode?.3:0,color:'#ffffff',roughness:nightMode?.62:.4,metalness:.12,envMapIntensity:nightMode?.08:.3,side:THREE.DoubleSide});
     }else if(palette[m.name])m.color.set(palette[m.name]);
-    m.roughness=m.name==='glass'?.4:.8;m.metalness=m.name==='glass'?.12:.03;m.envMapIntensity=m.name==='glass'?.3:.12;
+    m.roughness=m.name==='glass'?(nightMode?.62:.4):.8;m.metalness=m.name==='glass'?.12:.03;m.envMapIntensity=m.name==='glass'?(nightMode?.08:.3):.12;
     m.needsUpdate=true;materials.set(source,m);
   }o.material=materials.get(source);
     if(source.name==='glass'&&!o.geometry.attributes.uv){
@@ -132,7 +146,7 @@ export function prepareOffice(scene,label,height,details=true){
       o.geometry.setAttribute('uv',new THREE.BufferAttribute(uv,2));
     }
   });
-  if(details)object.add(createOfficeArchitecture(label,height));object.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material.forceSinglePass=true;}});
+  if(details)object.add(createOfficeArchitecture(label,height,nightMode));object.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material.forceSinglePass=true;}});
   return object;
 }
 export function disposeOffice(object){

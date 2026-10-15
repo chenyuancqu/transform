@@ -6,13 +6,13 @@ import {businessToWorld} from './CoordinateSystem.js';
 import {createDeviceLOD,disposeDeviceMaterials,deviceURLs} from './OptimizedAssetLOD.js';
 import {ParcelModel} from './ParcelModel.jsx';
 import {synchronizeVisualPosition} from './DeviceMotion.js';
+import {MotionTrail, UavMissionRoute} from './DeviceTrajectories.jsx';
 
 const lift=p=>{const t=THREE.MathUtils.clamp((p-.28)/.47,0,1);return t*t*(3-2*t);};
 const shortAngle=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 const DRONE_URLS=deviceURLs('matrice-300');
 const MOTHER_URLS=deviceURLs('mother');
-function useTrail(color,grounded=false){const points=useRef([]);const line=useMemo(()=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(70*3),3));g.setDrawRange(0,0);return new THREE.Line(g,new THREE.LineBasicMaterial({color,transparent:true,opacity:.46,depthWrite:false}));},[color]);useEffect(()=>()=>{line.geometry.dispose();line.material.dispose();},[line]);const record=p=>{const last=points.current.at(-1);if(last&&last.distanceTo(p)<=.28)return;points.current.push(p.clone());if(points.current.length>70)points.current.shift();const buffer=line.geometry.attributes.position;points.current.forEach((v,i)=>buffer.setXYZ(i,v.x,grounded?.04:v.y,v.z));buffer.needsUpdate=true;line.geometry.setDrawRange(0,points.current.length);line.geometry.computeBoundingSphere();};return [line,record];}
-export function DroneAsset({uav,index,visualUAVs,running}){
+export function DroneAsset({uav,index,visualUAVs,running,orders,rover,showTrajectories=true,selected=false,nightMode=false}){
   const sources=useGLTF(DRONE_URLS);const asset=useMemo(()=>createDeviceLOD(sources.map(s=>s.scene),[0,22,75],{technology:true}),[sources[0].scene,sources[1].scene,sources[2].scene]);
   useEffect(()=>()=>disposeDeviceMaterials(asset),[asset]);
   const normalized=useMemo(()=>{const box=new THREE.Box3().setFromObject(asset.levels[0].object,true),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());return {factor:1.45/Math.max(size.x,size.z),offset:[-center.x,-center.y,-center.z]};},[asset]);
@@ -24,7 +24,6 @@ export function DroneAsset({uav,index,visualUAVs,running}){
   const blur=useRef([]),motorSpeed=useRef(uav.phase==='idle'?0:200);
   const body=useRef(),tilt=useRef(),cable=useRef(),claw=useRef(),cargo=useRef();const posture=useRef(['idle','parking','cruising'].includes(uav.phase)?1:uav.phase==='clearingBay'?THREE.MathUtils.smoothstep(uav.retractProgress||0,.65,1):0);
   const target=useMemo(()=>new THREE.Vector3(),[]);const initial=useRef(businessToWorld(uav.x,uav.y,uav.z));
-  const [trail,record]=useTrail(['#36c6e1','#53d5d8','#7bb9f0'][index]);
   useFrame(({camera,gl},delta)=>{
     if(!body.current)return;const level=asset.getCurrentLevel();asset.update(camera);if(level!==asset.getCurrentLevel())gl.shadowMap.needsUpdate=true;const dt=Math.min(delta,.1),world=businessToWorld(uav.x,uav.y,uav.z);target.set(world.x,world.y,world.z);
     const previous=body.current.position.clone();synchronizeVisualPosition(body.current.position,target,delta,running);if(!running&&!previous.equals(body.current.position))gl.shadowMap.needsUpdate=true;
@@ -46,21 +45,20 @@ export function DroneAsset({uav,index,visualUAVs,running}){
       rotors.forEach((r,i)=>{if(r)r.rotation.y+=dt*motorSpeed.current*([1,-1,-1,1][i%4]);});
       blur.current.forEach(disc=>{if(disc){disc.visible=motorSpeed.current>40;disc.material.opacity=.11*THREE.MathUtils.clamp(motorSpeed.current/210,0,1);}});
     }
-    visualUAVs.current[uav.id]={position:{x:body.current.position.x,y:body.current.position.y,z:body.current.position.z},speed:velocity,pickupOrderId:uav.phase==='picking'?uav.targetOrderId:null,pickupProgress:progress,cargoOrderId:uav.cargoOrderId,unloadProgress:unload};record(body.current.position);
+    visualUAVs.current[uav.id]={position:{x:body.current.position.x,y:body.current.position.y,z:body.current.position.z},speed:velocity,pickupOrderId:uav.phase==='picking'?uav.targetOrderId:null,pickupProgress:progress,cargoOrderId:uav.cargoOrderId,unloadProgress:unload};
   });
-  return <group><primitive object={trail}/><group ref={body} name={`device-uav-${uav.id}`} position={[initial.current.x,initial.current.y,initial.current.z]} userData={{labelHeight:.65}}>
+  return <group><MotionTrail sourceRef={body} visible={showTrajectories} selected={selected}/><UavMissionRoute uav={uav} orders={orders} rover={rover} visualUAVs={visualUAVs} visible={showTrajectories} selected={selected} nightMode={nightMode} index={index}/><group ref={body} name={`device-uav-${uav.id}`} position={[initial.current.x,initial.current.y,initial.current.z]} userData={{labelHeight:.65}}>
     <group ref={tilt} scale={normalized.factor}><primitive object={asset} position={normalized.offset}/>{rotorDiscs.map((disc,i)=><mesh key={i} ref={node=>blur.current[i]=node} position={disc.position} rotation-x={-Math.PI/2} visible={uav.phase!=='idle'}><circleGeometry args={[disc.radius,32]}/><meshBasicMaterial color="#c4e9f2" transparent opacity={.11} depthWrite={false} side={THREE.DoubleSide}/></mesh>)}</group>
     <mesh ref={cable}><cylinderGeometry args={[.006,.006,1,8]}/><meshStandardMaterial color="#a5b2b3" metalness={.8} roughness={.32}/></mesh>
     <group ref={claw}><mesh><boxGeometry args={[.73,.035,.11]}/><meshStandardMaterial color="#687b82" metalness={.8} roughness={.3}/></mesh>{[-1,1].map(s=><mesh key={s} position={[s*.34,-.09,0]}><boxGeometry args={[.026,.20,.10]}/><meshStandardMaterial color="#c0a174" metalness={.6} roughness={.4}/></mesh>)}</group>
     {uav.cargoOrderId!=null&&<group ref={cargo} name={`cargo-parcel-uav-${uav.id}`} position={[0,-.65,0]}><ParcelModel orderId={uav.cargoOrderId}/></group>}
   </group></group>;
 }
-export function MotherAsset({rover,docking,running,orders,elapsed}){
+export function MotherAsset({rover,docking,running,orders,elapsed,showTrajectories=true,selected=false}){
   const sources=useGLTF(MOTHER_URLS);const asset=useMemo(()=>createDeviceLOD(sources.map(s=>s.scene),[0,28],{technology:true}),[sources[0].scene,sources[1].scene]);
   useEffect(()=>()=>disposeDeviceMaterials(asset),[asset]);
   const body=useRef(),travel=useRef(0),target=useMemo(()=>new THREE.Vector3(),[]);const initial=useRef(businessToWorld(rover.x,rover.y,0));
   const wheels=useMemo(()=>asset.levels.flatMap(({object})=>['fl','fr','rl','rr'].map(k=>object.getObjectByName('wheel_'+k))),[asset]);const steers=useMemo(()=>asset.levels.flatMap(({object})=>['fl','fr'].map(k=>object.getObjectByName('steering_'+k))),[asset]);const hatches=useMemo(()=>asset.levels.map(({object})=>object.getObjectByName('roof_hatch_pivot')),[asset]);
-  const [trail,record]=useTrail('#46b9da',true);
   const transfer=useRef();const lastDelivered=orders.filter(o=>o.deliveredAt!=null).sort((a,b)=>b.deliveredAt-a.deliveredAt)[0];
   useFrame(({camera,gl},delta)=>{
     if(!body.current)return;const level=asset.getCurrentLevel();asset.update(camera);if(level!==asset.getCurrentLevel())gl.shadowMap.needsUpdate=true;const dt=Math.min(delta,.1),world=businessToWorld(rover.x,rover.y,0);target.set(world.x,0,world.z);const previous=body.current.position.clone(),yaw=body.current.rotation.y;
@@ -72,8 +70,7 @@ export function MotherAsset({rover,docking,running,orders,elapsed}){
     if(running)steers.forEach(s=>{if(s)s.rotation.y=THREE.MathUtils.damp(s.rotation.y,steering,8,dt);});
     hatches.forEach(hatch=>{if(hatch)hatch.rotation.z=THREE.MathUtils.smoothstep(docking?.hatchProgress||0,0,1)*Math.PI*.60;});
     if(transfer.current&&lastDelivered){const p=THREE.MathUtils.clamp((elapsed-lastDelivered.deliveredAt)/.6,0,1);transfer.current.position.z=-.15-.95*p;transfer.current.visible=p<1;}
-    record(body.current.position);
   });
-  return <group><primitive object={trail}/><group ref={body} name="device-rover" position={[initial.current.x,0,initial.current.z]} rotation-y={rover.heading||0} userData={{labelHeight:2.2}}><primitive object={asset}/>{lastDelivered&&<group ref={transfer} position={[0,1.34,-.15]}><ParcelModel orderId={lastDelivered.id}/></group>}</group></group>;
+  return <group><MotionTrail sourceRef={body} grounded visible={showTrajectories} selected={selected}/><group ref={body} name="device-rover" position={[initial.current.x,0,initial.current.z]} rotation-y={rover.heading||0} userData={{labelHeight:2.2}}><primitive object={asset}/>{lastDelivered&&<group ref={transfer} position={[0,1.34,-.15]}><ParcelModel orderId={lastDelivered.id}/></group>}</group></group>;
 }
 DRONE_URLS.forEach(url=>useGLTF.preload(url));MOTHER_URLS.forEach(url=>useGLTF.preload(url));
