@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3b7dcab4-4197-4650-9ed5-ed4b6f7a41fa" name="Changes" comment="feat(backend): transition to MEC architecture with MQTT pipeline and Gemini LLM Agent&#10;&#10;- Decoupled ONNX inference from frontend, migrating model execution to Python MEC backend&#10;- Integrated paho-mqtt messaging bus for multi-agent (UGV + UAVs) high-frequency state reporting and action dispatch&#10;- Added Google Gemini API-powered Supervisor Agent for natural language to structured JSON command parsing&#10;- Implemented robust batch-dimension expansion and input shape validation for multi-agent ONNX runtimes" />
+    <list default="true" id="3b7dcab4-4197-4650-9ed5-ed4b6f7a41fa" name="Changes" comment="feat(backend): add backend main.py v3 and catch onnx model for v3">
+      <change afterPath="$PROJECT_DIR$/model_export_util/export_maddpg_to_onnx.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/normalized_logistics_maddpg_energy_aligned_v3.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/normalized_logistics_maddpg_time_energy_v2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/onnx_models_v2/rover.onnx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/onnx_models_v2/uav_1.onnx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/onnx_models_v2/uav_2.onnx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/onnx_models_v2/uav_3.onnx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/maddpg_convergence_curve.png" beforeDir="false" afterPath="$PROJECT_DIR$/maddpg_convergence_curve.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/saved_models/maddpg_best.pth" beforeDir="false" afterPath="$PROJECT_DIR$/saved_models/maddpg_best.pth" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -43,8 +54,11 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python.agent_server.executor": "Debug",
     "Python.backend.executor": "Debug",
+    "Python.export_maddpg_to_onnx.executor": "Run",
     "Python.export_onnx.executor": "Run",
     "Python.main.executor": "Run",
+    "Python.normalized_logistics_maddpg_energy_aligned.executor": "Run",
+    "Python.normalized_logistics_maddpg_time_energy.executor": "Run",
     "Python.simulator_client.executor": "Debug",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
@@ -52,11 +66,19 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "main",
+    "last_opened_file_path": "D:/aitransformer/model_export_util",
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "configurable.group.python.group.settings"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.agent_server">
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\aitransformer\model_export_util" />
+      <recent name="D:\aitransformer\saved_models_v2" />
+      <recent name="D:\aitransformer" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.export_maddpg_to_onnx">
     <configuration name="agent_server" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="aitransformer" />
       <option name="ENV_FILES" value="" />
@@ -81,7 +103,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="backend" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="export_maddpg_to_onnx" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="aitransformer" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -90,13 +112,13 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model_export_util" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="DEBUG_JUST_MY_CODE" value="false" />
       <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/backend.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model_export_util/export_maddpg_to_onnx.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -105,7 +127,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="export_onnx" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="normalized_logistics_maddpg_energy_aligned_v3" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="aitransformer" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -120,7 +142,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="DEBUG_JUST_MY_CODE" value="false" />
       <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/export_onnx.py" />
+      <option name="SCRIPT_NAME" value="D:\aitransformer\normalized_logistics_maddpg_energy_aligned_v3.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -129,7 +151,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="normalized_logistics_maddpg_time_energy_v2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="aitransformer" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -144,7 +166,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="DEBUG_JUST_MY_CODE" value="false" />
       <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="SCRIPT_NAME" value="D:\aitransformer\normalized_logistics_maddpg_time_energy_v2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -179,11 +201,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.export_maddpg_to_onnx" />
+        <item itemvalue="Python.normalized_logistics_maddpg_energy_aligned_v3" />
+        <item itemvalue="Python.normalized_logistics_maddpg_time_energy_v2" />
         <item itemvalue="Python.agent_server" />
         <item itemvalue="Python.simulator_client" />
-        <item itemvalue="Python.backend" />
-        <item itemvalue="Python.export_onnx" />
-        <item itemvalue="Python.main" />
       </list>
     </recent_temporary>
   </component>
@@ -236,6 +258,7 @@
     <MESSAGE value="feat(transform): init program and keep the best module" />
     <MESSAGE value="feat(transform): onnx file export" />
     <MESSAGE value="feat(backend): transition to MEC architecture with MQTT pipeline and Gemini LLM Agent&#10;&#10;- Decoupled ONNX inference from frontend, migrating model execution to Python MEC backend&#10;- Integrated paho-mqtt messaging bus for multi-agent (UGV + UAVs) high-frequency state reporting and action dispatch&#10;- Added Google Gemini API-powered Supervisor Agent for natural language to structured JSON command parsing&#10;- Implemented robust batch-dimension expansion and input shape validation for multi-agent ONNX runtimes" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(backend): transition to MEC architecture with MQTT pipeline and Gemini LLM Agent&#10;&#10;- Decoupled ONNX inference from frontend, migrating model execution to Python MEC backend&#10;- Integrated paho-mqtt messaging bus for multi-agent (UGV + UAVs) high-frequency state reporting and action dispatch&#10;- Added Google Gemini API-powered Supervisor Agent for natural language to structured JSON command parsing&#10;- Implemented robust batch-dimension expansion and input shape validation for multi-agent ONNX runtimes" />
+    <MESSAGE value="feat(backend): add backend main.py v3 and catch onnx model for v3" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(backend): add backend main.py v3 and catch onnx model for v3" />
   </component>
 </project>
