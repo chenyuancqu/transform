@@ -18,7 +18,7 @@
 
 ### 3. AI 调度创新：DeepSeek 大模型自然语言意图调度
 - **自然语言直接对话**：集成 DeepSeek 官方大模型 API，支持评委输入自然语言指令（例如：“*派1号和2号机去B区加急取件*”、“*全员紧急停止*”）。
-- **零配置开箱即用**：**已预置并校验 DeepSeek 官方 API Key**，国内直连稳定高响应，评委无需额外注册与申请。
+- **兼容接口配置**：后端通过 OpenAI 兼容格式连接 DeepSeek。API Key 由本机 `frontend/.env` 提供，README 和示例文件不保存密钥。
 
 ---
 
@@ -40,7 +40,7 @@ digital-twin-logistics/
 │   ├── 项目信息.txt              # 大赛申报资料、核心架构与接口规范
 │   └── codex实施文档.md          # 现代高级智慧园区数字孪生实施规范
 └── frontend/                    # 数字孪生 3D 可视化系统 & MEC 后端服务
-    ├── .env                     # DeepSeek AI Key 配置文件 (已预置生效)
+    ├── .env.example             # AI 接口配置模板；复制为本机 .env 后填写 API Key
     ├── package.json             # 前端依赖配置 (Three.js / React Three Fiber / MQTT)
     ├── backend/                 # MEC 边缘协同服务、任务状态管理与 AI 调度接口
     ├── src/                     # React Three Fiber 三维场景与圆通紫主题控制台源码
@@ -51,21 +51,6 @@ digital-twin-logistics/
 
 ---
 
-## 🔑 AI 接口配置状态 (评委即开即用)
-
-项目已在 `frontend/.env` 中完整配置 DeepSeek 调度大模型服务，并通过连通性校验：
-
-```env
-CAMPUS_AI_BASE_URL=https://api.deepseek.com
-CAMPUS_AI_API_KEY=sk-644d28ae9da145f182eb022c8894aa0f
-CAMPUS_AI_MODEL=deepseek-flash
-```
-
-- **状态**：已配置且通过自动化测试
-- **网络**：国内官方直接调用，无需代理与科学上网。
-
----
-
 ## 🚀 快速启动与评审演示步骤
 
 ### 运行环境要求
@@ -73,33 +58,61 @@ CAMPUS_AI_MODEL=deepseek-flash
 - **Python**：3.10 ~ 3.12（运行后端 ONNX 推理与 MEC 业务服务）
 - **现代化浏览器**：Chrome / Edge（支持 WebGL 2.0）
 
+### 先选对代码分支
+
+完整数字孪生 UI 当前发布在 `frontend-showcase-20261014` 分支；仓库默认 `main` 仍是后端算法分支，直接从 `main` 启动会看到旧版或不完整的前端。
+
+首次克隆：
+
+```powershell
+git clone --branch frontend-showcase-20261014 --single-branch https://github.com/chenyuancqu/transform.git
+cd transform\frontend
+```
+
+已有仓库：
+
+```powershell
+git fetch origin
+git switch frontend-showcase-20261014
+git pull --ff-only
+cd frontend
+```
+
 ### 方案 A：一键启动完整数字孪生演示（推荐）
 
-1. 打开终端进入 `frontend` 目录：
+1. 在 `frontend` 目录安装前端依赖：
    ```powershell
-   cd frontend
-   npm install
+   npm ci
    ```
 
 2. 首次运行配置 Python 依赖：
    ```powershell
-   python -m venv .venv
+   py -3.12 -m venv .venv
    .\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
    ```
 
-3. 一键启动全套服务（自动唤起 MQTT Broker、MEC 仿真服务与 Vite 服务）：
+   macOS / Linux 可使用 `python3.12 -m venv .venv` 和 `./.venv/bin/python -m pip install -r backend/requirements.txt`。
+
+3. 配置自然语言 AI（可选）：首次启动时复制 `.env.example` 为 `.env`，再在本机 `.env` 填入自己的 DeepSeek API Key。密钥不要写进 README、源码或提交记录。没有 AI Key 时，预设调度和仿真仍可运行。
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+4. 一键启动全套服务（自动启动 MQTT Broker、MEC 仿真服务与 Vite 服务）：
    ```powershell
    npm run demo
    ```
 
-4. 打开浏览器访问：
+5. 打开浏览器访问：
    **`http://127.0.0.1:3000/r3f.html`**
    （进入现代高级智慧园区空地协同三维演示大屏，支持上帝视角、母车跟随、无人机跟随、实时遥测数据监控及 DeepSeek AI 调度输入）。
 
-5. 停止演示服务：
+6. 停止演示服务：
    ```powershell
    npm run demo:stop
    ```
+
+启动脚本只管理本项目创建的服务。日志位于 `frontend/output/backend/`；默认端口为 Vite 3000、MQTT TCP 1883、MQTT WebSocket 8083。
 
 ---
 
