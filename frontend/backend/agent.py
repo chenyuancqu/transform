@@ -1,4 +1,4 @@
-"""Server-only AI adapter: Gemini directly or an OpenAI-compatible local gateway."""
+"""Server-only AI adapter: direct Gemini or an OpenAI-compatible AI gateway."""
 import json
 import os
 import time
@@ -64,7 +64,7 @@ class DispatchAgent:
             response = self.http.request(method, self.base + route, headers={'Authorization': 'Bearer ' + self.key},
                                          timeout=httpx.Timeout(5 if method == 'GET' else 25, connect=3), **kwargs)
         except httpx.ConnectError:
-            raise AgentFailure('本地 AI 接口无法连接，请启动 8045 服务或检查后端地址') from None
+            raise AgentFailure('AI 接口无法连接，请检查后端地址或网络') from None
         except httpx.TimeoutException:
             raise AgentFailure('AI 接口响应超时，请稍后重试') from None
         except httpx.HTTPError:
@@ -89,17 +89,20 @@ class DispatchAgent:
                 parsed = urlsplit(self.base)
                 if parsed.scheme not in ['http', 'https'] or not parsed.netloc:
                     raise AgentFailure('AI 接口地址格式无效')
-                body = self.request('GET', '/models')
-                ids = [item['id'] for item in body.get('data', []) if isinstance(item, dict) and isinstance(item.get('id'), str)]
-                if self.model and self.model not in ids:
-                    raise AgentFailure('配置的 AI 模型不在接口模型列表中')
-                if not self.model:
-                    gemini = [name for name in ids if 'gemini' in name.lower()]
-                    self.model = next((name for name in gemini if name == 'gemini-2.5-flash'), None)
-                    self.model = self.model or next((name for name in gemini if 'flash' in name.lower() and 'lite' not in name.lower()), None)
-                    self.model = self.model or (gemini[0] if gemini else None)
-                    if self.model is None:
-                        raise AgentFailure('接口未提供 Gemini 模型，请设置后端 CAMPUS_AI_MODEL')
+                host = (parsed.hostname or '').lower()
+                if host in {'api.deepseek.com', 'api.deepseek.com.cn'}:
+                    if not self.model:
+                        self.model = 'deepseek-flash'
+                else:
+                    body = self.request('GET', '/models')
+                    ids = [item['id'] for item in body.get('data', []) if isinstance(item, dict) and isinstance(item.get('id'), str)]
+                    if self.model and self.model not in ids:
+                        raise AgentFailure('配置的 AI 模型不在接口模型列表中')
+                    if not self.model:
+                        candidates = [name for name in ids if 'flash' in name.lower()]
+                        self.model = candidates[0] if candidates else (ids[0] if ids else None)
+                        if self.model is None:
+                            raise AgentFailure('接口未提供可用模型，请设置后端 CAMPUS_AI_MODEL')
             else:
                 from google import genai
                 if self.google is None:

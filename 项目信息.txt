@@ -1,0 +1,143 @@
+“智联蜂群”——基于多智能体强化学习的移动母车与无人机协同智能取货系统	科技	体验提升类	"面向未来智慧物流场景，我们构建“移动母车+无人机蜂群”的智能取货系统。系统利用多智能体强化学习，使无人机能够根据随机变化的取货任务，自主完成任务选择、路径决策和返航时机判断，并结合移动母车的补给与集货能力，实现多机协同、能源管理与任务闭环。
+我们希望探索的，不只是让一架无人机飞得更快，而是让一群无人机能够像一个整体一样完成复杂物流任务。"	"从“一车一单”到“一车多机”，重构分散取货模式
+传统物流取货面对园区、仓储等分散任务时，往往依赖人工驾驶车辆逐点取货，存在取货路径长、任务并行能力有限、取货耗时久等问题。
+本项目提出“移动母车+无人机蜂群”的新型取货模式：
+1、多机协同，让取货从“串行”变“并行”
+2、AI自主决策，应对不断变化的任务空间
+3、兼顾效率与续航，实现“取得到，也回得来”
+4、降低对人工逐点作业的依赖"	可先通过仿真环境验证算法，再结合真实地图、无人机性能参数和母车运动参数进行数字孪生验证，最终应用于园区、仓储、校园等相对封闭场景。	打破了传统物流领域的路径规划思维定势，在商业模式、调度算法与交互决策三个维度实现了系统性创新	陈远、王维
+
+多智能体（母车+3无人机）协同协同仿真 - 前端接入文档1. 核心架构说明本项目采用 纯前端本地推理（Web AI） 架构。你可以使用 @onnxruntime-web 在浏览器中加载 4 个强化学习模型文件，在每一帧动画循环（RequestAnimationFrame）中：根据当前场景状态构建观测向量（Observation）；输入到对应模型的 InferenceSession 计算出动作向量（Action）；根据动作值更新母车与无人机的三维坐标与电量状态，驱动 3D 界面（Three.js / WebGL / Canvas）更新。2. 模型文件清单请将导出的 4 个文件放置在前端的 public/models/ 目录：rover.onnx：母车决策模型uav_1.onnx：1 号无人机模型uav_2.onnx：2 号无人机模型uav_3.onnx：3 号无人机模型3. 核心数据接口规范全场坐标均已归一化到 [0.0, 1.0] 的范围：X / Y 范围：0.0 ~ 1.0Z 范围（高度）：0.0 ~ 0.3A. 母车模型 (rover.onnx)输入维度：Float32Array[1, 6]输入数组规范：rover_x：母车当前 X 坐标rover_y：母车当前 Y 坐标rel_order_center_x：未完成订单几何中心 X - 母车 Xrel_order_center_y：未完成订单几何中心 Y - 母车 Yremain_order_ratio：剩余未完成订单比例（未完成数 / 总数 8）avg_uav_battery：3 架无人机的平均电量（0.0 ~ 1.0）输出维度：Float32Array[1, 2]输出含义：[dx, dy]，取值范围 [-1.0, 1.0]位置更新公式：$$\text{rover\_x}_{\text{new}} = \text{Clamp}(\text{rover\_x} + dx \times 0.03, 0.0, 1.0)$$$$\text{rover\_y}_{\text{new}} = \text{Clamp}(\text{rover\_y} + dy \times 0.03, 0.0, 1.0)$$B. 无人机模型 (uav_1.onnx ~ uav_3.onnx)输入维度：Float32Array[1, 10]输入数组规范（以第 $i$ 架无人机为例）：uav_x：无人机当前 Xuav_y：无人机当前 Yuav_z：无人机当前 Zbattery：当前电量（1.0 为满电，低于 0 为没电）rel_rover_x：母车 X - 无人机 Xrel_rover_y：母车 Y - 无人机 Yrel_rover_z：0.0 - 无人机 Zrel_nearest_order_x：距离该无人机最近的未完成订单 X - 无人机 Xrel_nearest_order_y：距离该无人机最近的未完成订单 Y - 无人机 Yrel_nearest_order_z：距离该无人机最近的未完成订单 Z - 无人机 Z输出维度：Float32Array[1, 3]输出含义：[dx, dy, dz]，取值范围 [-1.0, 1.0]位置更新公式：$$\text{uav\_x}_{\text{new}} = \text{Clamp}(\text{uav\_x} + dx \times 0.06, 0.0, 1.0)$$$$\text{uav\_y}_{\text{new}} = \text{Clamp}(\text{uav\_y} + dy \times 0.06, 0.0, 1.0)$$$$\text{uav\_z}_{\text{new}} = \text{Clamp}(\text{uav\_z} + dz \times 0.06, 0.0, 0.3)$$4. 仿真环境物理/逻辑规则（前端写在游戏循环内）电量消耗：无人机每运行一帧（或一步），battery -= 0.012。自动充电规则：当无人机距离母车的二维平面距离 $< 0.08$ 且高度 $Z < 0.05$ 时，无人机电量瞬间充满 battery = 1.0。订单完成规则：当无人机与某个未完成订单的三维欧氏距离 $< 0.08$ 时，该订单被判定为已送达，UI 上标记该订单消失或变绿。5. 前端 JavaScript 快速接入示例代码安装依赖：Bashnpm install onnxruntime-web
+核心逻辑实现：JavaScriptimport * as ort from 'onnxruntime-web';
+
+// 1. 初始化会话
+let sessions = {};
+
+async function initModels() {
+  sessions.rover = await ort.InferenceSession.create('/models/rover.onnx');
+  sessions.uav1 = await ort.InferenceSession.create('/models/uav_1.onnx');
+  sessions.uav2 = await ort.InferenceSession.create('/models/uav_2.onnx');
+  sessions.uav3 = await ort.InferenceSession.create('/models/uav_3.onnx');
+  console.log("全套强化学习模型初始化成功！");
+}
+
+// 2. 泛型推理函数
+async function predict(session, inputData, shape) {
+  const tensor = new ort.Tensor('float32', Float32Array.from(inputData), shape);
+  const results = await session.run({ observation: tensor });
+  return results.action.data; // 返回 Float32Array 动作
+}
+
+// 3. 仿真主循环示例 Step
+async function simulationStep(state) {
+  // --- A. 母车推理 ---
+  const roverObs = [
+    state.rover.x,
+    state.rover.y,
+    state.unservedCenter.x - state.rover.x,
+    state.unservedCenter.y - state.rover.y,
+    state.remainOrdersCount / 8.0,
+    state.uavs.reduce((a, b) => a + b.battery, 0) / 3.0
+  ];
+  const roverAction = await predict(sessions.rover, roverObs, [1, 6]);
+  
+  // 更新母车位置
+  state.rover.x = Math.max(0, Math.min(1, state.rover.x + roverAction[0] * 0.03));
+  state.rover.y = Math.max(0, Math.min(1, state.rover.y + roverAction[1] * 0.03));
+
+  // --- B. 3架无人机推理 ---
+  for (let i = 0; i < 3; i++) {
+    const uav = state.uavs[i];
+    const session = sessions[`uav${i + 1}`];
+    
+    // 计算最近的订单
+    const nearestOrderRel = getNearestOrderRel(uav, state.unservedOrders);
+
+    const uavObs = [
+      uav.x, uav.y, uav.z,
+      uav.battery,
+      state.rover.x - uav.x,
+      state.rover.y - uav.y,
+      0.0 - uav.z,
+      nearestOrderRel.x, nearestOrderRel.y, nearestOrderRel.z
+    ];
+
+    const uavAction = await predict(session, uavObs, [1, 10]);
+
+    // 更新无人机坐标与电量
+    uav.x = Math.max(0, Math.min(1, uav.x + uavAction[0] * 0.06));
+    uav.y = Math.max(0, Math.min(1, uav.y + uavAction[1] * 0.06));
+    uav.z = Math.max(0, Math.min(0.3, uav.z + uavAction[2] * 0.06));
+    uav.battery -= 0.012;
+
+    // 检查充电逻辑
+    const distToRover = Math.hypot(uav.x - state.rover.x, uav.y - state.rover.y);
+    if (distToRover < 0.08 && uav.z < 0.05) {
+      uav.battery = 1.0;
+    }
+  }
+
+  // --- C. 刷新渲染页面 ---
+  renderScene(state);
+}
+
+https://github.com/chenyuancqu/transform
+
+算法项目地址
+
+本算法建模的是“地面无人母车 + 空中多无人机（1母车 + N无人机）陆空协同末端揽投”场景。
+
+在数字孪生（Digital Twin）前端建模时，建议将其设定为以下**三个真实商业场景之一**，并按对应的 3D 资产和特效进行绘制：
+
+---
+
+### 一、 推荐的三种真实业务场景
+
+#### 1. 首选场景：城市高层楼宇/阳台无人机揽投（Urban Balcony Logistics）
+
+* **背景**：快递车（母车）行驶在地面主干道上，配送/揽收点分布在道路两侧高层建筑的**不同高度（阳台、露台、楼顶停机坪）**。
+* **协同逻辑**：
+* **母车（Rover）**：作为移动控制中心与“充电充电桩”，根据客户订单分布情况，在地面道路上移动，停靠在订单最密集的楼栋下方。
+* **无人机（UAV）**：从母车顶舱起飞，垂直爬升至不同高度的阳台/窗台完成包裹揽收（对应 $Z$ 轴坐标），电量不足时自动飞回正在行驶或停靠的母车顶舱快速补能。
+
+
+
+#### 2. 备选场景 2：偏远山区/农郊农产品与急件揽收（Rural/Mountainous Area Pickup）
+
+* **背景**：地形复杂或道路通达度差，农户/取货点散落分布在山丘不同海拔高度（对应 3D 空间取货点）。
+* **协同逻辑**：母车沿着山脚/主干道行驶，无人机飞往山坡各取货点揽收高附加值农产品（如明前茶、鲜花等），再返回母车汇总。
+
+#### 3. 备选场景 3：大型半封闭园区/厂区巡检与快递揽收（Industrial Park Logistics）
+
+* **背景**：大型制造园区或物流园区，包含多栋厂房、露天堆场、高架仓储。
+* **协同逻辑**：母车在园区道路环线巡航，无人机负责各厂房高层窗口、堆场内部的急件揽收与巡检。
+
+---
+
+### 二、 前端数字孪生（3D 场景）建模资产清单
+
+为了配合算法效果，建议前端准备以下 3D 模型与UI元素：
+
+#### 1. 实体 3D 模型资产（Models）
+
+* **地面母车（Rover）**：1 辆带顶部降落平台/舱门开合的**无人驾驶快递车/移动基站车**。
+* **多旋翼无人机（UAV）**：3 架带小型货舱或机械抓手的**小型物流无人机**（可加灯光区分编号 UAV-01, 02, 03）。
+* **取货/送货目标（Orders）**：8 个带有 3D 坐标的**包裹/智能取货箱**（可悬浮在楼宇阳台或特定空间位置）。
+* **环境地图**：1 块长宽 1:1 的三维网格地图（如 100m × 100m 园区，高度 30m）。
+
+#### 2. 动态视觉特效（Visual Effects & Animation）
+
+* **母车充电光环**：当无人机靠近母车（距离 $< 0.08$ 且高度近地面）时，母车顶部触发**绿色脉冲光圈/电量补给粒子特效**。
+* **无人机轨迹线（Trail）**：为 3 架无人机绘制动态拖尾线（或不同颜色的虚线），展示其在三维空间中的飞行路径。
+* **包裹挂载状态**：无人机触碰取货点（距离 $< 0.08$）时，取货点包裹消失，无人机底部挂载包裹模型或显示“已揽收”高亮文本。
+* **电量警戒 UI**：无人机上方浮动血条/电量条（低于 20% 变红警告，飞回母车充电变绿）。
+
+---
+
+### 三、 算法行为在前台渲染时的“看点”
+
+在数字孪生画面中，算法会呈现出以下**符合物理直觉的智能化动作**：
+
+1. **母车“接应”行为**：母车不会停在原地，而是会自动驶向当前未完成订单的“重心位置”，作为无人机的移动前线补给站，缩短无人机往返飞行距离。
+2. **无人机“梯次补能”**：当某架无人机电量偏低时，它会放弃远端任务，强制划出一条抛物线飞回母车降落充电；其他电量充足的无人机则继续在外揽件。
+3. **空间三维避障/寻路**：无人机会根据 $Z$ 轴高度进行升降，完成对高处目标的精准接近与返回。

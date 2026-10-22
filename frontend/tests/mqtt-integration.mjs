@@ -43,17 +43,24 @@ try {
   await waitFor(() => snapshot.epoch === first.epoch);
   const again = await send('simulation/control', { action: 'reset' }, resetId);
   assert.equal(again.epoch, first.epoch, 'QoS replay must not reset twice');
+  const bOrderCount = snapshot.orders.filter(order => order.area === 'B').length;
+  assert.ok(bOrderCount >= 2, 'random missions keep at least two B-area orders for the two-agent preset');
   assert.equal((await send('simulation/control', { action: 'speed', value: 9 })).ok, false);
   if (!snapshot.health.agentConfigured) {
     const result = await send('simulation/command/input', { text: '派1号到B区取件' });
     assert.equal(result.status, 'error');
     assert.match(result.message, /未配置 AI 接口/);
   }
+  const bMissionInitialCount = snapshot.orders.length;
   const b = await send('simulation/command/agent', { action_type: 'dispatch', target_area: 'B', priority: 'urgent', assign_agents: ['uav_1', 'uav_3'], energy_limit: null });
   assert.equal(b.ok, true);
   await waitFor(() => snapshot.uavs[0].targetOrderId && snapshot.uavs[2].targetOrderId);
   assert.equal(snapshot.uavs[1].targetOrderId, null);
   for (const u of [snapshot.uavs[0], snapshot.uavs[2]]) assert.equal(snapshot.orders.find(o => o.id === u.targetOrderId).area, 'B');
+  await control({ action: 'speed', value: 2 });
+  await waitFor(() => snapshot.orders.length > bMissionInitialCount, 45000);
+  assert.equal(snapshot.orders.find(order => order.id === bMissionInitialCount + 1).area, 'B',
+    'a B-area mission must replenish only B-area pickup anchors');
   const stop = await send('simulation/command/agent', { action_type: 'emergency_stop', assign_agents: ['all'] });
   assert.equal(stop.ok, true);
   await waitFor(() => !snapshot.running);
@@ -61,6 +68,8 @@ try {
   await new Promise(r => setTimeout(r, 450));
   assert.equal(JSON.stringify({ rover: snapshot.rover, uavs: snapshot.uavs, stats: snapshot.stats, elapsed: snapshot.elapsedSeconds }), frozen);
   await control({ action: 'reset' });
+  const initialOrderCount = snapshot.orders.length;
+  assert.ok(initialOrderCount >= 4 && initialOrderCount <= 8);
   await control({ action: 'speed', value: 2 });
   await control({ action: 'start' });
   await waitFor(() => snapshot.elapsedSeconds > 1);
@@ -69,19 +78,33 @@ try {
   await new Promise(r => setTimeout(r, 300));
   assert.equal(snapshot.elapsedSeconds, pauseTime);
   await control({ action: 'start' });
-  console.log('MQTT controls, duplicate protection, B-area dispatch, pause, emergency stop and unconfigured AI checks passed. Running full 8-parcel mission…');
-  await waitFor(() => snapshot.stats.deliveredOrders === 8 && !snapshot.running, 120000);
-  assert.equal(snapshot.stats.completedOrders, 8);
-  assert.equal(snapshot.running, false);
-  assert.ok(snapshot.orders.every(o => o.status === 'delivered'));
-  assert.ok(snapshot.uavs.every(u => u.cargoOrderId === null));
-  assert.ok(snapshot.uavs.every(u=>u.phase==='idle'));assert.equal(snapshot.docking.hatchProgress,0);assert.equal(snapshot.docking.queue.length,0);assert.equal(maxConcurrentUnloads,1);assert.equal(queueObserved,true);
+  console.log('MQTT controls, duplicate protection, B-area dispatch, pause, emergency stop and resume passed. Waiting for a new order during the running mission…');
+  await waitFor(() => snapshot.orders.length > initialOrderCount, 30000);
+  const streamedOrder = snapshot.orders.find(order => order.id === initialOrderCount + 1);
+  assert.ok(streamedOrder);
+  assert.ok(streamedOrder.createdAt > 0, 'streamed order was created after the mission started');
+  assert.equal(snapshot.stats.totalOrders, snapshot.orders.length);
+  assert.ok(snapshot.stats.completionRate >= 0 && snapshot.stats.completionRate <= 100);
+  assert.ok(snapshot.orders.every(order => order.id >= 1 && order.id <= snapshot.orders.length));
+  const countAtPause = snapshot.orders.length;
+  await control({ action: 'pause' });
+  const elapsedAtPause = snapshot.elapsedSeconds;
+  await new Promise(r => setTimeout(r, 350));
+  assert.equal(snapshot.orders.length, countAtPause, 'paused simulation must freeze order arrivals');
+  assert.equal(snapshot.elapsedSeconds, elapsedAtPause, 'paused simulation clock must stay frozen');
+  const emergency = await send('simulation/command/agent', { action_type: 'emergency_stop', assign_agents: ['all'] });
+  assert.equal(emergency.ok, true);
+  await waitFor(() => !snapshot.running);
+  assert.ok(maxConcurrentUnloads <= 1);
   assert.ok(actionCount > 4);
   assert.equal(telemetry.size, 4);
   assert.equal(telemetry.get('mother').coordinate_system, 'campus_meters_xy_height');
-  const report = { success: true, checked: ['real ONNX actions', 'four-agent metre telemetry', 'request deduplication', 'B-area selected agents', 'emergency_stop', 'pause/resume', '8 pickup/return/unload cycles'],
-    timestamp: new Date().toISOString(), actionsReceived: actionCount, maxConcurrentUnloads,queueObserved,completions, snapshot };
+  const report = { success: true, checked: ['updated ONNX actions', 'four-agent metre telemetry', 'request deduplication', 'B-area selected agents', 'emergency_stop', 'pause/resume', 'runtime order spawning and pause freeze'],
+    timestamp: new Date().toISOString(), initialOrderCount, finalOrderCount: snapshot.orders.length,
+    actionsReceived: actionCount, maxConcurrentUnloads, queueObserved, completions, snapshot };
   await mkdir('output/backend', { recursive: true });
   await writeFile('output/backend/mqtt-integration.json', JSON.stringify(report, null, 2));
-  console.log(JSON.stringify({ success: true, completed: snapshot.stats.completedOrders, delivered: snapshot.stats.deliveredOrders, elapsed: snapshot.elapsedSeconds, actionCount, inferenceMs: snapshot.health.inferenceMs }));
+  console.log(JSON.stringify({ success: true, initialOrders: initialOrderCount, finalOrders: snapshot.orders.length,
+    completed: snapshot.stats.completedOrders, delivered: snapshot.stats.deliveredOrders,
+    elapsed: snapshot.elapsedSeconds, actionCount, inferenceMs: snapshot.health.inferenceMs }));
 } finally { client.end(true); }

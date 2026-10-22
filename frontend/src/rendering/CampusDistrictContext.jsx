@@ -35,7 +35,7 @@ export function CampusDistrictContext({nightMode=false}){
   return <group name="surrounding-district"><group name="district-road-network">
     <RoadBatch records={DISTRICT_LAYOUT.roads} color={A.road}/>
     <RoadBatch records={DISTRICT_LAYOUT.sidewalks} color={A.paving}/>
-    <RoadBatch records={DISTRICT_LAYOUT.paint} color="#dce8f0" paint/>
+    <RoadBatch records={DISTRICT_LAYOUT.paint} color="#eee3d6" paint/>
   </group><DistrictOffices nightMode={nightMode}/></group>;
 }
 useGLTF.preload(CONTEXT_OFFICE_URL);

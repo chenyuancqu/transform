@@ -229,15 +229,15 @@ export function UavMissionRoute({ uav, orders, rover, visualUAVs, visible, selec
     const flightDistance = Math.hypot(horizontalDistance, start.y - target.y);
     const pathActive = active && flightDistance > 6;
     const cruiseArc = pathActive && horizontalDistance > 2.5;
-    const lineColor = selected ? '#b9782c' : nightMode ? '#6ec9dc' : '#126a75';
+    const lineColor = selected ? '#b179a8' : nightMode ? '#c7a1d2' : '#80608f';
     ribbon.material.color.set(lineColor);
-    ribbon.material.opacity = selected ? 0.96 : nightMode ? 0.78 : 0.82;
-    halo.material.color.set(selected ? '#e7b86f' : nightMode ? '#74d1df' : '#4b9e9c');
+    ribbon.material.opacity = selected ? 0.92 : nightMode ? 0.72 : 0.78;
+    halo.material.color.set(selected ? '#d9b8cc' : nightMode ? '#d0b0d6' : '#ad8ab9');
     halo.material.opacity = selected ? 0.2 : nightMode ? 0.22 : 0.2;
-    beaconMaterial.color.set(selected ? '#e5aa53' : nightMode ? '#b9eaf1' : '#2b8588');
-    beaconCasingMaterial.color.set(nightMode ? '#17364d' : '#f5f3df');
-    pulseMaterial.color.set(nightMode ? '#12344a' : '#174c59');
-    markerMaterial.color.set(selected ? '#fff0c4' : nightMode ? '#d0fbff' : '#126a75');
+    beaconMaterial.color.set(selected ? '#e5aa53' : nightMode ? '#d6b6dc' : '#b28bc0');
+    beaconCasingMaterial.color.set(nightMode ? '#3b2a39' : '#5b4852');
+    pulseMaterial.color.set(nightMode ? '#4a3150' : '#6a4d72');
+    markerMaterial.color.set(selected ? '#fff0c4' : nightMode ? '#ead7ee' : '#c4a2cc');
 
     if (beacon.current) {
       beacon.current.position.copy(target);
@@ -308,9 +308,9 @@ export function UavMissionRoute({ uav, orders, rover, visualUAVs, visible, selec
     }
   });
 
-  const pulseMaterial = useMemo(() => new THREE.MeshBasicMaterial({ color: '#174c59', depthTest: false, depthWrite: false, toneMapped: false }), []);
-  const pulseCoreMaterial = useMemo(() => new THREE.MeshBasicMaterial({ color: '#f3ffff', depthTest: false, depthWrite: false, toneMapped: false }), []);
-  const markerMaterial = useMemo(() => new THREE.MeshBasicMaterial({ color: '#f3ffff', transparent: true, opacity: 0.9, depthTest: false, depthWrite: false, toneMapped: false }), []);
+  const pulseMaterial = useMemo(() => new THREE.MeshBasicMaterial({ color: '#6a4d72', depthTest: false, depthWrite: false, toneMapped: false }), []);
+  const pulseCoreMaterial = useMemo(() => new THREE.MeshBasicMaterial({ color: '#f6edf7', depthTest: false, depthWrite: false, toneMapped: false }), []);
+  const markerMaterial = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ead7ee', transparent: true, opacity: 0.9, depthTest: false, depthWrite: false, toneMapped: false }), []);
   const beaconMaterial = useMemo(() => new THREE.MeshBasicMaterial({ color: '#d9aa62', side: THREE.DoubleSide, depthTest: false, depthWrite: false, toneMapped: false }), []);
   const beaconCasingMaterial = useMemo(() => new THREE.MeshBasicMaterial({ color: '#365b61', side: THREE.DoubleSide, depthTest: false, depthWrite: false, toneMapped: false }), []);
   useEffect(() => () => { pulseMaterial.dispose(); pulseCoreMaterial.dispose(); markerMaterial.dispose(); beaconMaterial.dispose(); beaconCasingMaterial.dispose(); }, [pulseMaterial, pulseCoreMaterial, markerMaterial, beaconMaterial, beaconCasingMaterial]);

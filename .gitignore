@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.venv/
+.playwright-cli/
+__pycache__/
+*.pyc
+output/checkpoints/
+output/downloads/
+output/backend/*.log
+processes.json
+.idea/

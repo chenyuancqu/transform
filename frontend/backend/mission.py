@@ -6,12 +6,24 @@ No renderer feedback or browser timer participates in arrival or completion.
 import copy
 import json
 import math
+import random
 import time
 import uuid
 from pathlib import Path
 
 
 PICKUP_LOCATIONS = json.loads((Path(__file__).resolve().parents[1] / 'src' / 'core' / 'campusPickupLocations.json').read_text(encoding='utf-8'))
+CARRIER_PAD_LAYOUT = json.loads((Path(__file__).resolve().parents[1] / 'src' / 'core' / 'campusCarrierPads.json').read_text(encoding='utf-8'))
+MIN_RANDOM_ORDERS = 4
+MAX_ORDERS = len(PICKUP_LOCATIONS)
+MAX_ORDERS_PER_MISSION = 30
+ORDER_SPAWN_INTERVAL_SECONDS = 12.
+ORDER_SPAWN_RETRY_SECONDS = 3.
+MIN_DISPATCH_BATTERY = .25
+BATTERY_RESERVE_PERCENT = 5.
+HOME_PHASES = ('charging', 'docked')
+BATTERY_PROFILES = {'balanced': (1., 1., 1.), 'imbalanced': (.42, .68, .91)}
+TAKEOFF_ALTITUDE = 5.5 / 50
 
 
 def world(p):
@@ -30,6 +42,15 @@ def dock(rover, uav):
     heading = rover.get('heading', 0)
     return dict(x=rover['x'] - .15 * math.sin(heading) / 200,
                 y=rover['y'] - .15 * math.cos(heading) / 200, z=2.63 / 50)
+
+
+def carrier_pad(rover, uav):
+    # Three folded aircraft use separate cradles on the mother-car roof.
+    x, z = CARRIER_PAD_LAYOUT['positions'][uav['id'] - 1]
+    heading = rover.get('heading', 0)
+    return dict(x=rover['x'] + (x * math.cos(heading) + z * math.sin(heading)) / 200,
+                y=rover['y'] + (z * math.cos(heading) - x * math.sin(heading)) / 200,
+                z=CARRIER_PAD_LAYOUT['aircraftCenterHeight'] / 50)
 
 
 def stand(rover, uav, waiting=False):
@@ -56,8 +77,87 @@ def aligned(uav, order, velocity):
 
 
 class Mission:
-    def __init__(self):
+    def __init__(self, order_count=None, rng=None, max_orders=MAX_ORDERS_PER_MISSION):
+        if order_count is not None and (isinstance(order_count, bool) or not isinstance(order_count, int)
+                                        or not MIN_RANDOM_ORDERS <= order_count <= MAX_ORDERS):
+            raise ValueError(f'order_count must be between {MIN_RANDOM_ORDERS} and {MAX_ORDERS}')
+        if isinstance(max_orders, bool) or not isinstance(max_orders, int) or not MIN_RANDOM_ORDERS <= max_orders <= MAX_ORDERS_PER_MISSION:
+            raise ValueError(f'max_orders must be between {MIN_RANDOM_ORDERS} and {MAX_ORDERS_PER_MISSION}')
+        self.order_count = order_count
+        self.dynamic_order_stream = order_count is None
+        self.max_orders = max_orders if self.dynamic_order_stream else order_count
+        self.rng = rng or random.Random()
+        self.battery_mode = 'balanced'
         self.reset()
+
+    @staticmethod
+    def location_area(location):
+        _, _, horizontal_y = location['position']
+        normalized_y = (horizontal_y + 100) / 200
+        return 'A' if normalized_y < .4 else 'B' if normalized_y > .6 else 'C'
+
+    def generate_orders(self):
+        by_area = {area: [] for area in 'ABC'}
+        for location in PICKUP_LOCATIONS:
+            by_area[self.location_area(location)].append(location)
+        initial_max = min(MAX_ORDERS, self.max_orders)
+        count = self.order_count if self.order_count is not None else self.rng.randint(MIN_RANDOM_ORDERS, initial_max)
+        # Keep every area serviceable for area-specific dispatches, then sample
+        # additional unique, surveyed pickup anchors for this mission.
+        selected = [self.rng.choice(by_area['A'])]
+        selected.extend(self.rng.sample(by_area['B'], 2))
+        selected.append(self.rng.choice(by_area['C']))
+        remaining = [location for location in PICKUP_LOCATIONS if location not in selected]
+        selected.extend(self.rng.sample(remaining, count - len(selected)))
+        self.rng.shuffle(selected)
+        return [self.make_order(location, order_id) for order_id, location in enumerate(selected, 1)]
+
+    def make_order(self, location, order_id):
+        x, height, z = location['position']
+        bx, by = (x + 100) / 200, (z + 100) / 200
+        return dict(id=order_id, locationId=location['id'], x=bx, y=by, z=height / 50,
+                    pickupType=location['pickupType'], buildingId=location.get('buildingId'),
+                    floor=location.get('floor'), area=self.location_area(location),
+                    completed=False, status='waiting', reservedBy=None, deliveredAt=None,
+                    createdAt=self.elapsed, energyConsumedPercent=0.)
+
+    def spawn_order(self):
+        if not self.dynamic_order_stream or len(self.orders) >= self.max_orders:
+            return False
+        occupied = {order['locationId'] for order in self.orders if not order['completed']}
+        available = [location for location in PICKUP_LOCATIONS if location['id'] not in occupied
+                     and (self.order_stream_area is None or self.location_area(location) == self.order_stream_area)]
+        if not available:
+            return False
+        location = self.rng.choice(available)
+        order = self.make_order(location, len(self.orders) + 1)
+        self.orders.append(order)
+        self.stats['totalOrders'] = len(self.orders)
+        place = f"{order['buildingId']} · {order['floor']}F 阳台" if order['pickupType'] == 'balcony' else '中庭地面'
+        self.event(f"新订单 {order['id']} 到达 · {place}")
+        return True
+
+    def configure_order_stream(self, area=None):
+        has_enabled_agents = any(u['enabled'] for u in self.uavs)
+        enabled = self.dynamic_order_stream and has_enabled_agents and len(self.orders) < self.max_orders
+        self.order_stream_area = area if enabled else None
+        if enabled and self.next_order_at is None:
+            self.next_order_at = self.elapsed + ORDER_SPAWN_INTERVAL_SECONDS
+        elif not enabled:
+            self.next_order_at = None
+        self.order_stream_enabled = enabled
+        self.stats['orderStreamActive'] = enabled
+
+    def update_order_stream(self):
+        if not self.order_stream_enabled or self.next_order_at is None or self.elapsed < self.next_order_at:
+            return
+        spawned = self.spawn_order()
+        if len(self.orders) >= self.max_orders:
+            self.order_stream_enabled = False
+            self.stats['orderStreamActive'] = False
+            self.next_order_at = None
+        else:
+            self.next_order_at = self.elapsed + (ORDER_SPAWN_INTERVAL_SECONDS if spawned else ORDER_SPAWN_RETRY_SECONDS)
 
     def reset(self):
         self.epoch = uuid.uuid4().hex
@@ -65,22 +165,25 @@ class Mission:
         self.running = False
         self.speed = .7
         self.elapsed = 0
+        self.next_order_at = None
+        self.order_stream_enabled = False
+        self.order_stream_area = None
         self.rover = dict(x=.5, y=.5, z=0, heading=0)
         self.docking = dict(owner=None, queue=[], hatchProgress=0., stage='closed')
-        self.uavs = [dict(id=i + 1, x=x, y=.5, z=.05, battery=1., phase='idle', targetOrderId=None,
-                          cargoOrderId=None, stableElapsed=0., pickupProgress=0., unloadProgress=0.,
-                          enabled=True, preferredArea=None, energyLimit=None, missionEnergy=0.,retractProgress=0.)
-                     for i, x in enumerate([.5, .55, .45])]
-        self.orders = []
-        for location in PICKUP_LOCATIONS:
-            x, height, z = location['position']
-            bx, by = (x + 100) / 200, (z + 100) / 200
-            self.orders.append(dict(id=location['id'], x=bx, y=by, z=height / 50,
-                                    pickupType=location['pickupType'], buildingId=location.get('buildingId'),
-                                    floor=location.get('floor'), area=('A' if by < .4 else 'B' if by > .6 else 'C'),
-                                    completed=False, status='waiting', reservedBy=None, deliveredAt=None))
+        self.uavs = []
+        for index, battery in enumerate(BATTERY_PROFILES[self.battery_mode], 1):
+            uav = dict(id=index, battery=battery, phase='charging' if battery < .995 else 'docked',
+                       targetOrderId=None, cargoOrderId=None, stableElapsed=0., pickupProgress=0.,
+                       unloadProgress=0., missionOrderId=None, enabled=True, preferredArea=None,
+                       energyLimit=None, missionEnergy=0., retractProgress=0.)
+            uav.update(carrier_pad(self.rover, uav))
+            self.uavs.append(uav)
+        self.orders = self.generate_orders()
         self.stats = dict(stepCount=0, completedOrders=0, deliveredOrders=0, uavDistanceMeters=0.,
-                          roverDistanceMeters=0., energyConsumed=0., averageDelaySeconds=None)
+                          roverDistanceMeters=0., energyConsumed=0., totalOrders=len(self.orders),
+                          completionRate=0., averageOrderCompletionSeconds=None,
+                          averageUavEnergyPerOrderPercent=None, averageDelaySeconds=None,
+                          orderStreamActive=False)
         self.events = []
         self.last_command = None
         self.energy_mode = False
@@ -91,7 +194,7 @@ class Mission:
 
     def assign(self):
         for u in self.uavs:
-            if not u['enabled'] or u['phase'] != 'idle' or u['cargoOrderId'] is not None or u['targetOrderId'] is not None:
+            if not u['enabled'] or u['phase'] not in HOME_PHASES or u['cargoOrderId'] is not None or u['targetOrderId'] is not None:
                 continue
             choices = [o for o in self.orders if not o['completed'] and o['reservedBy'] is None]
             if u['preferredArea']:
@@ -100,13 +203,18 @@ class Mission:
                 continue
             if not choices:
                 continue
+            if u['battery'] < MIN_DISPATCH_BATTERY:
+                continue
             order = min(choices, key=lambda o: distance(u, pickup(o)))
             estimated = (distance(u, pickup(order)) + distance(pickup(order), dock(self.rover, u))) / 3.5 * (.003 / .52 * 100) + 3
+            if u['battery'] * 100 < estimated + BATTERY_RESERVE_PERCENT:
+                continue
             if u['energyLimit'] is not None and u['missionEnergy'] + estimated > u['energyLimit']:
                 continue
             order.update(reservedBy=u['id'], status='enroute')
-            u.update(targetOrderId=order['id'], phase='takingOff' if u['z']<.05 else 'cruising', stableElapsed=0., pickupProgress=0.)
-            self.event(f"UAV {u['id']} 分配包裹 {order['id']} · {order['area']}区")
+            u.update(targetOrderId=order['id'], missionOrderId=order['id'],
+                     phase='takingOff', stableElapsed=0., pickupProgress=0.)
+            self.event(f"UAV {u['id']} 分配订单 {order['id']} · {order['area']}区")
 
     def observations(self):
         waiting = [o for o in self.orders if not o['completed']]
@@ -126,11 +234,12 @@ class Mission:
         if not self.running:
             return
         self.elapsed += dt
+        self.update_order_stream()
         self.assign()
         r = self.rover
         old_rover = r.copy()
         active = [u for u in self.uavs if (u['cargoOrderId'] is not None and u['phase'] in ['returning', 'waitingDock', 'unloading'])
-                  or u['phase']=='clearingBay' or (u['phase']=='parking' and distance(u,dock(r,u))<=2)]
+                  or u['phase']=='clearingBay']
         ids = {u['id'] for u in active}
         self.docking['queue'] = [i for i in self.docking['queue'] if i in ids]
         for u in sorted(active, key=lambda u: distance(u, dock(r, u))):
@@ -141,6 +250,10 @@ class Mission:
         open_bay = owner is not None and (owner['phase'] in ['unloading','clearingBay'] or distance(owner, dock(r, owner)) <= 8)
         self.docking['hatchProgress'] = min(1., self.docking['hatchProgress'] + dt) if open_bay else max(0., self.docking['hatchProgress'] - dt)
         self.docking['stage'] = 'open' if self.docking['hatchProgress'] == 1 else 'closed' if self.docking['hatchProgress'] == 0 else 'opening' if open_bay else 'closing'
+        for u in self.uavs:
+            if u['phase'] == 'idle':
+                on_carrier = distance(u, carrier_pad(r, u)) <= .2
+                u['phase'] = ('charging' if u['battery'] < .995 else 'docked') if on_carrier else 'parking'
         docking = self.docking['hatchProgress'] > 0 or any(u['phase'] == 'parking' or
                   (u['phase'] in ['returning', 'waitingDock'] and distance(u, dock(r, u)) <= 8) for u in self.uavs)
         if not docking:
@@ -152,10 +265,19 @@ class Mission:
         self.stats['roverDistanceMeters'] += distance(r, old_rover)
         for u in self.uavs:
             before = u.copy()
+            mission_order_id = u.get('missionOrderId')
+            if u['phase'] in HOME_PHASES:
+                if u['phase'] == 'docked' and u['battery'] < .995:
+                    u['phase'] = 'charging'
+                u.update(carrier_pad(r, u))
+                if u['phase'] == 'charging':
+                    u['battery'] = min(1., u['battery'] + dt * .05)
+                    if u['battery'] >= .995:
+                        u['phase'] = 'docked'
             order = next((o for o in self.orders if o['id'] == u['targetOrderId'] and not o['completed']), None)
             if order and u['phase']=='takingOff':
-                move(u,dict(x=u['x'],y=u['y'],z=.05),dt,0)
-                if abs(u['z']-.05)*50<=.005:u.update(z=.05,phase='cruising')
+                move(u,dict(x=u['x'],y=u['y'],z=TAKEOFF_ALTITUDE),dt,0)
+                if abs(u['z']-TAKEOFF_ALTITUDE)*50<=.005:u.update(z=TAKEOFF_ALTITUDE,phase='cruising')
             if order and u['phase'] in ['cruising', 'approaching']:
                 goal = pickup(order)
                 dist = distance(u, goal)
@@ -180,14 +302,14 @@ class Mission:
                         u['stableElapsed'] += dt
                         if u['stableElapsed'] >= .8:
                             u['phase'] = order['status'] = 'picking'
-                            self.event(f"UAV {u['id']} 悬停确认 · 装载包裹 {order['id']}")
+                            self.event(f"UAV {u['id']} 悬停确认 · 取货订单 {order['id']}")
                     else:
                         u['pickupProgress'] = min(1, u['pickupProgress'] + dt / 3)
                         if u['pickupProgress'] >= 1:
                             order.update(completed=True, status='collected')
                             self.stats['completedOrders'] += 1
                             u.update(cargoOrderId=order['id'], targetOrderId=None, phase='returning', unloadProgress=0.)
-                            self.event(f"包裹 {order['id']} 已装载 · UAV {u['id']} 返航")
+                            self.event(f"订单 {order['id']} 已取货 · UAV {u['id']} 返航")
                 elif u['phase'] in ['aligning', 'picking']:
                     u.update(phase='approaching', stableElapsed=0., pickupProgress=0.)
                     order['status'] = 'approaching'
@@ -199,7 +321,7 @@ class Mission:
                 if owns_bay and distance(u, goal) <= .08 and self.docking['hatchProgress'] >= 1:
                     u.update(goal)
                     u.update(phase='unloading', unloadProgress=0.)
-                    self.event(f"UAV {u['id']} 到达母车 · 包裹入舱")
+                    self.event(f"UAV {u['id']} 到达母车 · 订单货物入舱")
             elif u['phase'] == 'unloading':
                 u.update(dock(r, u))
                 u['unloadProgress'] = min(1, u['unloadProgress'] + dt / 1.5)
@@ -207,46 +329,70 @@ class Mission:
                     delivered = next(o for o in self.orders if o['id'] == u['cargoOrderId'])
                     delivered.update(status='delivered', deliveredAt=self.elapsed)
                     self.stats['deliveredOrders'] += 1
-                    u.update(cargoOrderId=None, phase='clearingBay', pickupProgress=0., stableElapsed=0.,retractProgress=0.)
-                    self.event(f"包裹 {delivered['id']} 已回收至母车")
+                    u.update(cargoOrderId=None, missionOrderId=None, phase='clearingBay', pickupProgress=0., stableElapsed=0.,retractProgress=0.)
+                    self.event(f"订单 {delivered['id']} 已完成并回收至母车")
             elif u['phase']=='clearingBay':
                 u.update(dock(r,u))
                 u['retractProgress']=min(1.,u['retractProgress']+dt/.65)
                 if u['retractProgress']>=1:u['phase']='parking'
             elif u['phase'] == 'parking':
-                goal = stand(r, u)
+                goal = carrier_pad(r, u)
                 move(u, goal, dt, 5)
                 if distance(u, goal) <= .04:
-                    u.update(goal, phase='idle')
+                    u.update(goal, phase='charging' if u['battery'] < .995 else 'docked', missionOrderId=None)
             travelled = distance(u, before)
-            self.stats['uavDistanceMeters'] += travelled
-            if u['phase'] != 'idle':
+            if u['phase'] not in HOME_PHASES:
+                self.stats['uavDistanceMeters'] += travelled
                 cost = .003 * dt / .52 * (0.8 if self.energy_mode else 1)
                 used = min(u['battery'], cost)
                 u['battery'] -= used
                 u['missionEnergy'] += used * 100
                 self.stats['energyConsumed'] += used * 100
-            if u['phase'] == 'idle' and distance(u, stand(r, u)) <= .2:
-                u['battery'] = min(1, u['battery'] + dt * .05)
-        delays = [o['deliveredAt'] for o in self.orders if o['deliveredAt'] is not None]
-        self.stats['averageDelaySeconds'] = sum(delays) / len(delays) if delays else None
+                if mission_order_id is not None:
+                    energy_order = next((item for item in self.orders if item['id'] == mission_order_id), None)
+                    if energy_order:
+                        energy_order['energyConsumedPercent'] += used * 100
+        delivered = [o for o in self.orders if o['deliveredAt'] is not None]
+        completion_times = [o['deliveredAt'] - o['createdAt'] for o in delivered]
+        self.stats['totalOrders'] = len(self.orders)
+        self.stats['completionRate'] = 100 * len(delivered) / len(self.orders) if self.orders else 0.
+        self.stats['averageOrderCompletionSeconds'] = sum(completion_times) / len(completion_times) if completion_times else None
+        self.stats['averageDelaySeconds'] = self.stats['averageOrderCompletionSeconds']
+        self.stats['averageUavEnergyPerOrderPercent'] = (
+            sum(o['energyConsumedPercent'] for o in delivered) / len(delivered) if delivered else None)
         self.stats['stepCount'] += 1
-        if self.stats['deliveredOrders'] == len(self.orders) and all(u['phase'] == 'idle' for u in self.uavs) and self.docking['hatchProgress'] == 0:
+        all_delivered_and_home = (self.stats['deliveredOrders'] == len(self.orders)
+                                  and all(u['phase'] == 'docked' for u in self.uavs)
+                                  and self.docking['hatchProgress'] == 0)
+        all_home = all(u['phase'] in HOME_PHASES for u in self.uavs)
+        if all_delivered_and_home and not self.order_stream_enabled:
             self.running = False
-            self.event('全部包裹已回收 · 任务完成')
-        elif all(u['phase'] == 'idle' for u in self.uavs):
+            self.event('本轮订单已全部完成')
+        elif all_home:
             # A second admission check includes the energy budget and region.
             self.assign()
-            if all(u['phase'] == 'idle' for u in self.uavs):
-                self.running = False
-                self.event('本次调度范围已完成或预算不足 · 可继续派发其它区域任务')
+            if all(u['phase'] in HOME_PHASES for u in self.uavs):
+                has_waiting_order = any(not order['completed'] for order in self.orders)
+                charging = any(u['phase'] == 'charging' for u in self.uavs)
+                if charging:
+                    if not self.events or self.events[-1]['text'] != '无人机充电中 · 等待电量恢复':
+                        self.event('无人机充电中 · 等待电量恢复')
+                elif self.order_stream_enabled and not has_waiting_order:
+                    if not self.events or self.events[-1]['text'] != '订单流运行中 · 等待新订单到达':
+                        self.event('订单流运行中 · 等待新订单到达')
+                else:
+                    self.running = False
+                    self.event('本次调度范围已完成或预算不足 · 可继续派发其它区域任务')
 
     def control(self, command):
         action = command.get('action')
         if action == 'start':
-            if self.stats['deliveredOrders'] == len(self.orders) and all(u['phase'] == 'idle' for u in self.uavs) and self.docking['hatchProgress'] == 0:
+            can_resume_stream = self.dynamic_order_stream and len(self.orders) < self.max_orders
+            if (self.stats['deliveredOrders'] == len(self.orders) and all(u['phase'] == 'docked' for u in self.uavs)
+                    and self.docking['hatchProgress'] == 0 and not can_resume_stream):
                 raise ValueError('任务已完成，请先重置')
             self.running = True
+            self.configure_order_stream(self.order_stream_area)
         elif action == 'pause':
             self.running = False
         elif action == 'reset':
@@ -256,9 +402,18 @@ class Mission:
             if isinstance(value, bool) or not isinstance(value, (int, float)) or not .3 <= value <= 2:
                 raise ValueError('演示速度范围为 0.3–2 倍')
             self.speed = value
+        elif action == 'battery_mode':
+            value = command.get('value')
+            if not isinstance(value, str) or value not in BATTERY_PROFILES:
+                raise ValueError('初始电量模式无效')
+            if self.running or self.stats['stepCount'] > 0 or any(u['phase'] not in HOME_PHASES for u in self.uavs):
+                raise ValueError('初始电量模式只能在任务开始前切换')
+            self.battery_mode = value
+            self.reset()
         else:
             raise ValueError('不支持的控制指令')
-        return {'start': '任务开始', 'pause': '任务暂停', 'reset': '任务重置', 'speed': '演示速度已更新'}[action]
+        return {'start': '任务开始 · 无人机从母车起飞', 'pause': '任务暂停', 'reset': '任务重置',
+                'speed': '演示速度已更新', 'battery_mode': '初始电量模式已切换'}[action]
 
     def command(self, data):
         action = data.get('action_type')
@@ -289,9 +444,10 @@ class Mission:
                     order = next((o for o in self.orders if o['id'] == u['targetOrderId']), None)
                     if order and u['phase'] != 'picking' and (not selected or data.get('priority') == 'urgent' or (area and order['area'] != area)):
                         order.update(reservedBy=None, status='waiting')
-                        u.update(targetOrderId=None, phase='idle', stableElapsed=0.)
+                        u.update(targetOrderId=None, missionOrderId=None, phase='parking', stableElapsed=0.)
                 u.update(enabled=selected, preferredArea=area if selected else None, energyLimit=limit, missionEnergy=0.)
             self.running = True
+            self.configure_order_stream(area)
             message = f"{'节能调度' if self.energy_mode else '取件调度'}已执行 · {area + '区' if area else '全园区'} · {', '.join(ids)}"
         self.last_command = copy.deepcopy(data)
         self.event(message)
@@ -303,6 +459,7 @@ class Mission:
             return {k: v for k, v in p.items() if k not in ['x', 'y', 'z', 'stableElapsed']} | {'position': world(p)}
         return dict(schema_version=1, epoch=self.epoch, seq=self.seq, timestamp=time.time() * 1000,
                     coordinate_system='campus_meters_xy_height', running=self.running, speed=self.speed,
+                    batteryMode=self.battery_mode,
                     elapsedSeconds=self.elapsed, rover=pose(self.rover), uavs=[pose(u) for u in self.uavs],
                     orders=[pose(o) for o in self.orders], stats=self.stats.copy(), health=health,
                     docking=copy.deepcopy(self.docking),

@@ -13,35 +13,35 @@ function makeTexture(width,height,paint){
 // Soft, hand-designed reflections and clear solar-cell divisions keep these
 // surfaces readable in daylight without relying on noisy photographic maps.
 export const OFFICE_GLASS_TEXTURE=makeTexture(512,512,(ctx,w,h)=>{
-  const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#8db1cb');sky.addColorStop(.24,'#628da9');sky.addColorStop(.55,'#3b6788');sky.addColorStop(1,'#294960');
+  const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#b9a5bb');sky.addColorStop(.24,'#927b9c');sky.addColorStop(.55,'#6a5b72');sky.addColorStop(1,'#4b414f');
   ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
-  const glow=ctx.createLinearGradient(0,0,w*.8,h);glow.addColorStop(0,'#d9edff55');glow.addColorStop(.32,'#d9edff12');glow.addColorStop(.7,'#d9edff00');glow.addColorStop(1,'#d9edff20');
+  const glow=ctx.createLinearGradient(0,0,w*.8,h);glow.addColorStop(0,'#f6e9da55');glow.addColorStop(.32,'#f6e9da18');glow.addColorStop(.7,'#f6e9da00');glow.addColorStop(1,'#e3c9dc20');
   ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
-  ctx.fillStyle='#e6f3ff20';ctx.beginPath();ctx.moveTo(w*.14,0);ctx.lineTo(w*.35,0);ctx.lineTo(w*.6,h);ctx.lineTo(w*.46,h);ctx.closePath();ctx.fill();
-  ctx.fillStyle='#e6f3ff12';ctx.beginPath();ctx.moveTo(w*.7,0);ctx.lineTo(w*.87,0);ctx.lineTo(w,h*.6);ctx.lineTo(w*.83,h*.6);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#f8eee520';ctx.beginPath();ctx.moveTo(w*.14,0);ctx.lineTo(w*.35,0);ctx.lineTo(w*.6,h);ctx.lineTo(w*.46,h);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#f8eee512';ctx.beginPath();ctx.moveTo(w*.7,0);ctx.lineTo(w*.87,0);ctx.lineTo(w,h*.6);ctx.lineTo(w*.83,h*.6);ctx.closePath();ctx.fill();
 });
 export const OFFICE_NIGHT_GLASS_TEXTURE=makeTexture(512,512,(ctx,w,h)=>{
-  const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#102842');sky.addColorStop(.55,'#0a1d32');sky.addColorStop(1,'#07182b');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+  const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#3b2444');sky.addColorStop(.55,'#24172d');sky.addColorStop(1,'#150e1c');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
   const columns=20,rows=11,cw=w/columns,ch=h/rows;
   for(let row=0;row<rows;row++)for(let col=0;col<columns;col++){
     const seed=(col*37+row*19+col*row*7)%17,lit=seed<3;
     const x=col*cw+2,y=row*ch+2,paneW=cw-4,paneH=ch-4;
-    ctx.fillStyle=lit?(seed%3===0?'#b99161':'#d5b47e'):(seed%4===0?'#183b58':'#102b45');
+    ctx.fillStyle=lit?(seed%3===0?'#c49a6f':'#e1bc88'):(seed%4===0?'#4c3556':'#2d2036');
     ctx.fillRect(x,y,paneW,paneH);
     if(lit){ctx.fillStyle='#fff0bd24';ctx.fillRect(x+2,y+2,paneW-4,Math.max(2,paneH*.12));ctx.fillStyle='#13283d55';ctx.fillRect(x+paneW*.72,y+3,2,paneH-6);}
   }
-  ctx.strokeStyle='#34526b';ctx.lineWidth=2;
+  ctx.strokeStyle='#694d72';ctx.lineWidth=2;
   for(let col=1;col<columns;col++){ctx.beginPath();ctx.moveTo(col*cw,0);ctx.lineTo(col*cw,h);ctx.stroke();}
   for(let row=1;row<rows;row++){ctx.beginPath();ctx.moveTo(0,row*ch);ctx.lineTo(w,row*ch);ctx.stroke();}
 });
 export const OFFICE_SOLAR_TEXTURE=makeTexture(512,256,(ctx,w,h)=>{
-  const base=ctx.createLinearGradient(0,0,w,h);base.addColorStop(0,'#254b6c');base.addColorStop(.5,'#345d7e');base.addColorStop(1,'#1e3f5b');
+  const base=ctx.createLinearGradient(0,0,w,h);base.addColorStop(0,'#51425f');base.addColorStop(.5,'#6b5876');base.addColorStop(1,'#3f3449');
   ctx.fillStyle=base;ctx.fillRect(0,0,w,h);
   const sheen=ctx.createLinearGradient(0,0,w*.65,h);sheen.addColorStop(0,'#f1f4df28');sheen.addColorStop(.38,'#e9fff10b');sheen.addColorStop(1,'#d6fff000');ctx.fillStyle=sheen;ctx.fillRect(0,0,w,h);
-  ctx.strokeStyle='#9bb7d277';ctx.lineWidth=2;
+  ctx.strokeStyle='#d0b8d277';ctx.lineWidth=2;
   for(let i=1;i<5;i++){ctx.beginPath();ctx.moveTo(i*w/5,0);ctx.lineTo(i*w/5,h);ctx.stroke();}
   for(let i=1;i<3;i++){ctx.beginPath();ctx.moveTo(0,i*h/3);ctx.lineTo(w,i*h/3);ctx.stroke();}
-  ctx.strokeStyle='#153144aa';ctx.lineWidth=6;ctx.strokeRect(3,3,w-6,h-6);
+  ctx.strokeStyle='#2a1e32aa';ctx.lineWidth=6;ctx.strokeRect(3,3,w-6,h-6);
 });
 const CONTEXT_GLASS_TEXTURE=makeTexture(256,256,(ctx,w,h)=>{
   ctx.drawImage(OFFICE_GLASS_TEXTURE.image,0,0,w,h);
@@ -55,7 +55,7 @@ const CONTEXT_GLASS_TEXTURE=makeTexture(256,256,(ctx,w,h)=>{
 export function createOfficeArchitecture(label='NEXUS / INNOVATION',roofHeight=32,nightMode=false) {
   const root=new THREE.Group();root.name='original-office-accents';
   const stone=new THREE.MeshStandardMaterial({color:A.wall,roughness:.84});
-  const softTrim=new THREE.MeshStandardMaterial({color:'#e9f0f5',roughness:.8});
+  const softTrim=new THREE.MeshStandardMaterial({color:A.trim,roughness:.8});
   const metal=new THREE.MeshStandardMaterial({color:A.metal,metalness:.18,roughness:.58});
   const glass=new THREE.MeshStandardMaterial({map:nightMode?OFFICE_NIGHT_GLASS_TEXTURE:OFFICE_GLASS_TEXTURE,emissive:nightMode?'#edc78f':'#000000',emissiveMap:nightMode?OFFICE_NIGHT_GLASS_TEXTURE:null,emissiveIntensity:nightMode?.3:0,color:'#ffffff',metalness:.12,roughness:nightMode?.62:.4,envMapIntensity:nightMode?.08:.3});
   const solar=new THREE.MeshStandardMaterial({map:OFFICE_SOLAR_TEXTURE,color:'#ffffff',metalness:.06,roughness:.65});
@@ -122,9 +122,9 @@ export function prepareOffice(scene,label,height,details=true,nightMode=false){
     // brings its visual language in line with the rounded campus assets.
     for(const slot of ['map','normalMap','roughnessMap','metalnessMap','aoMap','emissiveMap','bumpMap','alphaMap','lightMap'])m[slot]=null;
     const palette={
-      walls_exterior:A.wall,rams:'#7592a8',
-      Material_17:'#d6e0e8',walls_BLD_OFFICE_05:A.wall,material:A.wall,
-      Color_007:A.glass,Blinds_Roman_Hobbled_Blue:'#a9c5d8'
+      walls_exterior:A.wall,rams:'#81757b',
+      Material_17:'#d9cec7',walls_BLD_OFFICE_05:A.wall,material:A.wall,
+      Color_007:A.glass,Blinds_Roman_Hobbled_Blue:'#b8a7bb'
     };
     if(m.name==='glass'){
       const name=m.name;m.dispose();

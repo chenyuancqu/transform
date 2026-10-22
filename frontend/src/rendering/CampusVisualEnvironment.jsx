@@ -38,17 +38,17 @@ function roundedPath(w,h,r,Path=THREE.Shape){const s=new Path(),x=-w/2,y=-h/2;s.
 function RingSurface({w,h,width,r,y,material}){const g=useMemo(()=>{const s=roundedPath(w,h,r);s.holes.push(roundedPath(w-width*2,h-width*2,Math.max(.3,r-width),THREE.Path));return new THREE.ShapeGeometry(s,20);},[w,h,width,r]);return <mesh geometry={g} rotation-x={-Math.PI/2} position={[0,y,0]} receiveShadow><meshStandardMaterial {...material}/></mesh>;}
 function Path({from,to,width,material,y=.012}){const dx=to[0]-from[0],dz=to[1]-from[1];return <mesh position={[(from[0]+to[0])/2,y,(from[1]+to[1])/2]} rotation={[-Math.PI/2,0,Math.atan2(dx,dz)]} receiveShadow><MetrePlaneGeometry args={[width,Math.hypot(dx,dz)]}/><meshStandardMaterial {...material}/></mesh>;}
 export function CampusDaylight({nightMode=false}){
-  const sky=nightMode?'#10243c':A.sky;
-  const horizon=nightMode?'#24445f':'#c8e5ef';
+  const sky=nightMode?'#24182d':A.sky;
+  const horizon=nightMode?'#4b3850':'#d9cfc8';
   return <>
     <color attach="background" args={[sky]}/>
     <fog attach="fog" args={[horizon,nightMode?760:1050,nightMode?2250:3100]}/>
-    <hemisphereLight intensity={nightMode?.5:.82} color={nightMode?'#a9c9f3':'#eaf7ff'} groundColor={nightMode?'#334456':'#9bb879'}/>
-    <ambientLight intensity={nightMode?.34:.12} color={nightMode?'#9eb5d7':'#fff0d5'}/>
+    <hemisphereLight intensity={nightMode?.5:.9} color={nightMode?'#d9bfdc':'#fff4e9'} groundColor={nightMode?'#4b3850':'#9aa573'}/>
+    <ambientLight intensity={nightMode?.34:.16} color={nightMode?'#d1b4d4':'#fff0dc'}/>
     <directionalLight
       position={[-92,145,72]}
       intensity={nightMode?.58:3.1}
-      color={nightMode?'#aec8ff':'#fff0cf'}
+      color={nightMode?'#e1bdd4':'#ffe4c2'}
       castShadow
       shadow-mapSize={[2048,2048]}
       shadow-camera-left={-140}
@@ -161,7 +161,7 @@ export function CampusLandscape({nightMode=false}){return <><CampusDistrictConte
 function CampusLamps({nightMode=false}){
   const placements=useMemo(()=>[-1,1].flatMap(s=>[-52,-18,18,52].map(x=>[x,s*61])),[]);
   const parts=useMemo(()=>{
-    const metal=new THREE.MeshStandardMaterial({color:'#526267',metalness:.75,roughness:.35});
+    const metal=new THREE.MeshStandardMaterial({color:'#74696b',metalness:.72,roughness:.38});
     const light=new THREE.MeshStandardMaterial({color:nightMode?'#ffe1ae':'#fff4d9',emissive:nightMode?'#ffd08a':'#f6f1db',emissiveIntensity:nightMode?1.05:.05,side:THREE.DoubleSide});
     return [[new THREE.CylinderGeometry(.05,.075,4.6,16),metal,[0,2.3,0]],[new THREE.BoxGeometry(1.05,.12,.28),metal,[.45,4.6,0]],[new THREE.PlaneGeometry(.9,.23),light,[.45,4.525,0]]].map(([geometry,material,offset])=>({geometry,material,matrices:placements.map(([x,z])=>new THREE.Matrix4().makeTranslation(x+offset[0],offset[1],z))}));
   },[placements,nightMode]);

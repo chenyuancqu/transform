@@ -1,4 +1,4 @@
-"""Local MEC service: real ONNX actors + authoritative simulator + optional Gemini.
+"""Local MEC service: real ONNX actors + authoritative simulator + optional AI gateway.
 
 Upstream baseline: chenyuancqu/transform@8849daf9. This service completes the
 missing environment/control bridge; no neural inference runs in the browser.
@@ -221,7 +221,7 @@ class Service:
                     for index, name in enumerate(AGENTS):
                         agent = snap['rover'] if name == 'mother' else snap['uavs'][index - 1]
                         target = next((o['position'][:2] for o in snap['orders'] if o['id'] == agent.get('targetOrderId')), None)
-                        status = 'idle' if name == 'mother' else ('delivering' if agent['phase'] in ['picking', 'unloading'] else 'idle' if agent['phase'] == 'idle' else 'flying')
+                        status = 'idle' if name == 'mother' else ('delivering' if agent['phase'] in ['picking', 'unloading'] else 'charging' if agent['phase'] == 'charging' else 'idle' if agent['phase'] in ['idle', 'docked'] else 'flying')
                         self.publish(f'simulation/state/{name}', dict(id=name, status=status, position=agent['position'],
                                      battery=agent.get('battery', 1) * 100, target=target, state=observations[name],
                                      phase=agent.get('phase', 'moving' if self.mission.running else 'idle'),

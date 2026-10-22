@@ -1,0 +1,7 @@
+{
+  "unit": "metres",
+  "positions": [[-0.5, 0.98], [0.5, 0.98], [0, -1.28]],
+  "deckHeight": 1.82,
+  "aircraftCenterHeight": 1.98,
+  "stowedAircraftScale": 0.52
+}

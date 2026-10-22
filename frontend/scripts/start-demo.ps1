@@ -52,4 +52,4 @@ ConvertTo-Json -InputObject @($script:demoServiceRecords) -Depth 4 | Set-Content
 Push-Location $demoRoot
 try { & node scripts/backend-health.mjs; if ($LASTEXITCODE -ne 0) { throw 'MEC startup health check failed.' } } finally { Pop-Location }
 Write-Output 'Demo URL: http://127.0.0.1:3000/r3f.html'
-Write-Output 'Logs: output/backend/ (Gemini configuration stays in backend environment).'
+Write-Output 'Logs: output/backend/ (AI configuration stays in backend environment).'

@@ -6,7 +6,7 @@ const wire = () => ({ schema_version: 1, epoch: 'mission-a', seq: 1, timestamp: 
   coordinate_system: 'campus_meters_xy_height', running: true, speed: .7,
   rover: { position: [0, 0, 0] },
   uavs: [3, 1, 2].map(id => ({ id, position: [20, -40, 2.5], battery: .85, phase: 'picking', pickupProgress: .3, unloadProgress: 0 })),
-  orders: Array.from({ length: 8 }, (_, i) => ({ id: i + 1, position: [0, 0, .6], completed: false })),
+  orders: Array.from({ length: 5 }, (_, i) => ({ id: i + 1, position: [0, 0, .6], completed: false })),
   stats: {}, health: { online: true }, events: [] });
 
 test('metres explicitly adapt to the scene axes, agent order stays stable', () => {
@@ -15,6 +15,20 @@ test('metres explicitly adapt to the scene axes, agent order stays stable', () =
   assert.equal(data.uavs[0].x, .6);
   assert.equal(data.uavs[0].y, .3);
   assert.equal(data.uavs[0].z, .05);
+});
+test('variable order counts are accepted while empty, duplicate, and oversized missions are rejected', () => {
+  for (const count of [4, 8, 30]) {
+    const data = wire();
+    data.orders = Array.from({ length: count }, (_, i) => ({ id: i + 1, position: [i, 0, .6], completed: false }));
+    assert.equal(decodeSnapshot(data).orders.length, count);
+  }
+  for (const count of [0, 31]) {
+    const data = wire();
+    data.orders = Array.from({ length: count }, (_, i) => ({ id: i + 1, position: [0, 0, .6], completed: false }));
+    assert.throws(() => decodeSnapshot(data));
+  }
+  const duplicate = wire(); duplicate.orders[1].id = duplicate.orders[0].id;
+  assert.throws(() => decodeSnapshot(duplicate));
 });
 test('random observation vectors, wrong units, NaN and malformed progress are rejected', () => {
   for (const mutate of [d => { d.coordinate_system = 'normalized'; }, d => { d.uavs[0].position = [NaN, 0, 0]; },
@@ -56,4 +70,13 @@ test('bay queue and landing phases validate, hatch and wrapped heading interpola
   assert.ok(Math.abs(half.rover.heading-Math.PI)<1e-10);
   assert.ok(Math.abs(half.docking.hatchProgress-.5)<1e-10);
   for(const mutate of [d=>{d.docking.hatchProgress=NaN;},d=>{d.docking.queue=[1,1];},d=>{d.docking.owner=3;},d=>{d.rover.heading=Infinity;}]){const bad=structuredClone(a);mutate(bad);assert.throws(()=>decodeSnapshot(bad));}
+});
+
+test('carrier charging phases and initial battery mode survive telemetry validation', () => {
+  const data=wire();data.batteryMode='imbalanced';
+  data.uavs[0].phase='charging';data.uavs[1].phase='docked';data.uavs[2].phase='takingOff';
+  const decoded=decodeSnapshot(data);
+  assert.equal(decoded.batteryMode,'imbalanced');
+  assert.deepEqual(decoded.uavs.map(u=>u.phase),['docked','takingOff','charging']);
+  const bad=wire();bad.batteryMode='mystery';assert.throws(()=>decodeSnapshot(bad));
 });

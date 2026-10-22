@@ -14,9 +14,9 @@ export function createDeviceLOD(scenes,distances,{technology=false}={}){
       if(!pool.has(key)){
         const material=technology?o.material.clone():o.material;
         if(technology){
-          const palette={ceramic_paint:'#e5eef4',graphite_composite:'#243849',status_strip:'#38d5e5',brushed_aluminium:'#a7bfce',lambert5:'#7894a6',lambert11:'#e4edf2',lambert4:'#344759','far-dark-plastic':'#233442','far-light-plastic':'#839bac'};
+          const palette={ceramic_paint:'#e7ddd4',graphite_composite:'#4b3e47',status_strip:'#9b72b8',brushed_aluminium:'#b6a7a7',lambert5:'#85757e',lambert11:'#eee4dc',lambert4:'#5a4b55','far-dark-plastic':'#382d35','far-light-plastic':'#a894a4'};
           if(palette[material.name])material.color.set(palette[material.name]);
-          if(material.name==='status_strip'){material.emissive.set('#38d5e5');material.emissiveIntensity=.3;}
+          if(material.name==='status_strip'){material.emissive.set('#9b72b8');material.emissiveIntensity=.24;}
           material.envMapIntensity=.35;material.userData.runtimeDeviceMaterial=true;
         }
         pool.set(key,material);

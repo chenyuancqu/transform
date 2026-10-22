@@ -2,19 +2,23 @@ import { useEffect, useRef, useState } from 'react';
 import mqtt from 'mqtt';
 
 const EMPTY = { epoch: 'unconnected', seq: 0, rover: { x: .5, y: .5, z: 0 }, uavs: [], orders: [],
-  stats: {}, health: {}, events: [], running: false, speed: .7, elapsedSeconds: 0 };
+  stats: {}, health: {}, events: [], running: false, speed: .7, elapsedSeconds: 0, batteryMode: 'balanced' };
+const MAX_ORDER_COUNT = 30;
 const POSE = p => Array.isArray(p) && p.length === 3 && p.every(Number.isFinite);
-const PHASES = ['idle','takingOff', 'cruising', 'approaching', 'aligning', 'picking', 'returning', 'waitingDock', 'unloading', 'clearingBay','parking'];
+const PHASES = ['idle','docked','charging','takingOff', 'cruising', 'approaching', 'aligning', 'picking', 'returning', 'waitingDock', 'unloading', 'clearingBay','parking'];
 
 export function decodeSnapshot(data) {
+  const orderCount = Array.isArray(data?.orders) ? data.orders.length : 0;
+  const batteryMode = data?.batteryMode ?? 'balanced';
   if (data?.schema_version !== 1 || data.coordinate_system !== 'campus_meters_xy_height'
+      || !['balanced', 'imbalanced'].includes(batteryMode)
       || typeof data.epoch !== 'string' || !Number.isInteger(data.seq) || !Number.isFinite(data.timestamp)
       || !POSE(data.rover?.position) || (data.rover.heading!=null&&!Number.isFinite(data.rover.heading))
       || (data.docking!=null&&(!Array.isArray(data.docking.queue)||new Set(data.docking.queue).size!==data.docking.queue.length||data.docking.queue.some(i=>![1,2,3].includes(i))
         ||(data.docking.owner!=null&&!data.docking.queue.includes(data.docking.owner))||!Number.isFinite(data.docking.hatchProgress)||data.docking.hatchProgress<0||data.docking.hatchProgress>1))
       || !Array.isArray(data.uavs) || data.uavs.length !== 3
-      || new Set(data.uavs.map(u => u.id)).size !== 3 || !Array.isArray(data.orders) || data.orders.length !== 8
-      || new Set(data.orders.map(o => o.id)).size !== 8 || typeof data.running !== 'boolean'
+      || new Set(data.uavs.map(u => u.id)).size !== 3 || !Array.isArray(data.orders) || orderCount < 1 || orderCount > MAX_ORDER_COUNT
+      || new Set(data.orders.map(o => o.id)).size !== orderCount || typeof data.running !== 'boolean'
       || !Number.isFinite(data.speed) || data.speed < .3 || data.speed > 2
       || !data.stats || !data.health || !Array.isArray(data.events)
       || !data.uavs.every(u => [1, 2, 3].includes(u.id) && POSE(u.position) && Number.isFinite(u.battery)
@@ -22,12 +26,12 @@ export function decodeSnapshot(data) {
         && Number.isFinite(u.pickupProgress) && u.pickupProgress >= 0 && u.pickupProgress <= 1
         && Number.isFinite(u.unloadProgress) && u.unloadProgress >= 0 && u.unloadProgress <= 1
         && (u.retractProgress==null||(Number.isFinite(u.retractProgress)&&u.retractProgress>=0&&u.retractProgress<=1)))
-      || !data.orders.every(o => Number.isInteger(o.id) && o.id >= 1 && o.id <= 8 && POSE(o.position) && typeof o.completed === 'boolean')) {
+      || !data.orders.every(o => Number.isInteger(o.id) && o.id >= 1 && o.id <= orderCount && POSE(o.position) && typeof o.completed === 'boolean')) {
     throw new Error('后端快照格式或坐标单位不匹配');
   }
   // Rendering adapter only: no mission assignment, inference or arrival calculation.
   const adapt = p => ({ ...p, x: (p.position[0] + 100) / 200, y: (p.position[1] + 100) / 200, z: p.position[2] / 50 });
-  return { ...data, rover: adapt(data.rover), uavs: data.uavs.map(adapt).sort((a, b) => a.id - b.id), orders: data.orders.map(adapt).sort((a, b) => a.id - b.id) };
+  return { ...data, batteryMode, rover: adapt(data.rover), uavs: data.uavs.map(adapt).sort((a, b) => a.id - b.id), orders: data.orders.map(adapt).sort((a, b) => a.id - b.id) };
 }
 
 export function interpolateSnapshots(a, b, t) {
@@ -57,6 +61,8 @@ export function useCampusBackend() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('等待本机后端连接');
   const [messages, setMessages] = useState([]);
+  const [inference, setInference] = useState({});
+  const [algorithmTelemetry, setAlgorithmTelemetry] = useState({});
   const [pending, setPending] = useState({});
   const pendingRef = useRef({});
   const alive = useRef(true);
@@ -80,7 +86,7 @@ export function useCampusBackend() {
         if (topic === 'simulation/snapshot') {
           const next = decodeSnapshot(data);
           if (!isNewSnapshot(next, latest.current)) return;
-          if (next.epoch !== latest.current.epoch) { buffer.current = []; visualUAVs.current = {}; }
+          if (next.epoch !== latest.current.epoch) { buffer.current = []; visualUAVs.current = {}; setInference({}); setAlgorithmTelemetry({}); }
           receivedAt.current = Date.now();
           latest.current = next;
           setNotice(previous => previous === '等待本机后端连接' ? '后端已就绪 · 可开始任务或选择预设调度' : previous);
@@ -90,6 +96,22 @@ export function useCampusBackend() {
         } else if (topic === 'simulation/backend/status') {
           setBackendOnline(data.online === true);
           if (!data.online) receivedAt.current = 0;
+        } else if (topic.startsWith('simulation/action/')) {
+          const agent = topic.split('/').pop();
+          const values = Array.isArray(data) && Array.isArray(data[0]) ? data[0] : data;
+          if (Array.isArray(values) && values.every(Number.isFinite)) {
+            const timestamp = Date.now();
+            setInference(previous => ({ ...previous, [agent]: { values, timestamp } }));
+            setAlgorithmTelemetry(previous => ({ ...previous, [agent]: { ...previous[agent], action: values, actionTimestamp: timestamp } }));
+          }
+        } else if (topic.startsWith('simulation/state/')) {
+          const agent = topic.split('/').pop();
+          if (data && Array.isArray(data.state)) {
+            setAlgorithmTelemetry(previous => ({ ...previous, [agent]: {
+              ...previous[agent], observation: data.state, position: data.position, target: data.target,
+              battery: data.battery, phase: data.phase, status: data.status, stateTimestamp: Date.now()
+            } }));
+          }
         } else if (topic === 'simulation/command/result' || topic === 'simulation/agent/status') {
           if (data.request_id && pendingRef.current[data.request_id]) {
             const waiting = pendingRef.current[data.request_id];
@@ -149,9 +171,10 @@ export function useCampusBackend() {
   };
   if (import.meta.env.DEV) window.__campusMission = { state: snapshot, visualUAVs: visualUAVs.current, online: !!online };
   return { snapshot, online: !!online, connection, error, loading: !online, running: snapshot.running && !!online,
-    speed: snapshot.speed, visualUAVs, message: notice, pending, messages,
+    speed: snapshot.speed, visualUAVs, inference, algorithmTelemetry, message: notice, pending, messages,
     start: () => send('simulation/control', { action: 'start' }), pause: () => send('simulation/control', { action: 'pause' }),
     reset: () => send('simulation/control', { action: 'reset' }),
+    setBatteryMode: value => send('simulation/control', { action: 'battery_mode', value }),
     setSpeed: value => send('simulation/control', { action: 'speed', value }),
     dispatch: (command, label) => send('simulation/command/agent', { ...command, source: 'preset' }, label),
     chat: text => send('simulation/command/input', { text, epoch: latest.current.epoch }, text) };

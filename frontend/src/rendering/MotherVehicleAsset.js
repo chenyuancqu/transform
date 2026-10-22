@@ -79,7 +79,8 @@ export function createMotherVehicle() {
       const vent=plate('vent_'+side+'_'+i,.025,.17,.012,.006,graphite,[side*.925,1.21,-1.62+i*.034]);vent.rotation.y=side*Math.PI/2;
     }
   }
-  // One receiving bay rather than three implausibly crowded charging pads.
+  // One receiving bay; the runtime scene adds three compact external charging cradles
+  // so aircraft can remain attached to the carrier while it moves.
   const frameShape=new THREE.Shape();frameShape.moveTo(-.68,-.79);frameShape.lineTo(.68,-.79);frameShape.lineTo(.68,.79);frameShape.lineTo(-.68,.79);frameShape.closePath();
   const opening=new THREE.Path();opening.moveTo(-.565,-.625);opening.lineTo(-.565,.625);opening.lineTo(.565,.625);opening.lineTo(.565,-.625);opening.closePath();frameShape.holes.push(opening);
   const roofSeal=mesh('roof_bay_frame',new THREE.ExtrudeGeometry(frameShape,{depth:.04,bevelEnabled:true,bevelSize:.006,bevelThickness:.006,bevelSegments:2}),graphite,[0,1.64,-.15]);roofSeal.rotation.x=-Math.PI/2;

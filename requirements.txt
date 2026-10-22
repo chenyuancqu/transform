@@ -1,0 +1,10 @@
+# 智联蜂群项目 Python 依赖说明
+# 运行后端推理与 AI 智能调度：
+numpy>=1.24.0
+onnxruntime>=1.16.0
+paho-mqtt>=2.0.0
+httpx>=0.27.0
+
+# 算法离线训练与权重导出 (如需重新训练 MADDPG 模型)：
+torch>=2.0.0
+matplotlib>=3.7.0

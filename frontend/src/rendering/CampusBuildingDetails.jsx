@@ -57,7 +57,7 @@ function DetailInstances({kind,matrices}){
       foliage:new THREE.SphereGeometry(1,8,5),
       signal:new THREE.BoxGeometry(12.6,.045,.045)
     };
-    const colors={deck:'#eee5d5',glassFront:'#b8dce8',glassSide:'#b8dce8',railFront:'#6c858d',railSide:'#6c858d',post:'#74878c',support:'#77878a',planter:'#c9aa7c',foliage:'#78a86c',signal:'#38cdda'};
+    const colors={deck:'#e6d8cb',glassFront:'#a893b2',glassSide:'#a893b2',railFront:'#756873',railSide:'#756873',post:'#81757b',support:'#81757b',planter:'#b99576',foliage:'#829464',signal:'#9b72b8'};
     const isFrame=kind==='railFront'||kind==='railSide'||kind==='post';
     const props=isGlass?{color:colors[kind],roughness:.28,metalness:.05,transparent:true,opacity:.48,depthWrite:false,side:THREE.DoubleSide}
       :kind==='signal'?{color:colors[kind],emissive:colors[kind],emissiveIntensity:.26,roughness:.4}
