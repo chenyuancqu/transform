@@ -74,6 +74,49 @@ class AgentAdapterTests(unittest.TestCase):
         self.assertEqual(agent.model, 'gemini-3.1-flash')
         self.assertTrue(agent.ready)
 
+    def test_deepseek_authenticates_and_recovers_without_false_ready(self):
+        calls = []
+        code = [401]
+        def handler(request):
+            calls.append(str(request.url))
+            return httpx.Response(code[0], json={'data': [{'id': 'deepseek-flash'}]})
+        agent = self.adapter(handler)
+        agent.base = 'https://api.deepseek.com'
+        agent.model = 'deepseek-flash'
+        agent.verified = True
+        agent.check()
+        self.assertFalse(agent.ready)
+        self.assertFalse(agent.verified)
+        self.assertIn('鉴权失败', agent.health()['agentLastError'])
+        code[0] = 200
+        agent.check()
+        self.assertTrue(agent.ready)
+        self.assertFalse(agent.verified, 'model discovery alone is not a chat verification')
+        self.assertIsNone(agent.last_error)
+        self.assertEqual(calls, ['https://api.deepseek.com/models'] * 2)
+        agent.model = 'missing-model'
+        agent.check()
+        self.assertFalse(agent.ready)
+
+    def test_invalid_command_fields_are_rejected_before_verification(self):
+        valid = dict(action_type='dispatch', target_area='B', priority='normal',
+                     energy_limit=None, assign_agents=['uav_1'])
+        invalid = [dict(valid, assign_agents=['uav_9']), dict(valid, energy_limit=True),
+                   dict(valid, energy_limit=101), dict(valid, target_area='D'),
+                   dict(valid, priority='anything'), dict(valid, extra='ignored'),
+                   {k: v for k, v in valid.items() if k != 'target_area'}]
+        for command in invalid:
+            with self.subTest(command=command):
+                def handler(request):
+                    if request.method == 'GET':
+                        return httpx.Response(200, json={'data': [{'id': 'gemini-2.5-flash'}]})
+                    return httpx.Response(200, json={'choices': [{'message': {'content': json.dumps(command)}}]})
+                agent = self.adapter(handler)
+                with self.assertRaises(AgentFailure):
+                    agent.generate('开始取件')
+                self.assertFalse(agent.verified)
+                self.assertTrue(agent.ready, 'bad output must not disable an authenticated API')
+
     def test_new_preset_invalidates_older_ai_and_old_epoch_controls(self):
         import queue
         from collections import OrderedDict

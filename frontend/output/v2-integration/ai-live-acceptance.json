@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "model": "deepseek-flash",
+  "checks": [
+    "real-model-chat",
+    "region-and-device-execution",
+    "preserve-inflight-wave",
+    "apply-energy-budget-next-wave",
+    "dynamic-order-config",
+    "natural-language-emergency-stop"
+  ],
+  "records": [
+    {
+      "text": "派1号和3号无人机去B区取件，普通优先级，不设置能耗上限。",
+      "latencyMs": 1515,
+      "receipt": {
+        "request_id": "573e07d3-9ce0-49e3-925e-2f3774abb54f",
+        "ok": true,
+        "message": "取件调度已执行 · B区 · uav_1, uav_3",
+        "timestamp": 1792734260089.1082,
+        "command": {
+          "action_type": "dispatch",
+          "target_area": "B",
+          "priority": "normal",
+          "energy_limit": null,
+          "assign_agents": [
+            "uav_1",
+            "uav_3"
+          ],
+          "request_id": "573e07d3-9ce0-49e3-925e-2f3774abb54f",
+          "source": "local_gateway",
+          "_revision": 1,
+          "mission_epoch": "f4963d86b1564b6daef01cc497c2d147"
+        },
+        "epoch": "f4963d86b1564b6daef01cc497c2d147"
+      }
+    },
+    {
+      "text": "切换为节能调度，全园区，所有无人机，单机能耗预算75%。",
+      "latencyMs": 1512,
+      "receipt": {
+        "request_id": "b88fa02a-715c-48b8-97ac-691590748ab4",
+        "ok": true,
+        "message": "调度已确认 · 当前波次完成后由 PPO 重新选单",
+        "timestamp": 1792734261664.0283,
+        "command": {
+          "action_type": "optimize_energy",
+          "target_area": null,
+          "priority": "normal",
+          "energy_limit": 75,
+          "assign_agents": [
+            "all"
+          ],
+          "request_id": "b88fa02a-715c-48b8-97ac-691590748ab4",
+          "source": "local_gateway",
+          "_revision": 2,
+          "mission_epoch": "f4963d86b1564b6daef01cc497c2d147"
+        },
+        "epoch": "f4963d86b1564b6daef01cc497c2d147"
+      }
+    },
+    {
+      "text": "立即紧急停止所有设备。",
+      "latencyMs": 1456,
+      "receipt": {
+        "request_id": "5ac8368d-a73e-4339-9d55-dd7558297e40",
+        "ok": true,
+        "message": "集群紧急停止 · 位置和任务进度已保留",
+        "timestamp": 1792734279058.9238,
+        "command": {
+          "action_type": "emergency_stop",
+          "target_area": null,
+          "priority": "urgent",
+          "energy_limit": null,
+          "assign_agents": [
+            "all"
+          ],
+          "request_id": "5ac8368d-a73e-4339-9d55-dd7558297e40",
+          "source": "local_gateway",
+          "_revision": 3,
+          "mission_epoch": "f4963d86b1564b6daef01cc497c2d147"
+        },
+        "epoch": "f4963d86b1564b6daef01cc497c2d147"
+      }
+    }
+  ]
+}

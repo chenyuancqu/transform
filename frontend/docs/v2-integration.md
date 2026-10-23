@@ -91,4 +91,20 @@ node tests/backend-health-heartbeat.mjs
 动态运行截图见 `output/v2-integration/dynamic-live.jpg`，30 单整轮完成统计见 `mqtt-acceptance.json`。旧 `paused-policy.jpg`、`completed-campus.jpg`、`offline.jpg` 保留为早期固定八单接入阶段的记录，不作为动态三十单的证明。
 浏览器无 JavaScript error；存在原有 Three.js Clock 弃用和显卡 shader 精度 warning。
 生产构建通过，仍有大资源 chunk 体积 warning，未据此宣称目标显卡帧率达标。
-自然语言上游 API 本轮未发送真实聊天验收，界面维持“已配置、待联调”的真实状态。
+## DeepSeek 自然语言入口验收（2026-10-23）
+
+本机后端 `.env` 配置 DeepSeek 地址、可用模型 `deepseek-flash` 和 API Key，Key 不进入版本控制，也不发送到浏览器。
+所有兼容接口（包括 DeepSeek）现在都会真实请求 `/models` 检查鉴权和模型可用性；检查通过仅代表接口就绪，成功解析聊天后才设置 `agentVerified`。
+修复了原来 DeepSeek 跳过联网检查、无效 Key 仍可显示就绪的问题；恢复检查成功后会清除历史错误。
+模型输出必须包含约定的五个字段，并通过区域、设备、优先级和预算类型/范围检查；非法输出不下发，后端任务层继续保留原有校验。
+
+真实接口验收已通过：B 区指派 UAV 1/3 后实际形成对应任务；飞行中切换全园区、所有无人机、75% 单机预算时保留当前分配，下一波应用；自然语言紧急停止立即冻结任务。
+该入口负责高层约束，具体选单和接应点仍由现有 PPO 决定。上游失败不会阻止开始任务或预设调度。
+
+显式执行以下命令可复验真实服务（会调用已配置的付费 API、重置本机任务，普通测试不会调用外部模型）：
+
+```powershell
+node tests/ai-live-integration.mjs --live
+```
+
+验收回执保存在 `output/v2-integration/ai-live-acceptance.json`。单元回归同时覆盖 DeepSeek 鉴权失败/恢复、不可用模型及非法输出，避免仅凭 UI 就绪宣称真实调度成功。

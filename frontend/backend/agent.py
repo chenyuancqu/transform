@@ -89,35 +89,37 @@ class DispatchAgent:
                 parsed = urlsplit(self.base)
                 if parsed.scheme not in ['http', 'https'] or not parsed.netloc:
                     raise AgentFailure('AI 接口地址格式无效')
-                host = (parsed.hostname or '').lower()
-                if host in {'api.deepseek.com', 'api.deepseek.com.cn'}:
-                    if not self.model:
-                        self.model = 'deepseek-flash'
-                else:
-                    body = self.request('GET', '/models')
-                    ids = [item['id'] for item in body.get('data', []) if isinstance(item, dict) and isinstance(item.get('id'), str)]
-                    if self.model and self.model not in ids:
-                        raise AgentFailure('配置的 AI 模型不在接口模型列表中')
-                    if not self.model:
-                        candidates = [name for name in ids if 'flash' in name.lower()]
-                        self.model = candidates[0] if candidates else (ids[0] if ids else None)
-                        if self.model is None:
-                            raise AgentFailure('接口未提供可用模型，请设置后端 CAMPUS_AI_MODEL')
+                # DeepSeek must authenticate too: a configured key is not proof
+                # that the upstream is reachable or permits this model.
+                body = self.request('GET', '/models')
+                ids = [item['id'] for item in body.get('data', []) if isinstance(item, dict) and isinstance(item.get('id'), str)]
+                if self.model and self.model not in ids:
+                    raise AgentFailure('配置的 AI 模型不在接口模型列表中')
+                if not self.model:
+                    candidates = [name for name in ids if 'flash' in name.lower()]
+                    self.model = candidates[0] if candidates else (ids[0] if ids else None)
+                    if self.model is None:
+                        raise AgentFailure('接口未提供可用模型，请设置后端 CAMPUS_AI_MODEL')
             else:
                 from google import genai
                 if self.google is None:
                     self.google = genai.Client(api_key=self.key, http_options={'timeout': 25000})
             self.ready = True
             self.status = 'ready'
+            self.last_error = None
             self.message = 'AI 接口已就绪'
         except AgentFailure as error:
             self.ready = False
+            self.verified = False
             self.status = 'offline'
+            self.last_error = str(error)
             self.message = str(error)
         except Exception:
             self.ready = False
+            self.verified = False
             self.status = 'offline'
             self.message = 'AI 接口检查失败，请检查后端配置'
+            self.last_error = self.message
 
     def generate(self, text):
         if not self.ready:
@@ -141,6 +143,20 @@ class DispatchAgent:
             command = json.loads(raw)
             if not isinstance(command, dict):
                 raise ValueError('Invalid command')
+            keys = {'action_type', 'target_area', 'priority', 'energy_limit', 'assign_agents'}
+            if set(command) != keys:
+                raise ValueError('Missing or unexpected fields')
+            if (command['action_type'] not in ['dispatch', 'emergency_stop', 'optimize_energy', 'unsupported'] or
+                    command['target_area'] not in ['A', 'B', 'C', None] or
+                    command['priority'] not in ['normal', 'urgent']):
+                raise ValueError('Invalid dispatch fields')
+            agents = command['assign_agents']
+            limit = command['energy_limit']
+            if (not isinstance(agents, list) or not agents or
+                    any(agent not in ['all', 'uav_1', 'uav_2', 'uav_3'] for agent in agents)):
+                raise ValueError('Invalid agents')
+            if limit is not None and (isinstance(limit, bool) or not isinstance(limit, (int, float)) or not 0 < limit <= 100):
+                raise ValueError('Invalid energy limit')
             self.verified = True
             self.last_error = None
             return {key: command.get(key) for key in ['action_type', 'target_area', 'priority', 'energy_limit', 'assign_agents']}
