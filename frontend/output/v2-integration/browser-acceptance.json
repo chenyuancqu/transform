@@ -1,0 +1,40 @@
+{
+  "verified": [
+    "three-wave-eight-order-completion",
+    "PPO-candidate-panel",
+    "rover-label-follows-live-device",
+    "pause-clock-and-device-poses-frozen",
+    "resume",
+    "B-area-preset",
+    "reset-ready",
+    "offline-controls-disabled",
+    "reconnect"
+  ],
+  "pausedEvidence": {
+    "clock": "107.3s",
+    "devices": "[{\"id\":\"device-rover\",\"position\":[24.095999999997716,0,0],\"yaw\":1.5707963267948966,\"hatch\":0},{\"id\":\"device-uav-1\",\"position\":[40.11934840755177,14.580000000000002,-65.19004680993368],\"yaw\":-3.9741561220850485,\"rotor\":13009.774188731903},{\"id\":\"device-uav-2\",\"position\":[73.15958322460676,19.53,0.06302625367331416],\"yaw\":-4.708192966071365,\"rotor\":11942.28209739178},{\"id\":\"device-uav-3\",\"position\":[22.81599999999773,1.9799999999999998,0],\"yaw\":1.5707963267948966,\"rotor\":11453.997504719053}]",
+    "labels": [
+      {
+        "object": "device-uav-1",
+        "world": "40.1193,14.5800,-65.1900"
+      },
+      {
+        "object": "device-uav-2",
+        "world": "73.1596,19.5300,0.0630"
+      },
+      {
+        "object": "device-uav-3",
+        "world": "22.8160,1.9800,0.0000"
+      },
+      {
+        "object": "device-rover",
+        "world": "24.0960,0.0000,0.0000"
+      }
+    ]
+  },
+  "pausedClockFrozen": true,
+  "pausedDevicesFrozen": true,
+  "errors": [],
+  "finalState": "ready",
+  "url": "http://127.0.0.1:3000/r3f.html"
+}

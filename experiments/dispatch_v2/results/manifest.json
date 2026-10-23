@@ -1,0 +1,17 @@
+{
+  "branch": "frontend-showcase-20261014V2",
+  "base_commit": "b7a58b04dafda904f5fa57f201ba1b088a8034eb",
+  "environment_schema": 3,
+  "files": {
+    "experiments/dispatch_v2/env.py": "f6b87767ee8af97e36a1371db5af2b06a9f6dcc134f5d198fbef51e02ed07420",
+    "experiments/dispatch_v2/model.py": "e7316545d2ddcbb008fb283187c86bf5b2b639474e54134884a84bb94a0f50d5",
+    "experiments/dispatch_v2/train.py": "12fa7a36f0f23fb25ddc43fe517f95c1828e7707bc1c31d811f8412c8f7325d8",
+    "experiments/dispatch_v2/evaluate.py": "90c29a2295e920d074151b1de3ba8cebf967e9be1d5b74999ac6c433f78821fe",
+    "experiments/dispatch_v2/infer.py": "d5190492b9b645efb52dd1bbba288e5787d0eea3ba4fbf80391c45e4e7efd8db",
+    "experiments/dispatch_v2/test_env.py": "f166abfeac8b073174e07eaea48d0e1f74cd77ffa7524ba16469f9ae8c54a551",
+    "experiments/dispatch_v2/requirements.txt": "cb4e75ba56aa36c8df406980a800a432945247305efd44d0eee5ae82539cc6ed",
+    "experiments/dispatch_v2/results/dispatch_policy.pt": "45916386579f0ca6325f0dafbd92406f9db9631a86bed07dedfe5f4370a778d1",
+    "experiments/dispatch_v2/results/summary.json": "605660616f29ac69a5f118bcfdc61bf65f395c1410dcb976995c38c570058f73"
+  },
+  "description": "Hashes of files included in this V2 publication; offline metrics describe the static training environment."
+}

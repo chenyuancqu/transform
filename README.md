@@ -1,148 +1,135 @@
-# “智联蜂群”——基于多智能体强化学习的移动母车与无人机协同智能取货系统
+# 智联蜂群：移动母车与无人机协同取件
 
-> **创新大赛评审交付包** | 团队成员：陈远、王维  
-> **核心定位**：面向未来智慧物流场景，融合“移动母车+无人机蜂群”多智能体协同算法与现代三维数字孪生可视化平台。
+一辆移动母车与三架无人机的园区物流仿真平台。当前分支为 **`frontend-showcase-20261014V2`**：使用新训练的 PPO 策略自主选择订单与母车接应点，通过 Python 后端执行任务，浏览器实时展示三维场景和执行指标。
 
----
+## 当前 V2 实现
 
-## 🌟 项目三大核心创新亮点
+- **动态订单**：开局随机生成 4–8 单，运行中每 12 个仿真秒尝试补入一单，每轮最多 30 单。订单使用 8 个已校准的阳台/地面取件点；点位占用时每 3 秒重试，取件后释放点位。暂停和急停会同时冻结订单流。
+- **PPO 协同调度**：在波次边界读取当前待取订单，选择母车接应点，并为可用无人机选单。新到订单进入后续波次，不中途取消已执行任务。
+- **完整取件回收**：起飞、精确进近、稳定悬停、包裹装载、返航、单舱排队卸货、车顶归位与补能均由后端管理。全部已生成订单回收且订单流结束后，本轮才完成。
+- **三维展示**：园区模型、设备跟随、自由漫游、日夜切换、轨迹、接应点及母车路线；任务卡展示波次和模型选单，联调面板展示真实候选评分。
+- **实际执行指标**：订单到达数、回收数、完成率、平均完成时间、航程和无人机 Wh 能耗。
+- **可选自然语言控制**：支持 OpenAI 兼容接口及 Gemini，将区域、设备和预算需求解析为调度指令；没有 AI Key 时，开始任务与预设调度仍可运行。
 
-### 1. 业务模式创新：“一车多机”重构末端分散取货
-- **从串行到并行**：传统物流依赖人工/单车逐点取货，路径冗长耗时；本项目通过“移动母车 + 3架工业级无人机”蜂群架构，实现多任务空间高并发并行揽收。
-- **动态移动接应**：母车不仅是移动货物集散仓，更是智能“移动充电站”，随订单重心动态机动，极大压缩无人机往返能耗与航程。
+新 PPO 输出离散调度动作，不再输出旧版巡航 `dx/dy/dz`。精确飞行与取件仍由任务规则执行。当前没有接入真实车辆/无人机，也没有实现完整障碍物碰撞与实机飞行动力学。
 
-### 2. 算法与控制创新：多智能体深度强化学习（MADDPG）
-- **多智能体博弈决策**：部署 4 套深度强化学习神经网络（1个母车决策模型 + 3个无人机协同模型）。
-- **梯次补能与自主返航**：低电量无人机自主抛物线返航母车车顶物理托架快速充电，满电智能体持续作业，保证任务无缝衔接。
-- **全闭环物理仿真**：母车与无人机具有真实加减速、电量消耗速率（-0.012/步）、垂直爬升（5.5m）、三维空间精准避障与包裹揽收判断。
+## 快速启动（Windows）
 
-### 3. AI 调度创新：DeepSeek 大模型自然语言意图调度
-- **自然语言直接对话**：集成 DeepSeek 官方大模型 API，支持评委输入自然语言指令（例如：“*派1号和2号机去B区加急取件*”、“*全员紧急停止*”）。
-- **兼容接口配置**：后端通过 OpenAI 兼容格式连接 DeepSeek。API Key 由本机 `frontend/.env` 提供，README 和示例文件不保存密钥。
-
----
-
-## 📁 项目目录结构说明
-
-```
-digital-twin-logistics/
-├── main.py                      # MADDPG 多智能体算法训练主程序 (PyTorch)
-├── backend.py                   # 算法 MQTT 调度服务端 (Python ONNX Runtime)
-├── export_onnx.py               # PyTorch 训练权重导出 ONNX 脚本
-├── agent_server.py              # CLI 终端 DeepSeek AI 智能调度服务
-├── simulator_client.py          # 算法仿真测试客户端
-├── requirements.txt             # Python 后端算法与推理环境依赖清单
-├── maddpg_convergence_curve.png # 强化学习算法训练收敛曲线图 (评审数据)
-├── models/                      # PyTorch 神经网络模型结构定义 (Actor/Critic)
-├── onnx_models/                 # 已导出的 4 个 ONNX 决策模型 (母车+3无人机)
-├── saved_models/                # MADDPG 强化学习训练检查点权重文件
-├── docs/                        # 完整项目文档库 (含比赛申报信息、技术文档、验收记录)
-│   ├── 项目信息.txt              # 大赛申报资料、核心架构与接口规范
-│   └── codex实施文档.md          # 现代高级智慧园区数字孪生实施规范
-└── frontend/                    # 数字孪生 3D 可视化系统 & MEC 后端服务
-    ├── .env.example             # AI 接口配置模板；复制为本机 .env 后填写 API Key
-    ├── package.json             # 前端依赖配置 (Three.js / React Three Fiber / MQTT)
-    ├── backend/                 # MEC 边缘协同服务、任务状态管理与 AI 调度接口
-    ├── src/                     # React Three Fiber 三维场景与圆通紫主题控制台源码
-    ├── public/                  # 3D 资产 (现代写字楼、无人机、母车、HDR环境、ONNX模型)
-    ├── scripts/                 # 一键启动与资产优化脚本 (start-demo.ps1)
-    └── output/                  # 自动化测试验收报告与评审截图证据
-```
-
----
-
-## 🚀 快速启动与评审演示步骤
-
-### 运行环境要求
-- **Node.js**：18.0+ 推荐
-- **Python**：3.10 ~ 3.12（运行后端 ONNX 推理与 MEC 业务服务）
-- **现代化浏览器**：Chrome / Edge（支持 WebGL 2.0）
-
-### 先选对代码分支
-
-完整数字孪生 UI 当前发布在 `frontend-showcase-20261014` 分支；仓库默认 `main` 仍是后端算法分支，直接从 `main` 启动会看到旧版或不完整的前端。
-
-首次克隆：
+建议使用 Node.js 20+、Python 3.10–3.12 和支持 WebGL 2 的 Chrome/Edge。启动脚本使用 PowerShell；后端日常运行只需 ONNX Runtime，不需要 PyTorch。
 
 ```powershell
-git clone --branch frontend-showcase-20261014 --single-branch https://github.com/chenyuancqu/transform.git
+git clone --branch frontend-showcase-20261014V2 --single-branch https://github.com/chenyuancqu/transform.git
 cd transform\frontend
+npm ci
+
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
+npm run demo
 ```
 
-已有仓库：
+已有仓库可先执行：
 
 ```powershell
 git fetch origin
-git switch frontend-showcase-20261014
+git switch frontend-showcase-20261014V2
 git pull --ff-only
 cd frontend
 ```
 
-### 方案 A：一键启动完整数字孪生演示（推荐）
+打开 **[http://127.0.0.1:3000/r3f.html](http://127.0.0.1:3000/r3f.html)**，点击“开始任务”。默认演示速度 1.5 倍，支持 0.3–2 倍。订单清单和到达提示会随运行中的新订单更新。
 
-1. 在 `frontend` 目录安装前端依赖：
-   ```powershell
-   npm ci
-   ```
-
-2. 首次运行配置 Python 依赖：
-   ```powershell
-   py -3.12 -m venv .venv
-   .\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
-   ```
-
-   macOS / Linux 可使用 `python3.12 -m venv .venv` 和 `./.venv/bin/python -m pip install -r backend/requirements.txt`。
-
-3. 配置自然语言 AI（可选）：首次启动时复制 `.env.example` 为 `.env`，再在本机 `.env` 填入自己的 DeepSeek API Key。密钥不要写进 README、源码或提交记录。没有 AI Key 时，预设调度和仿真仍可运行。
-   ```powershell
-   Copy-Item .env.example .env
-   ```
-
-4. 一键启动全套服务（自动启动 MQTT Broker、MEC 仿真服务与 Vite 服务）：
-   ```powershell
-   npm run demo
-   ```
-
-5. 打开浏览器访问：
-   **`http://127.0.0.1:3000/r3f.html`**
-   （进入现代高级智慧园区空地协同三维演示大屏，支持上帝视角、母车跟随、无人机跟随、实时遥测数据监控及 DeepSeek AI 调度输入）。
-
-6. 停止演示服务：
-   ```powershell
-   npm run demo:stop
-   ```
-
-启动脚本只管理本项目创建的服务。日志位于 `frontend/output/backend/`；默认端口为 Vite 3000、MQTT TCP 1883、MQTT WebSocket 8083。
-
----
-
-### 方案 B：纯前端 3D 场景开发预览
-
-如仅评审三维视觉设计与前端交互：
 ```powershell
-cd frontend
-npm install
-npm run dev
+npm run demo:stop
 ```
-访问控制台输出的本地服务地址（如 `http://localhost:5173/r3f.html`）。
 
----
+启动脚本优先使用 `frontend/.venv/Scripts/python.exe`，否则使用 PATH 中的 Python，并检查运行依赖。端口为 Vite `3000`、MQTT TCP `1883` 和 MQTT WebSocket `8083`；若已有本机 TCP Broker，会保留它并按需启动 WebSocket 桥接。日志在 `frontend/output/backend/`。
 
-### 方案 C：CLI 终端 AI 智能调度体验
+仅运行 `npm run dev` 只会启动前端，任务执行仍需要 Broker 与 Python 后端。默认开发端口也是 3000。
 
-如需在终端直接向 AI 调度员下达指令并观察结构化参数：
+## 可选 AI 配置
+
+在 `frontend` 中，仅首次创建本机配置：
+
 ```powershell
-python agent_server.py
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
 ```
-在提示符下输入指令（例如：“*让 1 号机前往 B 区加急取包裹，能耗限制 80%*”），AI 将实时解析并输出标准调度 JSON。
 
----
+在本机 `.env` 中填写自己的 `CAMPUS_AI_API_KEY`，并配置 `CAMPUS_AI_BASE_URL` 与 `CAMPUS_AI_MODEL`。环境配置不纳入版本控制，示例中不含密钥。直接使用 Gemini 提供方时还需安装 `google-genai`。
 
-## 📊 核心算法模型清单
+区域/设备/预算调度在当前波次回收后生效；暂停与急停立即生效。自然语言接口的配置状态和真实执行验证状态会分别显示。
 
-| 模型文件 | 决策智能体 | 输入维度 | 输出维度 | 核心控制目标 |
-| :--- | :--- | :--- | :--- | :--- |
-| `rover.onnx` | 地面移动母车 | Float32Array[1, 6] | Float32Array[1, 2] | 母车向未完成订单重心机动，缩短协同半径 |
-| `uav_1.onnx` | 1号协同无人机 | Float32Array[1, 10] | Float32Array[1, 3] | 三维空间导航、包裹接近、梯次电量管理 |
-| `uav_2.onnx` | 2号协同无人机 | Float32Array[1, 10] | Float32Array[1, 3] | 三维空间导航、包裹接近、梯次电量管理 |
-| `uav_3.onnx` | 3号协同无人机 | Float32Array[1, 10] | Float32Array[1, 3] | 三维空间导航、包裹接近、梯次电量管理 |
+## 模型与运行架构
+
+```text
+浏览器开始/预设/自然语言输入
+            ↓ MQTT over WebSocket
+本机 Broker ←→ Python MEC 服务
+                       ├─ PPO：选订单、选母车接应点
+                       ├─ 任务状态机：飞行、取件、回收、补能、动态补单
+                       └─ 快照、执行回执、Wh 与时延统计
+            ↓ MQTT 遥测
+React / React Three Fiber / Three.js 三维控制台
+```
+
+| 模型 | 用途 |
+|---|---|
+| `frontend/backend/models/dispatch_v2.onnx` | 当前 V2 在线调度模型，CPU ONNX 推理 |
+| `experiments/dispatch_v2/results/dispatch_policy.pt` | 训练后选出的 PyTorch 检查点 |
+| `frontend/backend/models/dispatch_v2.json` | 来源检查点 SHA256、输入输出形状与导出校验 |
+| `onnx_models/`、`frontend/public/models/` | 保留的旧 MADDPG 四模型，不作为 V2 默认调度策略 |
+
+模型用 18 个槽位编码当前待取订单，并将输出槽位映射回真实订单编号。18 是单次决策容量，不是整轮订单上限；园区同时未取包裹受 8 个实际点位约束，整轮仍可累计到 30 单。
+
+母车和无人机共用一个集中式策略，输入包含订单集合、设备电量/性能和母车位置，输出为 9 个接应点之一以及待取订单索引。`health.policyVersion=2`、`modelsLoaded=1`；完整决策随 `snapshot.dispatch` 发布。
+
+## 训练结果与适用边界
+
+离线训练目标为：
+
+```text
+平均订单完成时延（秒） + 6 × 每单无人机能耗（Wh）
+```
+
+两个随机种子分别从零训练 23,040 个任务，验证曲线进入平台。模型只按验证集选择，再使用 512 个独立场景评估：
+
+| 指标 | 时间/能耗规则基线 | PPO | 改善 |
+|---|---:|---:|---:|
+| 平均订单完成时延 | 91.06 秒 | 89.49 秒 | 1.72% |
+| 总无人机能耗/任务 | 109.14 Wh | 106.51 Wh | 2.41% |
+| 综合目标 | 140.21 | 137.53 | 1.92% |
+
+这是**静态订单、解析训练环境**的结果，不是动态园区展示的改善承诺。当前动态到单是迁移适配，尚未针对动态订单重新训练或证明优于规则；消融显示离线收益主要来自母车接应，学习选单的额外收益尚未证实。能耗参数未经实机标定，也不代表全局最优。
+
+详见 [训练实验与复现](experiments/dispatch_v2/README.md)、[完整实验报告](experiments/dispatch_v2/REPORT.md)和[原始测试指标](experiments/dispatch_v2/results/summary.json)。
+
+## 验证与开发
+
+在 `frontend` 目录执行：
+
+```powershell
+npm run build
+npm run test:backend
+node --test tests/telemetry.test.js tests/device-motion.test.js tests/district-roads.test.mjs
+npm run test:integration
+node tests/backend-health-heartbeat.mjs
+```
+
+`test:integration` 需要演示服务已启动，会重置当前任务，通过真实 WebSocket 验证动态补单、30 单回收、暂停/急停/继续、重复指令、重置和旧轮次拒绝；结束后停在新任务待命状态。报告与截图位于 `frontend/output/v2-integration/`。
+
+浏览器已验证波次面板、候选评分、设备与母车模型、暂停坐标冻结、区域预设、重置及断线重连。生产构建仍有大 chunk 提示，目标独立显卡帧率尚未专项验收；自然语言上游 API 本轮没有真实聊天验收。
+
+## 代码与文档
+
+- `experiments/dispatch_v2/`：环境、PPO 训练、评估、ONNX 导出、模型与实验记录。
+- `frontend/backend/service.py`：MEC 服务、MQTT 通信、执行回执与模型健康状态。
+- `frontend/backend/dispatch_v2.py`：动态订单窗口映射、模型选单、母车接应与波次执行适配。
+- `frontend/backend/mission.py`：订单流及基础任务状态机。
+- `frontend/src/services/useCampusBackend.js`：遥测校验、插值、指令与连接管理。
+- `frontend/src/rendering/CampusProductionScene.jsx`：三维园区与设备展示。
+- `frontend/src/ui/TaskConsole.jsx`、`V2DispatchPanel.jsx`：任务控制台与 PPO 决策面板。
+- [V2 接入说明](frontend/docs/v2-integration.md)：接口、运行范围与验收。
+- [素材许可](frontend/docs/asset-licenses.md)：外部模型与环境素材来源。
+
+原版训练程序 `main.py`、`backend.py` 和四个 MADDPG Actor 保留作历史对照。设置 `CAMPUS_POLICY=legacy` 并重新启动后端可运行旧路径，对应 `npm run test:integration:legacy`。
+
+团队：陈远、王维。代码许可证：ISC；外部素材遵循各自许可。

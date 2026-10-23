@@ -9,3 +9,6 @@ output/downloads/
 output/backend/*.log
 processes.json
 .idea/
+.env
+.env.*
+!.env.example

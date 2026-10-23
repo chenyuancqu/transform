@@ -1,0 +1,9 @@
+{
+  "mean_latency_s": 158.9075317510662,
+  "energy_wh": 155.20019482440415,
+  "energy_per_order_wh": 11.336459850041646,
+  "objective": 226.92629085131603,
+  "makespan_s": 304.21195165112084,
+  "completion_rate": 1.0,
+  "distance_m": 2309.1645949405533
+}

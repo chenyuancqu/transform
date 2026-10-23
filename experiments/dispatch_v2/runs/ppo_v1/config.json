@@ -1,0 +1,23 @@
+{
+  "iterations": 160,
+  "episodes": 64,
+  "seed": 42,
+  "warm_episodes": 256,
+  "warm_epochs": 8,
+  "output": "experiments\\dispatch_v2\\runs\\ppo_v1",
+  "torch": "2.8.0+cpu",
+  "device": "cpu",
+  "energy_weight_seconds_per_wh": 2.0,
+  "training_seed_range": [
+    0,
+    999999
+  ],
+  "validation_seed_range": [
+    1000000,
+    1000063
+  ],
+  "test_seed_range": [
+    2000000,
+    2000255
+  ]
+}

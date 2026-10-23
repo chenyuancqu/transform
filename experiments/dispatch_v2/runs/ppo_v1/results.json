@@ -1,0 +1,42 @@
+{
+  "best_iteration": 160,
+  "wall_seconds": 175.40599999999995,
+  "methods": {
+    "nearest_fixed": {
+      "mean_latency_s": 104.66654635908847,
+      "energy_wh": 125.594034303606,
+      "energy_per_order_wh": 9.383006448639742,
+      "objective": 123.43255925636794,
+      "makespan_s": 224.3156482534935,
+      "completion_rate": 1.0,
+      "distance_m": 1804.1390925369326
+    },
+    "nearest_centroid": {
+      "mean_latency_s": 93.26936763891715,
+      "energy_wh": 106.10860079164041,
+      "energy_per_order_wh": 7.962172954377138,
+      "objective": 109.19371354767141,
+      "makespan_s": 192.95116172889692,
+      "completion_rate": 1.0,
+      "distance_m": 1450.1887915009418
+    },
+    "cost_centroid": {
+      "mean_latency_s": 84.95919103995723,
+      "energy_wh": 109.54308875016886,
+      "energy_per_order_wh": 8.20726264066854,
+      "objective": 101.37371632129431,
+      "makespan_s": 193.46826194475616,
+      "completion_rate": 1.0,
+      "distance_m": 1515.0393233315363
+    },
+    "ppo": {
+      "mean_latency_s": 83.96996896517159,
+      "energy_wh": 107.98676323345278,
+      "energy_per_order_wh": 8.103953733945453,
+      "objective": 100.1778764330625,
+      "makespan_s": 193.33813174144265,
+      "completion_rate": 1.0,
+      "distance_m": 1485.8640779168468
+    }
+  }
+}

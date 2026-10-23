@@ -10,7 +10,7 @@ try{
       try{
         const status=JSON.parse(payload.toString());
         if(!status.online)return;
-        assert.equal(status.modelsLoaded,4);assert.ok(Number.isFinite(status.timestamp));
+        assert.equal(status.modelsLoaded,status.policyVersion===2?1:4);assert.ok(Number.isFinite(status.timestamp));
         assert.ok(Date.now()-status.timestamp<1800);
         if(status.timestamp>last){last=status.timestamp;if(++count>=2){clearTimeout(timeout);resolve();}}
       }catch(e){clearTimeout(timeout);reject(e);}

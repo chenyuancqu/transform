@@ -8,6 +8,19 @@ const POSE = p => Array.isArray(p) && p.length === 3 && p.every(Number.isFinite)
 const PHASES = ['idle','docked','charging','takingOff', 'cruising', 'approaching', 'aligning', 'picking', 'returning', 'waitingDock', 'unloading', 'clearingBay','parking'];
 
 export function decodeSnapshot(data) {
+  const dispatch = data?.dispatch;
+  if (dispatch != null && (dispatch.version !== 2 || dispatch.policy !== 'PPO'
+      || !Number.isInteger(dispatch.wave) || dispatch.wave < 0
+      || !['ready','preflight','executing','regrouping','waitingOrders','complete','scopeComplete'].includes(dispatch.stage)
+      || (dispatch.rendezvous !== null && (!Array.isArray(dispatch.rendezvous) || dispatch.rendezvous.length !== 2 || !dispatch.rendezvous.every(Number.isFinite)))
+      || !Array.isArray(dispatch.assignments) || !Array.isArray(dispatch.decisions)
+      || new Set(dispatch.assignments.map(a=>a.uavId)).size !== dispatch.assignments.length
+      || new Set(dispatch.assignments.map(a=>a.orderId)).size !== dispatch.assignments.length
+      || !dispatch.assignments.every(a=>[1,2,3].includes(a.uavId)&&Number.isInteger(a.orderId)&&data.orders?.some(o=>o.id===a.orderId))
+      || !dispatch.decisions.every(d=>['mother','uav'].includes(d.stage)&&Number.isInteger(d.action)&&d.action>=0&&d.action<18&&Array.isArray(d.candidates)
+        && d.candidates.every(c=>Number.isInteger(c.action)&&Number.isFinite(c.probability)&&c.probability>=0&&c.probability<=1&&typeof c.label==='string')))) {
+    throw new Error('V2 调度快照格式不匹配');
+  }
   const orderCount = Array.isArray(data?.orders) ? data.orders.length : 0;
   const batteryMode = data?.batteryMode ?? 'balanced';
   if (data?.schema_version !== 1 || data.coordinate_system !== 'campus_meters_xy_height'
@@ -80,6 +93,16 @@ export function useCampusBackend() {
     });
     client.on('offline', () => setConnection('offline'));
     client.on('error', () => setConnection('offline'));
+    const settle = data => {
+      const waiting = pendingRef.current[data.request_id];
+      if (!waiting) return;
+      clearTimeout(waiting.timer);
+      delete pendingRef.current[data.request_id];
+      setPending({ ...pendingRef.current });
+      setNotice(data.message);
+      if (waiting.chat) setMessages(previous => previous.map(m => m.id === data.request_id ?
+        { ...m, result: data.message, ok: data.ok ?? false, command: data.command } : m));
+    };
     client.on('message', (topic, payload) => {
       try {
         const data = JSON.parse(payload.toString());
@@ -89,6 +112,9 @@ export function useCampusBackend() {
           if (next.epoch !== latest.current.epoch) { buffer.current = []; visualUAVs.current = {}; setInference({}); setAlgorithmTelemetry({}); }
           receivedAt.current = Date.now();
           latest.current = next;
+          Object.values(pendingRef.current).forEach(waiting => {
+            if (waiting.receipt?.epoch === next.epoch) settle(waiting.receipt);
+          });
           setNotice(previous => previous === '等待本机后端连接' ? '后端已就绪 · 可开始任务或选择预设调度' : previous);
           buffer.current.push(next);
           buffer.current = buffer.current.slice(-20);
@@ -119,12 +145,10 @@ export function useCampusBackend() {
               setMessages(previous => previous.map(m => m.id === data.request_id ? { ...m, result: data.message } : m));
               return;
             }
-            clearTimeout(waiting.timer);
-            delete pendingRef.current[data.request_id];
-            setPending({ ...pendingRef.current });
-            setNotice(data.message);
-            if (waiting.chat) setMessages(previous => previous.map(m => m.id === data.request_id ?
-              { ...m, result: data.message, ok: data.ok ?? false, command: data.command } : m));
+            // Reset/battery-mode receipts can precede the first new-epoch frame.
+            // Keep controls busy until commands will carry that new epoch.
+            if (data.ok && data.epoch && data.epoch !== latest.current.epoch) waiting.receipt = data;
+            else settle(data);
           }
         }
         // Individual telemetry/actions are subscribed for protocol compatibility.
@@ -167,7 +191,7 @@ export function useCampusBackend() {
     }, topic.endsWith('/input') ? 35000 : 8000);
     pendingRef.current[request_id] = { timer, chat: !!chatText };
     setPending({ ...pendingRef.current });
-    clientRef.current.publish(topic, JSON.stringify({ ...data, request_id }), { qos: 1, retain: false });
+    clientRef.current.publish(topic, JSON.stringify({ ...data, request_id, epoch: latest.current.epoch }), { qos: 1, retain: false });
   };
   if (import.meta.env.DEV) window.__campusMission = { state: snapshot, visualUAVs: visualUAVs.current, online: !!online };
   return { snapshot, online: !!online, connection, error, loading: !online, running: snapshot.running && !!online,

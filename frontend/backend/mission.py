@@ -230,6 +230,43 @@ class Mission:
                                         target['y'] - u['y'], target['z'] - u['z']]
         return result
 
+    def move_rover(self, dt, actions):
+        for k, value in zip(['x', 'y'], actions.get('mother', [0, 0])):
+            self.rover[k] = max(.35, min(.65, self.rover[k] + value * .0075 * dt / .52))
+
+    def should_park_rover(self):
+        return self.docking['hatchProgress'] > 0 or any(u['phase'] == 'parking' or
+            (u['phase'] in ['returning', 'waitingDock'] and distance(u, dock(self.rover, u)) <= 8) for u in self.uavs)
+
+    def charge(self, uav, dt):
+        uav['battery'] = min(1., uav['battery'] + dt * .05)
+
+    def move_cruise(self, uav, goal, dt, actions):
+        action = actions.get(f"uav_{uav['id']}", [0, 0, 0])
+        candidate = dict(x=max(0, min(1, uav['x'] + action[0] * .015 * dt / .52)),
+                         y=max(0, min(1, uav['y'] + action[1] * .015 * dt / .52)),
+                         z=max(.05, min(.12, uav['z'] + action[2] * .015 * dt / .52)))
+        if distance(uav, goal) - distance(candidate, goal) >= .05 * dt:
+            uav.update(candidate)
+        else:
+            move(uav, {**goal, 'z': max(.05, goal['z'])}, dt, 3.5 if self.energy_mode else 5)
+
+    def return_goal(self, uav, owns_bay):
+        return dock(self.rover, uav) if owns_bay else stand(self.rover, uav, waiting=True)
+
+    def can_unload(self, uav, goal):
+        return distance(uav, goal) <= .08 and self.docking['hatchProgress'] >= 1
+
+    def consume_energy(self, uav, before, dt, order_id):
+        cost = .003 * dt / .52 * (0.8 if self.energy_mode else 1)
+        used = min(uav['battery'], cost)
+        uav['battery'] -= used
+        uav['missionEnergy'] += used * 100
+        self.stats['energyConsumed'] += used * 100
+        order = next((item for item in self.orders if item['id'] == order_id), None)
+        if order:
+            order['energyConsumedPercent'] += used * 100
+
     def advance(self, dt, actions):
         if not self.running:
             return
@@ -254,12 +291,8 @@ class Mission:
             if u['phase'] == 'idle':
                 on_carrier = distance(u, carrier_pad(r, u)) <= .2
                 u['phase'] = ('charging' if u['battery'] < .995 else 'docked') if on_carrier else 'parking'
-        docking = self.docking['hatchProgress'] > 0 or any(u['phase'] == 'parking' or
-                  (u['phase'] in ['returning', 'waitingDock'] and distance(u, dock(r, u)) <= 8) for u in self.uavs)
-        if not docking:
-            a = actions.get('mother', [0, 0])
-            for k, value in zip(['x', 'y'], a):
-                r[k] = max(.35, min(.65, r[k] + value * .0075 * dt / .52))
+        if not self.should_park_rover():
+            self.move_rover(dt, actions)
         if distance(r, old_rover) > .0001:
             r['heading'] = math.atan2(r['x'] - old_rover['x'], r['y'] - old_rover['y'])
         self.stats['roverDistanceMeters'] += distance(r, old_rover)
@@ -271,7 +304,7 @@ class Mission:
                     u['phase'] = 'charging'
                 u.update(carrier_pad(r, u))
                 if u['phase'] == 'charging':
-                    u['battery'] = min(1., u['battery'] + dt * .05)
+                    self.charge(u, dt)
                     if u['battery'] >= .995:
                         u['phase'] = 'docked'
             order = next((o for o in self.orders if o['id'] == u['targetOrderId'] and not o['completed']), None)
@@ -286,14 +319,7 @@ class Mission:
                     order['status'] = 'approaching'
                     move(u, goal, dt, min(3, max(.25, dist * .9)))
                 else:
-                    a = actions.get(f"uav_{u['id']}", [0, 0, 0])
-                    candidate = dict(x=max(0, min(1, u['x'] + a[0] * .015 * dt / .52)),
-                                     y=max(0, min(1, u['y'] + a[1] * .015 * dt / .52)),
-                                     z=max(.05, min(.12, u['z'] + a[2] * .015 * dt / .52)))
-                    if dist - distance(candidate, goal) >= .05 * dt:
-                        u.update(candidate)
-                    else:
-                        move(u, {**goal, 'z': max(.05, goal['z'])}, dt, 3.5 if self.energy_mode else 5)
+                    self.move_cruise(u, goal, dt, actions)
             velocity = distance(u, before) / dt
             if order:
                 if aligned(u, order, velocity):
@@ -316,9 +342,9 @@ class Mission:
             if u['phase'] in ['returning', 'waitingDock']:
                 owns_bay = u['id'] == self.docking['owner']
                 u['phase'] = 'returning' if owns_bay else 'waitingDock'
-                goal = dock(r, u) if owns_bay else stand(r, u, waiting=True)
+                goal = self.return_goal(u, owns_bay)
                 move(u, goal, dt, 3.5 if self.energy_mode else 5)
-                if owns_bay and distance(u, goal) <= .08 and self.docking['hatchProgress'] >= 1:
+                if owns_bay and self.can_unload(u, goal):
                     u.update(goal)
                     u.update(phase='unloading', unloadProgress=0.)
                     self.event(f"UAV {u['id']} 到达母车 · 订单货物入舱")
@@ -343,15 +369,7 @@ class Mission:
             travelled = distance(u, before)
             if u['phase'] not in HOME_PHASES:
                 self.stats['uavDistanceMeters'] += travelled
-                cost = .003 * dt / .52 * (0.8 if self.energy_mode else 1)
-                used = min(u['battery'], cost)
-                u['battery'] -= used
-                u['missionEnergy'] += used * 100
-                self.stats['energyConsumed'] += used * 100
-                if mission_order_id is not None:
-                    energy_order = next((item for item in self.orders if item['id'] == mission_order_id), None)
-                    if energy_order:
-                        energy_order['energyConsumedPercent'] += used * 100
+                self.consume_energy(u, before, dt, mission_order_id)
         delivered = [o for o in self.orders if o['deliveredAt'] is not None]
         completion_times = [o['deliveredAt'] - o['createdAt'] for o in delivered]
         self.stats['totalOrders'] = len(self.orders)
@@ -361,6 +379,9 @@ class Mission:
         self.stats['averageUavEnergyPerOrderPercent'] = (
             sum(o['energyConsumedPercent'] for o in delivered) / len(delivered) if delivered else None)
         self.stats['stepCount'] += 1
+        self.finish_step()
+
+    def finish_step(self):
         all_delivered_and_home = (self.stats['deliveredOrders'] == len(self.orders)
                                   and all(u['phase'] == 'docked' for u in self.uavs)
                                   and self.docking['hatchProgress'] == 0)

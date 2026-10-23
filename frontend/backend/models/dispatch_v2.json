@@ -1,0 +1,38 @@
+{
+  "policy": "V2 PPO",
+  "architecture": "DeepSets centralized masked discrete actor",
+  "source_checkpoint_sha256": "45916386579f0ca6325f0dafbd92406f9db9631a86bed07dedfe5f4370a778d1",
+  "energy_weight": 6.0,
+  "environment_schema": 3,
+  "inputs": {
+    "orders": [
+      1,
+      18,
+      8
+    ],
+    "global_features": [
+      1,
+      36
+    ],
+    "candidates": [
+      1,
+      18,
+      16
+    ],
+    "mask": [
+      1,
+      18
+    ]
+  },
+  "outputs": {
+    "log_scores": [
+      1,
+      18
+    ],
+    "value": [
+      1
+    ]
+  },
+  "verified_decisions": 32,
+  "max_valid_score_error": 9.5367431640625e-06
+}

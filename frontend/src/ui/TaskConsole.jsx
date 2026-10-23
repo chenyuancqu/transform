@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { businessToWorld } from '../rendering/CoordinateSystem.js';
+import { V2WaveSummary, V2Diagnostics } from './V2DispatchPanel.jsx';
 
 const PHASE = { idle: '待命', docked: '母车待命', charging: '母车补能', takingOff:'从母车起飞',cruising: '前往取件', approaching: '减速对准', aligning: '稳定悬停', picking: '订单取货', returning: '携货返航', waitingDock:'排队返航', unloading: '母车回收',clearingBay:'吊具回收',parking:'返回母车' };
 const ORDER = { waiting: '待分配', enroute: '前往取件', approaching: '减速对准', aligning: '稳定悬停', picking: '装载中', collected: '返航中', delivered: '已回收' };
@@ -27,6 +28,7 @@ function ActionVector({values, mother=false}){
 
 export function TaskConsole({ simulation: sim, focus, selectedAgentId, onSelectAgent }) {
   const { snapshot: state, online } = sim;
+  const v2 = state.dispatch?.version === 2;
   const [text, setText] = useState('');
   const [diagnostics, setDiagnostics] = useState(false);
   const [dispatchOpen,setDispatchOpen]=useState(false);
@@ -38,7 +40,7 @@ export function TaskConsole({ simulation: sim, focus, selectedAgentId, onSelectA
   const orderCount = state.orders.length;
   const deliveredOrders = stats.deliveredOrders ?? 0;
   const canSetBatteryMode = online && !busy && !sim.running && stats.stepCount === 0;
-  const waitingForNewOrder = state.stats.orderStreamActive && state.events.at(-1)?.text?.includes('等待新订单到达');
+  const waitingForNewOrder = state.dispatch?.stage === 'waitingOrders' || (state.stats.orderStreamActive && state.events.at(-1)?.text?.includes('等待新订单到达'));
   const latestEvent = state.events.at(-1);
   const latestEventKey = latestEvent ? `${state.epoch}:${latestEvent.time}:${latestEvent.text}` : '';
   useEffect(() => {
@@ -77,12 +79,13 @@ export function TaskConsole({ simulation: sim, focus, selectedAgentId, onSelectA
   };
   return <div className={`task-console ${dispatchOpen?'dispatch-open':''}`}>
     <header className="console-header">
-      <div className="console-brand"><i>◈</i><div><strong>NEXUS · 空地协同调度平台</strong><small>SMART CAMPUS / DIGITAL TWIN</small></div></div>
+      <div className="console-brand"><i>◈</i><div><strong>NEXUS {v2?'V2 · PPO 协同调度':'· 空地协同调度平台'}</strong><small>{v2?'LEARNED DISPATCH / CAMPUS DEMO':'SMART CAMPUS / DIGITAL TWIN'}</small></div></div>
       <button className="dispatch-toggle" aria-expanded={dispatchOpen} onClick={()=>{ if (!dispatchOpen && diagnostics) setDiagnostics(false); setDispatchOpen(!dispatchOpen); }}>{dispatchOpen?'收起 AI 调度':'✧ AI 调度'} ↗</button>
       <div className={`connection-chip ${online ? 'connected' : ''}`}><i />{online ? '后端已连接' : sim.connection === 'connecting' ? '正在连接' : '后端离线'}</div>
     </header>
     <aside className="fleet-panel console-card">
       <div className={`simulation-clock ${sim.running ? 'running' : ''}`}><small>仿真运行时间</small><strong>{orderCount ? format(state.elapsedSeconds, 1) : '—'}<em>s</em></strong><span>{sim.running ? '运行中' : '待命'}</span></div>
+      {v2 && <V2WaveSummary state={state}/>}
       <div className="section-title"><h2>任务与设备</h2><span>{online ? 'LIVE' : 'OFFLINE'}</span></div>
       <div className="mission-summary"><strong>{format(deliveredOrders)}<small> / {orderCount || '—'}</small></strong><span>已完成并回收</span><progress max={Math.max(1, orderCount)} value={deliveredOrders} /></div>
       <div className="task-buttons"><button className="primary" disabled={!online || busy || sim.running || finished} onClick={sim.start}>{stats.stepCount > 0 ? '继续任务' : '开始任务'}</button><button disabled={!online || busy || !sim.running} onClick={sim.pause}>暂停</button><button disabled={!online || busy} onClick={sim.reset}>重置</button></div>
@@ -100,8 +103,8 @@ export function TaskConsole({ simulation: sim, focus, selectedAgentId, onSelectA
     </aside>
     <aside className="dispatch-panel console-card">
       <div className="section-title"><h2>调度指挥官</h2><span>{state.health.agentReady ? state.health.agentVerified ? 'AI 已连接' : '已配置 · 待联调' : state.health.agentConfigured ? 'AI 接口未连接' : 'AI 未配置'}</span></div>
-      <p className="panel-description">先用预设演示任务，也可通过自然语言指派区域与设备。</p>
-      <div className="preset-list">{PRESETS.map(p => <button key={p.label} disabled={!online || busy} onClick={() => sim.dispatch(p.command, `预设调度：${p.label}`)}><strong>{p.label}<b>↗</b></strong><small>{p.description}</small></button>)}</div>
+      <p className="panel-description">{v2?'PPO 自主选单与接应。区域、设备与预算变更在当前波次回收后生效。':'先用预设演示任务，也可通过自然语言指派区域与设备。'}</p>
+      <div className="preset-list">{PRESETS.map(p => <button key={p.label} disabled={!online || busy} onClick={() => sim.dispatch(p.command, `预设调度：${p.label}`)}><strong>{p.label}<b>↗</b></strong><small>{v2&&p.command.action_type==='optimize_energy'?'单机预算 75% · 下波次生效':p.description}</small></button>)}</div>
       <div className="chat-history" aria-live="polite">
         {sim.messages.length === 0 && <div className="chat-intro"><i>◈</i><strong>让调度过程看得见</strong><p>指令发送后，后端确认任务，设备开始执行；下方卡片展示实际结果。</p></div>}
         {sim.messages.map(m => <div className="chat-exchange" key={m.id}><div className="user-message">{m.text}</div><div className={`command-result ${m.ok === false ? 'failed' : ''}`}><small>{m.unknown ? '执行状态待确认' : m.ok ? '后端已执行' : m.ok === false ? '未执行' : '处理中'}</small><p>{m.result}</p>{m.command && <dl><dt>目标区域</dt><dd>{m.command.target_area ? `${m.command.target_area} 区` : '全园区'}</dd><dt>指派设备</dt><dd>{m.command.assign_agents?.join(' / ')}</dd><dt>优先级</dt><dd>{m.command.priority === 'urgent' ? '加急' : '常规'}</dd>{m.command.energy_limit && <><dt>能耗预算</dt><dd>{m.command.energy_limit}% / 单机</dd></>}</dl>}</div></div>)}
@@ -112,10 +115,11 @@ export function TaskConsole({ simulation: sim, focus, selectedAgentId, onSelectA
     </aside>
     <div className="mission-bottom console-card">
       <div className="mission-stages">{stages.map((stage, i) => <div className={stage.done ? 'done' : ''} key={stage.title}><i>{String(i + 1).padStart(2, '0')}</i><span><small>{stage.title}</small><strong>{stage.value}</strong></span></div>)}</div>
-      <div className="real-metrics"><div><small>无人机航程</small><strong>{format(stats.uavDistanceMeters, 1)} <em>m</em></strong></div><div><small>平均订单完成时间</small><strong>{format(stats.averageOrderCompletionSeconds, 1)} <em>s</em></strong></div><div><small>无人机平均单能耗</small><strong>{format(stats.averageUavEnergyPerOrderPercent, 2)} <em>%/单</em></strong></div><div><small>订单完成率</small><strong>{format(stats.completionRate ?? 0, 1)} <em>%</em></strong></div></div>
+      <div className="real-metrics"><div><small>无人机航程</small><strong>{format(stats.uavDistanceMeters, 1)} <em>m</em></strong></div><div><small>平均订单完成时间</small><strong>{format(stats.averageOrderCompletionSeconds, 1)} <em>s</em></strong></div><div><small>无人机平均单能耗</small><strong>{format(v2?stats.averageUavEnergyPerOrderWh:stats.averageUavEnergyPerOrderPercent, 2)} <em>{v2?'Wh/单':'%/单'}</em></strong></div><div><small>订单完成率</small><strong>{format(stats.completionRate ?? 0, 1)} <em>%</em></strong></div></div>
     </div>
     <div role="status" className={`backend-notice ${!online ? 'offline' : ''}`}>{sim.error || (!online ? '后端连接不可用 · 场景已冻结，控制暂不可用' : statusText)}<button onClick={() => { if (!diagnostics && dispatchOpen) setDispatchOpen(false); setDiagnostics(!diagnostics); }}>{diagnostics ? '收起联调信息' : '联调信息'}</button></div>
     {orderToast && <div className="order-arrival-toast" role="status" aria-live="polite"><b>新订单到达</b><span>{orderToast.replace(/^新订单\s*/, '')}</span></div>}
-    {diagnostics && <div className="diagnostics console-card"><div className="diagnostics-title"><strong><span className="trace-kicker">POLICY TRACE</span> 算法实时遥测</strong><span className="trace-status">MEC / LIVE</span></div><div className="trace-pipeline"><span>OBS 输入</span><i>→</i><span>POLICY</span><i>→</i><span>ACTION 输出</span><i>→</i><span>SUPERVISOR</span></div><div className="algorithm-summary"><b>{state.health.inferenceCount ?? '—'}</b><span>推理批次</span><b>{format(state.health.inferenceMs, 2)}<em>ms</em></b><span>最近批次</span><b>{state.seq}</b><span>快照序号</span></div><div className="algorithm-grid">{algorithmUnits.map(({key,label,unit}) => { const telemetry = sim.algorithmTelemetry?.[key] || {}; const target = unit.targetOrderId ? state.orders.find(order => order.id === unit.targetOrderId) : null; const action = telemetry.action || sim.inference?.[key]?.values; const observation = telemetry.observation; const observationDimension = observation?.length || (key === 'mother' ? 6 : 10); const actionDimension = action?.length || (key === 'mother' ? 2 : 3); return <div className="algorithm-row" key={key}><div className="algorithm-row-head"><strong>{label}</strong><span>{devicePhase(unit)}</span></div><div className="trace-stage"><b>01</b><span>观测</span><i>→</i><b>02</b><span>策略</span><i>→</i><b>03</b><span>执行</span></div><div className="trace-block"><div className="telemetry-kicker">INPUT VECTOR <em>{observationDimension}D · normalized</em></div><code className="observation-vector">{observationText(observation)}</code></div><div className="trace-block"><div className="telemetry-kicker">ACTION VECTOR <em>{actionDimension}D · range [-1, 1]</em></div><ActionVector values={action} mother={key === 'mother'}/></div><div className="telemetry-line"><b>执行坐标</b><span>{coordinate(unit)}</span></div>{target && <><div className="telemetry-line"><b>目标坐标</b><span>{coordinate(target)}</span></div><div className="telemetry-line target-error"><b>目标误差</b><span>{targetError(unit, target)}</span></div></>}<div className="trace-execution"><span>SUPERVISOR</span><b>{devicePhase(unit)}</b><small>快照 #{state.seq}</small></div></div>; })}</div><div className="diagnostic-events">{state.events.slice(-4).map((event, index) => <small key={`${event.time}-${index}`}>{format(event.time, 1)}s · {event.text}</small>)}</div></div>}
+    {diagnostics && v2 && <V2Diagnostics state={state}/>}
+    {diagnostics && !v2 && <div className="diagnostics console-card"><div className="diagnostics-title"><strong><span className="trace-kicker">POLICY TRACE</span> 算法实时遥测</strong><span className="trace-status">MEC / LIVE</span></div><div className="trace-pipeline"><span>OBS 输入</span><i>→</i><span>POLICY</span><i>→</i><span>ACTION 输出</span><i>→</i><span>SUPERVISOR</span></div><div className="algorithm-summary"><b>{state.health.inferenceCount ?? '—'}</b><span>推理批次</span><b>{format(state.health.inferenceMs, 2)}<em>ms</em></b><span>最近批次</span><b>{state.seq}</b><span>快照序号</span></div><div className="algorithm-grid">{algorithmUnits.map(({key,label,unit}) => { const telemetry = sim.algorithmTelemetry?.[key] || {}; const target = unit.targetOrderId ? state.orders.find(order => order.id === unit.targetOrderId) : null; const action = telemetry.action || sim.inference?.[key]?.values; const observation = telemetry.observation; const observationDimension = observation?.length || (key === 'mother' ? 6 : 10); const actionDimension = action?.length || (key === 'mother' ? 2 : 3); return <div className="algorithm-row" key={key}><div className="algorithm-row-head"><strong>{label}</strong><span>{devicePhase(unit)}</span></div><div className="trace-stage"><b>01</b><span>观测</span><i>→</i><b>02</b><span>策略</span><i>→</i><b>03</b><span>执行</span></div><div className="trace-block"><div className="telemetry-kicker">INPUT VECTOR <em>{observationDimension}D · normalized</em></div><code className="observation-vector">{observationText(observation)}</code></div><div className="trace-block"><div className="telemetry-kicker">ACTION VECTOR <em>{actionDimension}D · range [-1, 1]</em></div><ActionVector values={action} mother={key === 'mother'}/></div><div className="telemetry-line"><b>执行坐标</b><span>{coordinate(unit)}</span></div>{target && <><div className="telemetry-line"><b>目标坐标</b><span>{coordinate(target)}</span></div><div className="telemetry-line target-error"><b>目标误差</b><span>{targetError(unit, target)}</span></div></>}<div className="trace-execution"><span>SUPERVISOR</span><b>{devicePhase(unit)}</b><small>快照 #{state.seq}</small></div></div>; })}</div><div className="diagnostic-events">{state.events.slice(-4).map((event, index) => <small key={`${event.time}-${index}`}>{format(event.time, 1)}s · {event.text}</small>)}</div></div>}
   </div>;
 }

@@ -1,0 +1,45 @@
+{
+  "candidates": [
+    {
+      "run": "experiments\\dispatch_v2\\runs\\ppo_wave_sync_seed7",
+      "weight": 6.0,
+      "validation": {
+        "mean_latency_s": 92.97428247966846,
+        "energy_wh": 111.59421224984354,
+        "energy_per_order_wh": 8.23613135512614,
+        "objective": 142.39107061042532,
+        "makespan_s": 199.978949307854,
+        "completion_rate": 1.0,
+        "distance_m": 1528.4106704432484
+      }
+    },
+    {
+      "run": "experiments\\dispatch_v2\\runs\\ppo_wave_sync_seed42",
+      "weight": 6.0,
+      "validation": {
+        "mean_latency_s": 92.89291007825318,
+        "energy_wh": 111.88164230154165,
+        "energy_per_order_wh": 8.259110064253253,
+        "objective": 142.4475704637727,
+        "makespan_s": 199.8300223269093,
+        "completion_rate": 1.0,
+        "distance_m": 1533.2543027370943
+      }
+    }
+  ],
+  "selected": {
+    "run": "experiments\\dispatch_v2\\runs\\ppo_wave_sync_seed7",
+    "weight": 6.0,
+    "validation": {
+      "mean_latency_s": 92.97428247966846,
+      "energy_wh": 111.59421224984354,
+      "energy_per_order_wh": 8.23613135512614,
+      "objective": 142.39107061042532,
+      "makespan_s": 199.978949307854,
+      "completion_rate": 1.0,
+      "distance_m": 1528.4106704432484
+    }
+  },
+  "test_start": 4000000,
+  "test_count": 512
+}

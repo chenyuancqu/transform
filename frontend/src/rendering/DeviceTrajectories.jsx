@@ -167,6 +167,7 @@ function resolveTarget(uav, orders, rover) {
     return { ...point, kind: 'order' };
   }
   if (RETURN_PHASES.has(uav.phase)) {
+    if (rover.rendezvous) return {x:rover.rendezvous[0],y:2.63,z:rover.rendezvous[1],kind:'rover'};
     const point = businessToWorld(rover.x, rover.y, 0);
     return { x: point.x, y: 2.15, z: point.z, kind: 'rover' };
   }

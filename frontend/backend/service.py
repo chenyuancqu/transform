@@ -18,6 +18,7 @@ import paho.mqtt.client as mqtt
 
 from mission import Mission
 from agent import DispatchAgent, AgentFailure
+from dispatch_v2 import DispatchPolicy, V2Mission
 
 ROOT = Path(__file__).resolve().parent.parent
 AGENTS = ['mother', 'uav_1', 'uav_2', 'uav_3']
@@ -49,8 +50,9 @@ class Policy:
 
 class Service:
     def __init__(self):
-        self.policy = Policy()
-        self.mission = Mission()
+        v2 = os.environ.get('CAMPUS_POLICY', 'v2') != 'legacy'
+        self.policy = DispatchPolicy() if v2 else Policy()
+        self.mission = V2Mission(self.policy) if v2 else Mission()
         self.commands = queue.Queue(maxsize=256)
         self.chat = queue.Queue(maxsize=32)
         self.results = OrderedDict()
@@ -82,7 +84,7 @@ class Service:
         self.connected = True
         client.subscribe([('simulation/control', 1), ('simulation/command/agent', 1), ('simulation/command/input', 1)])
         self.publish_backend_status()
-        print('MEC connected: 4 ONNX models loaded; AI configured:', self.agent.configured, flush=True)
+        print('MEC connected:', self.health()['policyName'], '; AI configured:', self.agent.configured, flush=True)
 
     def on_disconnect(self, client, userdata, flags, reason, properties):
         self.connected = False
@@ -125,13 +127,15 @@ class Service:
                 self.publish('simulation/command/result', self.results[request_id])
                 continue
             try:
+                if data.get('epoch') is not None and data['epoch'] != self.mission.epoch:
+                    raise ValueError('任务轮次已变化，旧指令未执行')
                 if topic == 'simulation/command/agent' and ('_revision' in data or 'mission_epoch' in data):
                     if data.get('_revision') != self.control_revision or data.get('mission_epoch') != self.mission.epoch:
                         raise ValueError('任务已暂停、停止或重置，旧 AI 结果已作废，指令未执行')
                 if self.model_error and (data.get('action') == 'start' or data.get('action_type') != 'emergency_stop' and topic.endswith('/agent')):
                     raise ValueError('推理异常，请重启后端并检查模型')
                 text = self.mission.control(data) if topic == 'simulation/control' else self.mission.command(data)
-                if data.get('action') in ['pause', 'reset'] or data.get('action_type') == 'emergency_stop':
+                if data.get('action') in ['pause', 'reset'] or topic == 'simulation/command/agent':
                     self.control_revision += 1
                 self.reply(request_id, True, text, command=data, epoch=self.mission.epoch)
             except (ValueError, TypeError, KeyError) as error:
@@ -177,7 +181,10 @@ class Service:
                 self.publish('simulation/agent/status', dict(request_id=request_id, status='error', message='AI 解析失败，请检查后端服务配置或使用预设调度'))
 
     def health(self):
-        return dict(online=self.connected, modelsLoaded=4, inferenceCount=self.policy.count,
+        v2 = isinstance(self.mission, V2Mission)
+        return dict(online=self.connected, modelsLoaded=1 if v2 else 4,
+                    policyName='V2 PPO 协同调度' if v2 else 'Legacy MADDPG 连续动作',
+                    policyVersion=2 if v2 else 1, inferenceCount=self.policy.count,
                     inferenceMs=self.policy.latency, **self.agent.health(),
                     inferenceLocation='local_mec', error=self.model_error)
 
@@ -201,7 +208,7 @@ class Service:
                 if now - last_status >= 1:
                     self.publish_backend_status()
                     last_status = now
-                if self.mission.running and (now - last_inference >= .5 or action_epoch != self.mission.epoch):
+                if self.mission.running and not isinstance(self.mission, V2Mission) and (now - last_inference >= .5 or action_epoch != self.mission.epoch):
                     self.mission.assign()
                     try:
                         actions = self.policy.infer(self.mission.observations())
@@ -213,7 +220,13 @@ class Service:
                         self.mission.running = False
                         self.mission.event('模型推理失败 · 任务已暂停')
                     last_inference = now
-                self.mission.advance(dt * self.mission.speed, actions)
+                try:
+                    self.mission.advance(dt * self.mission.speed, actions)
+                except Exception as error:
+                    self.model_error = type(error).__name__
+                    self.mission.running = False
+                    self.mission.event('调度执行异常 · 已暂停，请检查后端日志')
+                    print('Dispatch execution error:', repr(error), flush=True)
                 if now - last_publish >= .1:
                     snap = self.mission.snapshot(self.health())
                     self.publish('simulation/snapshot', snap, True)

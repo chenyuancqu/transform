@@ -74,6 +74,32 @@ class AgentAdapterTests(unittest.TestCase):
         self.assertEqual(agent.model, 'gemini-3.1-flash')
         self.assertTrue(agent.ready)
 
+    def test_new_preset_invalidates_older_ai_and_old_epoch_controls(self):
+        import queue
+        from collections import OrderedDict
+        from service import Service
+        service = Service.__new__(Service)
+        service.mission = Mission()
+        service.model_error = None
+        service.control_revision = 0
+        service.commands = queue.Queue()
+        service.results = OrderedDict()
+        replies = []
+        service.publish = lambda topic, payload, **kw: replies.append(payload)
+        epoch = service.mission.epoch
+        service.commands.put(('simulation/command/agent',dict(request_id='preset',action_type='dispatch',assign_agents=['all'])))
+        service.handle_commands()
+        self.assertTrue(replies[-1]['ok'])
+        service.commands.put(('simulation/command/agent',dict(request_id='late-ai',action_type='dispatch',assign_agents=['all'],_revision=0,mission_epoch=epoch)))
+        service.handle_commands()
+        self.assertFalse(replies[-1]['ok'])
+        service.commands.put(('simulation/control',dict(request_id='reset',action='reset')))
+        service.handle_commands()
+        service.commands.put(('simulation/control',dict(request_id='old-start',action='start',epoch=epoch)))
+        service.handle_commands()
+        self.assertFalse(replies[-1]['ok'])
+        self.assertFalse(service.mission.running)
+
     def test_old_ai_response_cannot_restart_paused_or_reset_mission(self):
         import queue
         from collections import OrderedDict

@@ -14,6 +14,7 @@ import { businessToWorld } from './CoordinateSystem.js';
 import {CampusBuildings, DesignedCampusGround, CampusLandscape, CampusDaylight, CampusShadowCache, campusSurfaceHeight} from './CampusVisualEnvironment.jsx';
 import {CAMPUS_BUILDINGS} from './campusScenePlan.js';
 import {DroneAsset, MotherAsset} from './LogisticsDevices.jsx';
+import {findAttachedObject} from './DeviceMotion.js';
 
 import { CampusCamera, FreeCameraControls } from './CampusCameraControls.jsx';
 // Parcel easing is presentation-only; pickup timing comes from backend telemetry.
@@ -94,12 +95,27 @@ function OrderMarkers({ orders, uavs, visualUAVs }) {
 }
 
 function SceneContents({snapshot,visualUAVs,running,showTrajectories,selectedAgentId,nightMode}) {
+  const guideRover = {...snapshot.rover, rendezvous:snapshot.dispatch?.rendezvous};
   return <Suspense fallback={null}>
     <CampusShadowCache key={'shadow-'+snapshot.epoch} running={running}/><StaticCampus nightMode={nightMode}/>
     <MotherAsset key={'mother-'+snapshot.epoch} rover={snapshot.rover} docking={snapshot.docking} running={running} orders={snapshot.orders} elapsed={snapshot.elapsedSeconds} showTrajectories={showTrajectories} selected={selectedAgentId==='mother'}/>
-    {snapshot.uavs.map((uav,index)=><DroneAsset key={snapshot.epoch+'-'+uav.id} uav={uav} index={index} visualUAVs={visualUAVs} running={running} orders={snapshot.orders} rover={snapshot.rover} showTrajectories={showTrajectories} selected={selectedAgentId===`uav-${uav.id}`} nightMode={nightMode}/>)}
+    {snapshot.uavs.map((uav,index)=><DroneAsset key={snapshot.epoch+'-'+uav.id} uav={uav} index={index} visualUAVs={visualUAVs} running={running} orders={snapshot.orders} rover={guideRover} showTrajectories={showTrajectories} selected={selectedAgentId===`uav-${uav.id}`} nightMode={nightMode}/>)}
+    {snapshot.dispatch?.rendezvous && <RendezvousMarker plan={snapshot.dispatch} rover={snapshot.rover}/>}
     <OrderMarkers orders={snapshot.orders} uavs={snapshot.uavs} visualUAVs={visualUAVs}/>
   </Suspense>;
+}
+
+function RendezvousMarker({plan,rover}) {
+  const [x,z] = plan.rendezvous;
+  const current = businessToWorld(rover.x,rover.y,0);
+  const points = new Float32Array([current.x,.07,current.z,x,.07,current.z,x,.07,z]);
+  return <group>
+    <group name="rendezvous-target" position={[x,.08,z]} userData={{labelHeight:1}}>
+      <mesh rotation-x={-Math.PI/2}><ringGeometry args={[2.4,2.65,48]}/><meshBasicMaterial color="#73c8af" transparent opacity={.85} depthWrite={false}/></mesh>
+      <mesh position={[0,.5,0]}><cylinderGeometry args={[.06,.06,1,12]}/><meshBasicMaterial color="#a1e6cf"/></mesh>
+    </group>
+    <line><bufferGeometry><bufferAttribute attach="attributes-position" args={[points,3]}/></bufferGeometry><lineBasicMaterial color="#73c8af" transparent opacity={.65}/></line>
+  </group>;
 }
 
 function MapLabelProjector({ labelContainer, visualUAVs }) {
@@ -110,7 +126,7 @@ function MapLabelProjector({ labelContainer, visualUAVs }) {
     if (!labelContainer.current) return;
     for (const element of labelContainer.current.children) {
       const id = element.dataset.object;
-      let object=objects.current.get(id);if(!object){object=scene.getObjectByName(id);if(object)objects.current.set(id,object);}
+      const object=findAttachedObject(scene,objects.current,id);
       if (!object) { element.style.display = 'none'; continue; }
       if (element.classList.contains('picking')) {
         const visual = visualUAVs.current[element.dataset.uav];
@@ -128,7 +144,7 @@ function MapLabelProjector({ labelContainer, visualUAVs }) {
       point.project(camera);
       const visible = point.z < 1 && point.z > -1 && Math.abs(point.x) < 1 && Math.abs(point.y) < 1 && (element.tagName!=='BUTTON'||distance<650);
       element.style.display = visible ? (element.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
-      const offsets = { 'device-rover': [0, 14], 'device-uav-1': [0, -36], 'device-uav-2': [25, -10], 'device-uav-3': [-25, -10] };
+      const offsets = { 'device-rover': [0, distance>65?42:14], 'device-uav-1': [0, -36], 'device-uav-2': [25, -10], 'device-uav-3': [-25, -10] };
       const [dx, dy] = offsets[id] || [0, 0];
       element.style.transform = `translate(-50%, -100%) translate(${(point.x + 1) * size.width / 2 + dx}px, ${(1 - point.y) * size.height / 2 + dy}px)`;
     }
@@ -199,6 +215,7 @@ export function CampusProductionScene() {
         {BUILDINGS.map(({ id, name }) => <div key={id} data-object={`campus-building-${id}`} className="map-building-label" aria-label={`${id} ${name}`}><b>{id}</b><span>{name}</span></div>)}
         {simulation.snapshot.uavs.map(({ id, phase, cargoOrderId }) => <div key={id} data-object={`device-uav-${id}`} className="device-label">UAV {id} · {PHASE_LABELS[phase] || '待命'}{cargoOrderId != null ? ` / 订单${cargoOrderId}` : ''}</div>)}
         <div data-object="device-rover" className="device-label">移动母车</div>
+        {simulation.snapshot.dispatch?.rendezvous && <div data-object="rendezvous-target" className="device-label">PPO 接应点 {simulation.snapshot.dispatch.site}</div>}
         {simulation.snapshot.orders.filter((order) => !order.completed).map((order) => {
           const world = businessToWorld(order.x, order.y, order.z);
           const location = order.pickupType === 'balcony' ? `${order.buildingId} · ${order.floor}F 阳台` : '中庭';

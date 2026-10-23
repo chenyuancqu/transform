@@ -9,8 +9,9 @@
     "preview": "vite preview",
     "demo": "powershell -ExecutionPolicy Bypass -File scripts/start-demo.ps1",
     "demo:stop": "powershell -ExecutionPolicy Bypass -File scripts/start-demo.ps1 -Stop",
-    "test:backend": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v",
-    "test:integration": "node tests/mqtt-integration.mjs",
+    "test:backend": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-backend.ps1",
+    "test:integration": "node tests/v2-mqtt-integration.mjs",
+    "test:integration:legacy": "node tests/mqtt-integration.mjs",
     "test:assets": "node --test tests/optimized-assets.test.mjs",
     "assets:optimize": "node scripts/optimize-campus-assets.mjs office dispatch matrice-300 mother && node scripts/prepare-rounded-nature.mjs && node scripts/prepare-tech-context.mjs"
   },
