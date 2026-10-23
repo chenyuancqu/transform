@@ -1,0 +1,25 @@
+Use case: ads-marketing / infographic-diagram.
+Create one polished Chinese project showcase poster, landscape 4:3 aspect ratio, ideally 1600x1200 or larger same exact ratio. White and very light lavender background, sophisticated vivid purple #6E45A8 and dark purple typography, beautiful isometric 3D illustration, clean editorial competition exhibition board, excellent Chinese typography and generous whitespace. NOT a tall infographic.
+
+Project: NEXUS, a simulation prototype for campus cooperative parcel collection by ONE mobile carrier vehicle and THREE quadrotor drones. Main visual: white rounded mobile carrier with rooftop landing pads, three white-purple quadrotors, campus buildings, a balcony parcel and courtyard parcel, subtle purple flight paths converging to carrier rendezvous and a purple road route. Illustrate collection TO the carrier, no warehouse-to-customer completed deliveries. Small order cards and rendezvous marker, tasteful technology aesthetic, realistic enough to communicate but deliberately an illustrative simulation, no fake interface screen, no people needed.
+
+Composition: strong title area across top about 18%; large campus/carrier/drone hero at center-left about 50%; concise right-side 3-step flow in elegant white cards; bottom 20% three modest evidence metric cards and readable qualification footer. All text aligned on grid and readable, no superfluous paragraphs or tiny filler labels.
+
+Required text verbatim:
+Title: "NEXUS"
+Subtitle: "园区空地协同取件系统"
+Tagline: "让取件、接应与回收协同起来"
+Small top badge: "V2 · 仿真原型"
+Three flow cards:
+"01  看见订单" with subline "动态到单 · 三维展示"
+"02  协同决策" with subline "PPO 选单 · 母车接应"
+"03  闭环执行" with subline "取件回收 · 电量约束"
+Additional small pill near flow: "自然语言设置区域、设备与预算"
+Bottom metric heading: "512 个独立静态场景 · 相对时间/能耗规则基线"
+Metric 1: "1.72%" below "平均时延降低"
+Metric 2: "2.29%" below "每单无人机能耗降低"
+Metric 3: "30 单" below "动态整轮回收已验证"
+Footer exactly: "离线改善比例不代表动态场景或实机效果；当前未接入实机。"
+Small visual caption: "一辆母车 × 三架无人机"
+
+Constraints: exactly one carrier vehicle and three drones visible, legible simplified Chinese, purple/white dominant, 4:3 landscape, no unsubstantiated claims, no "全球领先", no "最优", no carbon savings or cost percentages, no company/client logos, no QR code, no trophy, no giant made-up dashboards. Numbers have precise meanings; do not turn 30 into 30% or imply 30 is an improvement. Use correct separators and keep footer readable.

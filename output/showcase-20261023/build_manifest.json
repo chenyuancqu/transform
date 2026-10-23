@@ -1,0 +1,115 @@
+[
+  {
+    "file": "D:\\aitransformer\\output\\pdf\\01_录屏操作与旁白脚本.pdf",
+    "font_sizes": [
+      10.5,
+      10.5,
+      10.5,
+      10.5
+    ],
+    "pages": 4,
+    "characters": 3796
+  },
+  {
+    "file": "D:\\aitransformer\\output\\pdf\\02_系统说明与价值评估.pdf",
+    "font_sizes": [
+      10.5,
+      10.5,
+      10.5,
+      10.5
+    ],
+    "pages": 4,
+    "characters": 3321
+  },
+  {
+    "file": "D:\\aitransformer\\output\\pdf\\04_系统技术文档_双栏.pdf",
+    "columns": [
+      {
+        "page": 1,
+        "column": 1,
+        "font": 9.15,
+        "used": 448.8
+      },
+      {
+        "page": 1,
+        "column": 2,
+        "font": 9.15,
+        "used": 463.9
+      },
+      {
+        "page": 2,
+        "column": 1,
+        "font": 9.15,
+        "used": 433.9
+      },
+      {
+        "page": 2,
+        "column": 2,
+        "font": 9.15,
+        "used": 526.4
+      },
+      {
+        "page": 3,
+        "column": 1,
+        "font": 9.15,
+        "used": 457.4
+      },
+      {
+        "page": 3,
+        "column": 2,
+        "font": 9.15,
+        "used": 437.4
+      },
+      {
+        "page": 4,
+        "column": 1,
+        "font": 9.15,
+        "used": 470.7
+      },
+      {
+        "page": 4,
+        "column": 2,
+        "font": 9.15,
+        "used": 516.0
+      },
+      {
+        "page": 5,
+        "column": 1,
+        "font": 9.15,
+        "used": 633.0
+      },
+      {
+        "page": 5,
+        "column": 2,
+        "font": 9.15,
+        "used": 598.5
+      },
+      {
+        "page": 6,
+        "column": 1,
+        "font": 9.15,
+        "used": 599.3
+      },
+      {
+        "page": 6,
+        "column": 2,
+        "font": 9.15,
+        "used": 515.6
+      },
+      {
+        "page": 7,
+        "column": 1,
+        "font": 9.15,
+        "used": 454.7
+      },
+      {
+        "page": 7,
+        "column": 2,
+        "font": 9.15,
+        "used": 694.0
+      }
+    ],
+    "pages": 7,
+    "characters": 9345
+  }
+]

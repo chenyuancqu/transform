@@ -6,6 +6,7 @@ __pycache__/
 *.pyc
 output/checkpoints/
 output/downloads/
+tmp/pdfs/
 output/backend/*.log
 processes.json
 .idea/

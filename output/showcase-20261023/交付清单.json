@@ -1,0 +1,34 @@
+{
+  "code_commit": "f3b5bc9",
+  "branch": "frontend-showcase-20261014V2",
+  "date": "2026-10-23",
+  "poster_pixels": [
+    1448,
+    1086
+  ],
+  "deliverables": [
+    {
+      "name": "01_录屏操作与旁白脚本.pdf",
+      "bytes": 316169,
+      "sha256": "4f0002ed1d9201b906433633779a7fa3cfa70e2d178fd9bae26cfb838df09301",
+      "pages": 4
+    },
+    {
+      "name": "02_系统说明与价值评估.pdf",
+      "bytes": 511318,
+      "sha256": "0b64cbb8718b92329580f7701f0f3ae45a82a281fddfe803f8f7c2f2126b2bd9",
+      "pages": 4
+    },
+    {
+      "name": "04_系统技术文档_双栏.pdf",
+      "bytes": 1333809,
+      "sha256": "9093181a23a457445be9eae8b0365e73b0b5af3d2322667659b60a8e75840cd2",
+      "pages": 7
+    },
+    {
+      "name": "03_作品图_4比3.png",
+      "bytes": 2106929,
+      "sha256": "10cb6eeb76dcaab20c95ad1babb257f492a748c73cfdbf446b21c8587db1ba82"
+    }
+  ]
+}
