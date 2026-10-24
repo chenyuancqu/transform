@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import mqtt from 'mqtt';
 
 const EMPTY = { epoch: 'unconnected', seq: 0, rover: { x: .5, y: .5, z: 0 }, uavs: [], orders: [],
-  stats: {}, health: {}, events: [], running: false, speed: .7, elapsedSeconds: 0, batteryMode: 'balanced' };
+  stats: {}, health: {}, events: [], running: false, speed: .7, elapsedSeconds: 0, batteryMode: 'balanced', emergencyReturn: false };
 const MAX_ORDER_COUNT = 30;
 const POSE = p => Array.isArray(p) && p.length === 3 && p.every(Number.isFinite);
-const PHASES = ['idle','docked','charging','takingOff', 'cruising', 'approaching', 'aligning', 'picking', 'returning', 'waitingDock', 'unloading', 'clearingBay','parking'];
+const PHASES = ['idle','docked','charging','takingOff', 'cruising', 'approaching', 'aligning', 'picking', 'returning', 'waitingDock', 'unloading', 'clearingBay','parking','holding'];
 
 export function decodeSnapshot(data) {
   const dispatch = data?.dispatch;
@@ -14,7 +14,6 @@ export function decodeSnapshot(data) {
       || !['ready','preflight','executing','regrouping','waitingOrders','complete','scopeComplete'].includes(dispatch.stage)
       || (dispatch.rendezvous !== null && (!Array.isArray(dispatch.rendezvous) || dispatch.rendezvous.length !== 2 || !dispatch.rendezvous.every(Number.isFinite)))
       || !Array.isArray(dispatch.assignments) || !Array.isArray(dispatch.decisions)
-      || new Set(dispatch.assignments.map(a=>a.uavId)).size !== dispatch.assignments.length
       || new Set(dispatch.assignments.map(a=>a.orderId)).size !== dispatch.assignments.length
       || !dispatch.assignments.every(a=>[1,2,3].includes(a.uavId)&&Number.isInteger(a.orderId)&&data.orders?.some(o=>o.id===a.orderId))
       || !dispatch.decisions.every(d=>['mother','uav'].includes(d.stage)&&Number.isInteger(d.action)&&d.action>=0&&d.action<18&&Array.isArray(d.candidates)
@@ -34,6 +33,7 @@ export function decodeSnapshot(data) {
       || new Set(data.orders.map(o => o.id)).size !== orderCount || typeof data.running !== 'boolean'
       || !Number.isFinite(data.speed) || data.speed < .3 || data.speed > 2
       || !data.stats || !data.health || !Array.isArray(data.events)
+      || (data.emergencyReturn != null && typeof data.emergencyReturn !== 'boolean')
       || !data.uavs.every(u => [1, 2, 3].includes(u.id) && POSE(u.position) && Number.isFinite(u.battery)
         && u.battery >= 0 && u.battery <= 1 && PHASES.includes(u.phase)
         && Number.isFinite(u.pickupProgress) && u.pickupProgress >= 0 && u.pickupProgress <= 1
@@ -44,14 +44,17 @@ export function decodeSnapshot(data) {
   }
   // Rendering adapter only: no mission assignment, inference or arrival calculation.
   const adapt = p => ({ ...p, x: (p.position[0] + 100) / 200, y: (p.position[1] + 100) / 200, z: p.position[2] / 50 });
-  return { ...data, batteryMode, rover: adapt(data.rover), uavs: data.uavs.map(adapt).sort((a, b) => a.id - b.id), orders: data.orders.map(adapt).sort((a, b) => a.id - b.id) };
+  return { ...data, batteryMode, emergencyReturn: data.emergencyReturn === true, rover: adapt(data.rover), uavs: data.uavs.map(adapt).sort((a, b) => a.id - b.id), orders: data.orders.map(adapt).sort((a, b) => a.id - b.id) };
 }
 
 export function interpolateSnapshots(a, b, t) {
   if (!a || a.epoch !== b.epoch || t >= 1) return b;
   const pose = (p, q) => ({ ...p, x: p.x + (q.x - p.x) * t, y: p.y + (q.y - p.y) * t, z: p.z + (q.z - p.z) * t });
   const yaw = (p,q) => p + Math.atan2(Math.sin(q-p),Math.cos(q-p))*t;
-  return { ...a, docking:a.docking&&b.docking?{...a.docking,hatchProgress:a.docking.hatchProgress+(b.docking.hatchProgress-a.docking.hatchProgress)*t}:a.docking,
+  // Only poses are interpolated. The remaining telemetry must come from the
+  // newest frame so health, AI readiness, orders, dispatch decisions and
+  // status messages cannot stay one frame behind after a backend update.
+  return { ...a, ...b, docking:a.docking&&b.docking?{...b.docking,hatchProgress:a.docking.hatchProgress+(b.docking.hatchProgress-a.docking.hatchProgress)*t}:b.docking,
     rover: {...pose(a.rover, b.rover),heading:yaw(a.rover.heading||0,b.rover.heading||0)}, uavs: a.uavs.map((u, i) => ({ ...pose(u, b.uavs[i]),
     pickupProgress: u.phase === b.uavs[i].phase ? u.pickupProgress + (b.uavs[i].pickupProgress - u.pickupProgress) * t : u.pickupProgress,
     retractProgress:u.phase===b.uavs[i].phase?(u.retractProgress||0)+((b.uavs[i].retractProgress||0)-(u.retractProgress||0))*t:u.retractProgress,

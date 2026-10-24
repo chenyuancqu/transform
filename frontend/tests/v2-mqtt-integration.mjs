@@ -56,6 +56,7 @@ try{
   assert.equal(snapshot.elapsedSeconds,paused);
   assert.equal(JSON.stringify(snapshot.uavs.map(u=>u.position)),pose);
   assert.equal((await send({action_type:'emergency_stop',assign_agents:['all']},true)).ok,true);
+  await wait(()=>!snapshot.emergencyReturn && !snapshot.running,10000);
   assert.equal((await send({action:'start'})).ok,true);
   await wait(()=>snapshot.running);
   await wait(()=>snapshot.orders.length>initialCount,45000);
@@ -63,7 +64,10 @@ try{
   await wait(()=>!snapshot.running&&snapshot.stats.deliveredOrders===30,600000);
   assert.equal(snapshot.dispatch.stage,'complete');
   assert.ok(snapshot.uavs.every(u=>u.phase==='docked'));
-  assert.ok(snapshot.dispatch.wave>=10);
+  // Rolling refill keeps one rendezvous wave open instead of waiting for an
+  // all-aircraft regroup between every three assignments.
+  assert.ok(snapshot.dispatch.wave>=1);
+  assert.equal(snapshot.dispatch.assignments.length,30);
   assert.equal(snapshot.orders.length,30);
   assert.equal(snapshot.stats.orderStreamActive,false);
   assert.ok(snapshot.health.inferenceCount>=40);

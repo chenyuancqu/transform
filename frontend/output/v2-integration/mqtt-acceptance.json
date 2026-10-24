@@ -17,56 +17,49 @@
   ],
   "initialCount": 6,
   "phases": [
-    "takingOff",
     "docked",
+    "takingOff",
     "cruising",
     "approaching",
     "aligning",
     "picking",
     "returning",
+    "waitingDock",
     "unloading",
     "clearingBay",
     "parking",
-    "charging",
-    "waitingDock"
+    "charging"
   ],
   "waves": [
     2,
-    1,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10
+    1
   ],
   "final": {
     "schema_version": 1,
-    "epoch": "c97be20538514c69b6cecefff9bc936e",
-    "seq": 2783,
-    "timestamp": 1792734696377.0034,
+    "epoch": "a969f3d33c404655861b019c41b6c6a4",
+    "seq": 2287,
+    "timestamp": 1792830162691.728,
     "coordinate_system": "campus_meters_xy_height",
     "running": false,
     "speed": 2,
     "batteryMode": "balanced",
-    "elapsedSeconds": 701.0419999999954,
+    "emergencyReturn": false,
+    "elapsedSeconds": 555.1240000000107,
     "rover": {
-      "heading": 1.5707963267948966,
+      "heading": 0,
       "position": [
+        0,
         30,
-        -30,
         0
       ],
-      "x": 0.65,
-      "y": 0.35,
+      "x": 0.5,
+      "y": 0.65,
       "z": 0
     },
     "uavs": [
       {
         "id": 1,
-        "battery": 0.8788636262318171,
+        "battery": 0.4126844929181663,
         "phase": "docked",
         "targetOrderId": null,
         "cargoOrderId": null,
@@ -75,21 +68,22 @@
         "missionOrderId": null,
         "enabled": true,
         "preferredArea": null,
+        "preferredOrderIds": null,
         "energyLimit": null,
-        "missionEnergy": 141.92941515459185,
+        "missionEnergy": 213.60732848592951,
         "retractProgress": 1,
         "position": [
+          -0.5,
           30.980000000000018,
-          -29.5,
           1.9799999999999998
         ],
-        "x": 0.6549,
-        "y": 0.3525,
+        "x": 0.4975,
+        "y": 0.6549,
         "z": 0.039599999999999996
       },
       {
         "id": 2,
-        "battery": 0.6472321881641524,
+        "battery": 0.125175570917732,
         "phase": "docked",
         "targetOrderId": null,
         "cargoOrderId": null,
@@ -98,21 +92,22 @@
         "missionOrderId": null,
         "enabled": true,
         "preferredArea": null,
+        "preferredOrderIds": null,
         "energyLimit": null,
-        "missionEnergy": 211.44189229469143,
+        "missionEnergy": 215.2059984637498,
         "retractProgress": 1,
         "position": [
+          0.4999999999999858,
           30.980000000000018,
-          -30.5,
           1.9799999999999998
         ],
-        "x": 0.6549,
-        "y": 0.3475,
+        "x": 0.5025,
+        "y": 0.6549,
         "z": 0.039599999999999996
       },
       {
         "id": 3,
-        "battery": 0.16313782431686003,
+        "battery": 0.6303955236328873,
         "phase": "docked",
         "targetOrderId": null,
         "cargoOrderId": null,
@@ -121,55 +116,35 @@
         "missionOrderId": null,
         "enabled": true,
         "preferredArea": null,
+        "preferredOrderIds": null,
         "energyLimit": null,
-        "missionEnergy": 307.32221756830035,
+        "missionEnergy": 205.98089208116133,
         "retractProgress": 1,
         "position": [
+          0,
           28.72,
-          -30,
           1.9799999999999998
         ],
-        "x": 0.6436,
-        "y": 0.35,
+        "x": 0.5,
+        "y": 0.6436,
         "z": 0.039599999999999996
       }
     ],
     "orders": [
       {
         "id": 1,
-        "locationId": 8,
-        "pickupType": "courtyard",
-        "buildingId": null,
-        "floor": null,
-        "area": "B",
-        "completed": true,
-        "status": "delivered",
-        "reservedBy": 1,
-        "deliveredAt": 21.218000000000757,
-        "createdAt": 0,
-        "energyConsumedPercent": 8.95174229945576,
-        "position": [
-          22,
-          22,
-          0.6
-        ],
-        "x": 0.61,
-        "y": 0.61,
-        "z": 0.012
-      },
-      {
-        "id": 2,
         "locationId": 6,
         "pickupType": "balcony",
         "buildingId": "C2",
         "floor": 7,
         "area": "C",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 3,
-        "deliveredAt": 39,
+        "reservedBy": 1,
+        "deliveredAt": 516.6240000000107,
         "createdAt": 0,
-        "energyConsumedPercent": 33.11086681146025,
+        "energyConsumedPercent": 35.59658633614829,
         "position": [
           88.18,
           0,
@@ -180,18 +155,19 @@
         "z": 0.3716
       },
       {
-        "id": 3,
+        "id": 2,
         "locationId": 5,
         "pickupType": "balcony",
         "buildingId": "C1",
         "floor": 5,
         "area": "C",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
         "reservedBy": 3,
-        "deliveredAt": 208.15600000000268,
+        "deliveredAt": 114.52999999999884,
         "createdAt": 0,
-        "energyConsumedPercent": 24.27547603192991,
+        "energyConsumedPercent": 34.01879672391429,
         "position": [
           -88.18,
           0,
@@ -202,18 +178,42 @@
         "z": 0.261
       },
       {
+        "id": 3,
+        "locationId": 7,
+        "pickupType": "courtyard",
+        "buildingId": null,
+        "floor": null,
+        "area": "A",
+        "priority": "normal",
+        "completed": true,
+        "status": "delivered",
+        "reservedBy": 2,
+        "deliveredAt": 30.34200000000419,
+        "createdAt": 0,
+        "energyConsumedPercent": 15.022802414957367,
+        "position": [
+          -22,
+          -22,
+          0.6
+        ],
+        "x": 0.39,
+        "y": 0.39,
+        "z": 0.012
+      },
+      {
         "id": 4,
         "locationId": 3,
         "pickupType": "balcony",
         "buildingId": "B1",
         "floor": 7,
         "area": "B",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 3,
-        "deliveredAt": 81.27999999999884,
+        "reservedBy": 2,
+        "deliveredAt": 65.05999999999767,
         "createdAt": 0,
-        "energyConsumedPercent": 33.19905023724406,
+        "energyConsumedPercent": 24.031979107839092,
         "position": [
           -33,
           74.18,
@@ -230,12 +230,13 @@
         "buildingId": "B2",
         "floor": 3,
         "area": "B",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 2,
-        "deliveredAt": 33.71800000000076,
+        "reservedBy": 3,
+        "deliveredAt": 35.80999999999767,
         "createdAt": 0,
-        "energyConsumedPercent": 19.526207428061266,
+        "energyConsumedPercent": 24.206213209160758,
         "position": [
           33,
           74.18,
@@ -247,17 +248,41 @@
       },
       {
         "id": 6,
+        "locationId": 8,
+        "pickupType": "courtyard",
+        "buildingId": null,
+        "floor": null,
+        "area": "B",
+        "priority": "normal",
+        "completed": true,
+        "status": "delivered",
+        "reservedBy": 1,
+        "deliveredAt": 23.404000000009546,
+        "createdAt": 0,
+        "energyConsumedPercent": 10.257598230914938,
+        "position": [
+          22,
+          22,
+          0.6
+        ],
+        "x": 0.61,
+        "y": 0.61,
+        "z": 0.012
+      },
+      {
+        "id": 7,
         "locationId": 2,
         "pickupType": "balcony",
         "buildingId": "A2",
         "floor": 5,
         "area": "A",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 1,
-        "deliveredAt": 680.3839999999923,
-        "createdAt": 0,
-        "energyConsumedPercent": 26.23987233149806,
+        "reservedBy": 2,
+        "deliveredAt": 553.2799999999988,
+        "createdAt": 12.436000000016065,
+        "energyConsumedPercent": 35.69344903989455,
         "position": [
           50,
           -74.18,
@@ -268,48 +293,27 @@
         "z": 0.2726
       },
       {
-        "id": 7,
-        "locationId": 1,
-        "pickupType": "balcony",
-        "buildingId": "A1",
-        "floor": 3,
-        "area": "A",
-        "completed": true,
-        "status": "delivered",
-        "reservedBy": 3,
-        "deliveredAt": 363.4159999999988,
-        "createdAt": 12.029999999998836,
-        "energyConsumedPercent": 30.121681924703132,
-        "position": [
-          -50,
-          -74.18,
-          7.93
-        ],
-        "x": 0.25,
-        "y": 0.12909999999999996,
-        "z": 0.1586
-      },
-      {
         "id": 8,
-        "locationId": 6,
-        "pickupType": "balcony",
-        "buildingId": "C2",
-        "floor": 7,
-        "area": "C",
+        "locationId": 7,
+        "pickupType": "courtyard",
+        "buildingId": null,
+        "floor": null,
+        "area": "A",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 2,
-        "deliveredAt": 77.27999999999884,
-        "createdAt": 24.0940000000046,
-        "energyConsumedPercent": 26.882020344966804,
+        "reservedBy": 1,
+        "deliveredAt": 57.99800000002142,
+        "createdAt": 24.49800000002142,
+        "energyConsumedPercent": 17.984522581725937,
         "position": [
-          88.18,
-          0,
-          18.58
+          -22,
+          -22,
+          0.6
         ],
-        "x": 0.9409000000000001,
-        "y": 0.5,
-        "z": 0.3716
+        "x": 0.39,
+        "y": 0.39,
+        "z": 0.012
       },
       {
         "id": 9,
@@ -318,12 +322,13 @@
         "buildingId": null,
         "floor": null,
         "area": "B",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 1,
-        "deliveredAt": 57.779999999998836,
-        "createdAt": 36.0940000000046,
-        "energyConsumedPercent": 6.209046214906891,
+        "reservedBy": 3,
+        "deliveredAt": 68.9660000000149,
+        "createdAt": 36.55999999999767,
+        "energyConsumedPercent": 12.057384927790505,
         "position": [
           22,
           22,
@@ -340,12 +345,13 @@
         "buildingId": "B2",
         "floor": 3,
         "area": "B",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 2,
-        "deliveredAt": 138.68800000000192,
-        "createdAt": 48.15600000000268,
-        "energyConsumedPercent": 21.553101444716006,
+        "reservedBy": 1,
+        "deliveredAt": 92.09200000000419,
+        "createdAt": 48.62400000001071,
+        "energyConsumedPercent": 19.08347691684338,
         "position": [
           33,
           74.18,
@@ -357,17 +363,64 @@
       },
       {
         "id": 11,
+        "locationId": 8,
+        "pickupType": "courtyard",
+        "buildingId": null,
+        "floor": null,
+        "area": "B",
+        "priority": "normal",
+        "completed": true,
+        "status": "delivered",
+        "reservedBy": 2,
+        "deliveredAt": 96.12400000001071,
+        "createdAt": 60.686000000016065,
+        "energyConsumedPercent": 10.606995396711977,
+        "position": [
+          22,
+          22,
+          0.6
+        ],
+        "x": 0.61,
+        "y": 0.61,
+        "z": 0.012
+      },
+      {
+        "id": 12,
+        "locationId": 1,
+        "pickupType": "balcony",
+        "buildingId": "A1",
+        "floor": 3,
+        "area": "A",
+        "priority": "normal",
+        "completed": true,
+        "status": "delivered",
+        "reservedBy": 1,
+        "deliveredAt": 200.27999999999884,
+        "createdAt": 72.74800000002142,
+        "energyConsumedPercent": 34.78018789713482,
+        "position": [
+          -50,
+          -74.18,
+          7.93
+        ],
+        "x": 0.25,
+        "y": 0.12909999999999996,
+        "z": 0.1586
+      },
+      {
+        "id": 13,
         "locationId": 7,
         "pickupType": "courtyard",
         "buildingId": null,
         "floor": null,
         "area": "A",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
         "reservedBy": 1,
-        "deliveredAt": 146.75,
-        "createdAt": 60.15600000000268,
-        "energyConsumedPercent": 18.116953508845906,
+        "deliveredAt": 126.84200000000419,
+        "createdAt": 84.80999999999767,
+        "energyConsumedPercent": 19.20812651990441,
         "position": [
           -22,
           -22,
@@ -378,62 +431,19 @@
         "z": 0.012
       },
       {
-        "id": 12,
-        "locationId": 3,
-        "pickupType": "balcony",
-        "buildingId": "B1",
-        "floor": 7,
-        "area": "B",
-        "completed": true,
-        "status": "delivered",
-        "reservedBy": 3,
-        "deliveredAt": 142.68800000000192,
-        "createdAt": 72.21800000000076,
-        "energyConsumedPercent": 32.36928739578103,
-        "position": [
-          -33,
-          74.18,
-          17.76
-        ],
-        "x": 0.335,
-        "y": 0.8709,
-        "z": 0.3552
-      },
-      {
-        "id": 13,
-        "locationId": 6,
-        "pickupType": "balcony",
-        "buildingId": "C2",
-        "floor": 7,
-        "area": "C",
-        "completed": true,
-        "status": "delivered",
-        "reservedBy": 2,
-        "deliveredAt": 699.3539999999934,
-        "createdAt": 84.31200000000536,
-        "energyConsumedPercent": 34.79228383282192,
-        "position": [
-          88.18,
-          0,
-          18.58
-        ],
-        "x": 0.9409000000000001,
-        "y": 0.5,
-        "z": 0.3716
-      },
-      {
         "id": 14,
         "locationId": 8,
         "pickupType": "courtyard",
         "buildingId": null,
         "floor": null,
         "area": "B",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
         "reservedBy": 2,
-        "deliveredAt": 212.15600000000268,
-        "createdAt": 96.37400000000343,
-        "energyConsumedPercent": 19.523046311835728,
+        "deliveredAt": 119.77999999999884,
+        "createdAt": 96.84200000000419,
+        "energyConsumedPercent": 9.564724482650984,
         "position": [
           22,
           22,
@@ -445,61 +455,41 @@
       },
       {
         "id": 15,
-        "locationId": 4,
+        "locationId": 5,
         "pickupType": "balcony",
-        "buildingId": "B2",
-        "floor": 3,
-        "area": "B",
+        "buildingId": "C1",
+        "floor": 5,
+        "area": "C",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
         "reservedBy": 3,
-        "deliveredAt": 281.45,
-        "createdAt": 120.5940000000046,
-        "energyConsumedPercent": 26.12909884439564,
+        "deliveredAt": 183.4660000000149,
+        "createdAt": 108.90400000000955,
+        "energyConsumedPercent": 34.02166674245569,
         "position": [
-          33,
-          74.18,
-          8.1
+          -88.18,
+          0,
+          13.05
         ],
-        "x": 0.665,
-        "y": 0.8709,
-        "z": 0.162
+        "x": 0.059099999999999965,
+        "y": 0.5,
+        "z": 0.261
       },
       {
         "id": 16,
-        "locationId": 3,
-        "pickupType": "balcony",
-        "buildingId": "B1",
-        "floor": 7,
-        "area": "B",
-        "completed": true,
-        "status": "delivered",
-        "reservedBy": 3,
-        "deliveredAt": 695.3539999999934,
-        "createdAt": 132.62400000000343,
-        "energyConsumedPercent": 42.44583746238733,
-        "position": [
-          -33,
-          74.18,
-          17.76
-        ],
-        "x": 0.335,
-        "y": 0.8709,
-        "z": 0.3552
-      },
-      {
-        "id": 17,
         "locationId": 7,
         "pickupType": "courtyard",
         "buildingId": null,
         "floor": null,
         "area": "A",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 1,
-        "deliveredAt": 197.21800000000076,
-        "createdAt": 144.71800000000076,
-        "energyConsumedPercent": 9.202746244371625,
+        "reservedBy": 2,
+        "deliveredAt": 154.3420000000042,
+        "createdAt": 120.99800000002142,
+        "energyConsumedPercent": 16.76435770368405,
         "position": [
           -22,
           -22,
@@ -510,18 +500,42 @@
         "z": 0.012
       },
       {
+        "id": 17,
+        "locationId": 8,
+        "pickupType": "courtyard",
+        "buildingId": null,
+        "floor": null,
+        "area": "B",
+        "priority": "normal",
+        "completed": true,
+        "status": "delivered",
+        "reservedBy": 2,
+        "deliveredAt": 187.3420000000042,
+        "createdAt": 133.02999999999884,
+        "energyConsumedPercent": 10.763315396720602,
+        "position": [
+          22,
+          22,
+          0.6
+        ],
+        "x": 0.61,
+        "y": 0.61,
+        "z": 0.012
+      },
+      {
         "id": 18,
         "locationId": 7,
         "pickupType": "courtyard",
         "buildingId": null,
         "floor": null,
         "area": "A",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 1,
-        "deliveredAt": 272.8880000000019,
-        "createdAt": 192.8440000000046,
-        "energyConsumedPercent": 14.45085870746403,
+        "reservedBy": 3,
+        "deliveredAt": 240.43600000001607,
+        "createdAt": 145.05999999999767,
+        "energyConsumedPercent": 18.884338561756458,
         "position": [
           -22,
           -22,
@@ -533,25 +547,26 @@
       },
       {
         "id": 19,
-        "locationId": 8,
-        "pickupType": "courtyard",
-        "buildingId": null,
-        "floor": null,
+        "locationId": 3,
+        "pickupType": "balcony",
+        "buildingId": "B1",
+        "floor": 7,
         "area": "B",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
         "reservedBy": 2,
-        "deliveredAt": 276.92000000000115,
-        "createdAt": 204.93800000000192,
-        "energyConsumedPercent": 14.571700866850383,
+        "deliveredAt": 255.02999999999884,
+        "createdAt": 157.15400000000955,
+        "energyConsumedPercent": 23.899973790389552,
         "position": [
-          22,
-          22,
-          0.6
+          -33,
+          74.18,
+          17.76
         ],
-        "x": 0.61,
-        "y": 0.61,
-        "z": 0.012
+        "x": 0.335,
+        "y": 0.8709,
+        "z": 0.3552
       },
       {
         "id": 20,
@@ -560,12 +575,13 @@
         "buildingId": "C1",
         "floor": 5,
         "area": "C",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 3,
-        "deliveredAt": 588.8539999999934,
-        "createdAt": 216.96800000000076,
-        "energyConsumedPercent": 30.10504429211209,
+        "reservedBy": 2,
+        "deliveredAt": 453.8099999999977,
+        "createdAt": 169.2160000000149,
+        "energyConsumedPercent": 30.046997679326914,
         "position": [
           -88.18,
           0,
@@ -577,61 +593,41 @@
       },
       {
         "id": 21,
-        "locationId": 7,
-        "pickupType": "courtyard",
-        "buildingId": null,
-        "floor": null,
+        "locationId": 1,
+        "pickupType": "balcony",
+        "buildingId": "A1",
+        "floor": 3,
         "area": "A",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 1,
-        "deliveredAt": 354.5099999999961,
-        "createdAt": 262.26199999999807,
-        "energyConsumedPercent": 16.652029289935722,
+        "reservedBy": 3,
+        "deliveredAt": 488.5920000000042,
+        "createdAt": 181.27999999999884,
+        "energyConsumedPercent": 37.01245549791595,
         "position": [
-          -22,
-          -22,
-          0.6
+          -50,
+          -74.18,
+          7.93
         ],
-        "x": 0.39,
-        "y": 0.39,
-        "z": 0.012
+        "x": 0.25,
+        "y": 0.12909999999999996,
+        "z": 0.1586
       },
       {
         "id": 22,
-        "locationId": 8,
-        "pickupType": "courtyard",
-        "buildingId": null,
-        "floor": null,
-        "area": "B",
-        "completed": true,
-        "status": "delivered",
-        "reservedBy": 2,
-        "deliveredAt": 350.4779999999969,
-        "createdAt": 274.2940000000046,
-        "energyConsumedPercent": 13.72231950758866,
-        "position": [
-          22,
-          22,
-          0.6
-        ],
-        "x": 0.61,
-        "y": 0.61,
-        "z": 0.012
-      },
-      {
-        "id": 23,
         "locationId": 4,
         "pickupType": "balcony",
         "buildingId": "B2",
         "floor": 3,
         "area": "B",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 3,
-        "deliveredAt": 509.3219999999942,
-        "createdAt": 286.35600000000267,
-        "energyConsumedPercent": 27.722278620996875,
+        "reservedBy": 1,
+        "deliveredAt": 260.65400000000955,
+        "createdAt": 193.3420000000042,
+        "energyConsumedPercent": 19.19045077240718,
         "position": [
           33,
           74.18,
@@ -642,18 +638,19 @@
         "z": 0.162
       },
       {
-        "id": 24,
+        "id": 23,
         "locationId": 8,
         "pickupType": "courtyard",
         "buildingId": null,
         "floor": null,
         "area": "B",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 2,
-        "deliveredAt": 427.94799999999805,
-        "createdAt": 340.6659999999988,
-        "energyConsumedPercent": 17.994226229560024,
+        "reservedBy": 3,
+        "deliveredAt": 277.2160000000149,
+        "createdAt": 205.40400000000955,
+        "energyConsumedPercent": 9.734720067938529,
         "position": [
           22,
           22,
@@ -661,87 +658,91 @@
         ],
         "x": 0.61,
         "y": 0.61,
+        "z": 0.012
+      },
+      {
+        "id": 24,
+        "locationId": 7,
+        "pickupType": "courtyard",
+        "buildingId": null,
+        "floor": null,
+        "area": "A",
+        "priority": "normal",
+        "completed": true,
+        "status": "delivered",
+        "reservedBy": 2,
+        "deliveredAt": 308.9980000000214,
+        "createdAt": 229.68600000001607,
+        "energyConsumedPercent": 16.68999325923152,
+        "position": [
+          -22,
+          -22,
+          0.6
+        ],
+        "x": 0.39,
+        "y": 0.39,
         "z": 0.012
       },
       {
         "id": 25,
-        "locationId": 7,
-        "pickupType": "courtyard",
-        "buildingId": null,
-        "floor": null,
-        "area": "A",
+        "locationId": 3,
+        "pickupType": "balcony",
+        "buildingId": "B1",
+        "floor": 7,
+        "area": "B",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
         "reservedBy": 1,
-        "deliveredAt": 417.1339999999923,
-        "createdAt": 352.7279999999969,
-        "energyConsumedPercent": 9.44573809057523,
+        "deliveredAt": 424.40400000000955,
+        "createdAt": 241.74800000002142,
+        "energyConsumedPercent": 25.084817412711715,
         "position": [
-          -22,
-          -22,
-          0.6
+          -33,
+          74.18,
+          17.76
         ],
-        "x": 0.39,
-        "y": 0.39,
-        "z": 0.012
+        "x": 0.335,
+        "y": 0.8709,
+        "z": 0.3552
       },
       {
         "id": 26,
-        "locationId": 1,
+        "locationId": 4,
         "pickupType": "balcony",
-        "buildingId": "A1",
+        "buildingId": "B2",
         "floor": 3,
-        "area": "A",
-        "completed": true,
-        "status": "delivered",
-        "reservedBy": 3,
-        "deliveredAt": 431.79199999999537,
-        "createdAt": 364.79199999999537,
-        "energyConsumedPercent": 23.95397816951169,
-        "position": [
-          -50,
-          -74.18,
-          7.93
-        ],
-        "x": 0.25,
-        "y": 0.12909999999999996,
-        "z": 0.1586
-      },
-      {
-        "id": 27,
-        "locationId": 7,
-        "pickupType": "courtyard",
-        "buildingId": null,
-        "floor": null,
-        "area": "A",
+        "area": "B",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
         "reservedBy": 1,
-        "deliveredAt": 499.69799999999805,
-        "createdAt": 413.1659999999988,
-        "energyConsumedPercent": 14.507761847157425,
+        "deliveredAt": 319.8099999999977,
+        "createdAt": 253.80999999999767,
+        "energyConsumedPercent": 19.09563067564534,
         "position": [
-          -22,
-          -22,
-          0.6
+          33,
+          74.18,
+          8.1
         ],
-        "x": 0.39,
-        "y": 0.39,
-        "z": 0.012
+        "x": 0.665,
+        "y": 0.8709,
+        "z": 0.162
       },
       {
-        "id": 28,
+        "id": 27,
         "locationId": 8,
         "pickupType": "courtyard",
         "buildingId": null,
         "floor": null,
         "area": "B",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 2,
-        "deliveredAt": 503.60399999999345,
-        "createdAt": 425.19799999999805,
-        "energyConsumedPercent": 14.628269828611339,
+        "reservedBy": 3,
+        "deliveredAt": 323.8420000000042,
+        "createdAt": 271.9980000000214,
+        "energyConsumedPercent": 12.078273816678154,
         "position": [
           22,
           22,
@@ -752,40 +753,19 @@
         "z": 0.012
       },
       {
-        "id": 29,
-        "locationId": 1,
-        "pickupType": "balcony",
-        "buildingId": "A1",
-        "floor": 3,
-        "area": "A",
-        "completed": true,
-        "status": "delivered",
-        "reservedBy": 2,
-        "deliveredAt": 592.8839999999923,
-        "createdAt": 437.19799999999805,
-        "energyConsumedPercent": 24.505323220153322,
-        "position": [
-          -50,
-          -74.18,
-          7.93
-        ],
-        "x": 0.25,
-        "y": 0.12909999999999996,
-        "z": 0.1586
-      },
-      {
-        "id": 30,
+        "id": 28,
         "locationId": 7,
         "pickupType": "courtyard",
         "buildingId": null,
         "floor": null,
         "area": "A",
+        "priority": "normal",
         "completed": true,
         "status": "delivered",
-        "reservedBy": 1,
-        "deliveredAt": 578.8839999999923,
-        "createdAt": 488.44799999999805,
-        "energyConsumedPercent": 14.258020235127027,
+        "reservedBy": 2,
+        "deliveredAt": 365.3420000000042,
+        "createdAt": 299.2480000000214,
+        "energyConsumedPercent": 17.996666029294953,
         "position": [
           -22,
           -22,
@@ -794,39 +774,86 @@
         "x": 0.39,
         "y": 0.39,
         "z": 0.012
+      },
+      {
+        "id": 29,
+        "locationId": 8,
+        "pickupType": "courtyard",
+        "buildingId": null,
+        "floor": null,
+        "area": "B",
+        "priority": "normal",
+        "completed": true,
+        "status": "delivered",
+        "reservedBy": 1,
+        "deliveredAt": 354.3740000000107,
+        "createdAt": 311.3099999999977,
+        "energyConsumedPercent": 9.452920312792205,
+        "position": [
+          22,
+          22,
+          0.6
+        ],
+        "x": 0.61,
+        "y": 0.61,
+        "z": 0.012
+      },
+      {
+        "id": 30,
+        "locationId": 4,
+        "pickupType": "balcony",
+        "buildingId": "B2",
+        "floor": 3,
+        "area": "B",
+        "priority": "normal",
+        "completed": true,
+        "status": "delivered",
+        "reservedBy": 3,
+        "deliveredAt": 388.5920000000042,
+        "createdAt": 323.3420000000042,
+        "energyConsumedPercent": 20.490366977984813,
+        "position": [
+          33,
+          74.18,
+          8.1
+        ],
+        "x": 0.665,
+        "y": 0.8709,
+        "z": 0.162
       }
     ],
     "stats": {
-      "stepCount": 5542,
+      "stepCount": 4557,
       "completedOrders": 30,
       "deliveredOrders": 30,
-      "uavDistanceMeters": 3771.5060275469505,
-      "roverDistanceMeters": 479.9999999999998,
-      "energyConsumed": 660.6935250175823,
+      "uavDistanceMeters": 3717.2894681808307,
+      "roverDistanceMeters": 30,
+      "energyConsumed": 634.7942190308245,
       "totalOrders": 30,
       "completionRate": 100,
-      "averageOrderCompletionSeconds": 159.65259999999677,
-      "averageUavEnergyPerOrderPercent": 21.638862252500836,
-      "averageDelaySeconds": 159.65259999999677,
+      "averageOrderCompletionSeconds": 110.15493333333191,
+      "averageUavEnergyPerOrderPercent": 20.777326282750828,
+      "averageDelaySeconds": 110.15493333333191,
       "orderStreamActive": false,
-      "uavEnergyWh": 297.3120862579151,
-      "averageUavEnergyPerOrderWh": 9.910402875263836,
-      "dispatchObjective": 219.1150172515798
+      "uavEnergyWh": 285.657398563876,
+      "averageUavEnergyPerOrderWh": 9.521913285462533,
+      "dispatchObjective": 167.2864130461071
     },
     "health": {
       "online": true,
       "modelsLoaded": 1,
       "policyName": "V2 PPO 协同调度",
       "policyVersion": 2,
-      "inferenceCount": 47,
-      "inferenceMs": 2.975200000037148,
+      "inferenceCount": 82,
+      "inferenceMs": 1.466800007619895,
       "agentConfigured": true,
       "agentReady": true,
-      "agentVerified": true,
+      "agentVerified": false,
       "agentLastError": null,
       "agentStatus": "ready",
       "agentModel": "deepseek-flash",
       "agentMessage": "AI 接口已就绪",
+      "agentProxyConfigured": true,
       "agentProvider": "local_gateway",
       "inferenceLocation": "local_mec",
       "error": null
@@ -839,67 +866,67 @@
     },
     "events": [
       {
-        "time": 666.4,
-        "text": "UAV 3 悬停确认 · 取货订单 16"
+        "time": 488.6,
+        "text": "订单 21 已完成并回收至母车"
       },
       {
-        "time": 669.1,
-        "text": "订单 6 已取货 · UAV 1 返航"
+        "time": 493.5,
+        "text": "UAV 1 悬停确认 · 取货订单 1"
       },
       {
-        "time": 669.4,
-        "text": "订单 16 已取货 · UAV 3 返航"
+        "time": 496.5,
+        "text": "订单 1 已取货 · UAV 1 返航"
       },
       {
-        "time": 669.6,
-        "text": "UAV 2 悬停确认 · 取货订单 13"
-      },
-      {
-        "time": 672.6,
-        "text": "订单 13 已取货 · UAV 2 返航"
-      },
-      {
-        "time": 678.9,
+        "time": 515.1,
         "text": "UAV 1 到达母车 · 订单货物入舱"
       },
       {
-        "time": 680.4,
-        "text": "订单 6 已完成并回收至母车"
+        "time": 516.6,
+        "text": "订单 1 已完成并回收至母车"
       },
       {
-        "time": 693.7,
-        "text": "UAV 3 到达母车 · 订单货物入舱"
+        "time": 525.6,
+        "text": "UAV 2 悬停确认 · 取货订单 7"
       },
       {
-        "time": 695.4,
-        "text": "订单 16 已完成并回收至母车"
+        "time": 528.7,
+        "text": "订单 7 已取货 · UAV 2 返航"
       },
       {
-        "time": 697.7,
+        "time": 551.7,
         "text": "UAV 2 到达母车 · 订单货物入舱"
       },
       {
-        "time": 699.4,
-        "text": "订单 13 已完成并回收至母车"
+        "time": 553.3,
+        "text": "订单 7 已完成并回收至母车"
       },
       {
-        "time": 701,
+        "time": 555.1,
+        "text": "本波订单已交付 · 可用无人机先行进入下一波，其他无人机并行归位"
+      },
+      {
+        "time": 555.1,
+        "text": "本次调度范围已完成或预算不足 · 可继续派发其它区域任务"
+      },
+      {
+        "time": 555.1,
         "text": "本轮订单已全部完成 · V2 PPO 调度结束"
       }
     ],
     "lastCommand": {
-      "epoch": "c97be20538514c69b6cecefff9bc936e",
+      "epoch": "a969f3d33c404655861b019c41b6c6a4",
       "action_type": "emergency_stop",
       "assign_agents": [
         "all"
       ],
-      "request_id": "1a049910-8caf-4f12-8c8f-891c525f929c"
+      "request_id": "7ed1e82f-9952-4942-bd5e-d0e1000561f4"
     },
     "dispatch": {
       "version": 2,
       "policy": "PPO",
       "mode": "campus_wave_adapter",
-      "wave": 10,
+      "wave": 2,
       "stage": "complete",
       "fixedOrders": false,
       "orderStream": {
@@ -913,76 +940,211 @@
       "batteryCapacityWh": 45,
       "pendingCommand": false,
       "rendezvous": [
-        30,
-        -30
+        0,
+        30
       ],
-      "site": 7,
+      "site": 6,
       "assignments": [
         {
           "uavId": 1,
           "orderId": 6,
-          "requiredBattery": 0.4017701720410735
+          "requiredBattery": 0.22646923112556894
         },
         {
           "uavId": 2,
-          "orderId": 13,
-          "requiredBattery": 0.4698083896943527
+          "orderId": 3,
+          "requiredBattery": 0.25713675025131166
         },
         {
           "uavId": 3,
+          "orderId": 5,
+          "requiredBattery": 0.37483540550223055
+        },
+        {
+          "uavId": 1,
+          "orderId": 8,
+          "requiredBattery": 0.29451692119859924
+        },
+        {
+          "uavId": 2,
+          "orderId": 4,
+          "requiredBattery": 0.37237356835414376
+        },
+        {
+          "uavId": 3,
+          "orderId": 9,
+          "requiredBattery": 0.21892284396828243
+        },
+        {
+          "uavId": 1,
+          "orderId": 10,
+          "requiredBattery": 0.3245211474117804
+        },
+        {
+          "uavId": 2,
+          "orderId": 11,
+          "requiredBattery": 0.20851866626986504
+        },
+        {
+          "uavId": 3,
+          "orderId": 2,
+          "requiredBattery": 0.4689071226739145
+        },
+        {
+          "uavId": 1,
+          "orderId": 13,
+          "requiredBattery": 0.29451692119859924
+        },
+        {
+          "uavId": 2,
+          "orderId": 14,
+          "requiredBattery": 0.20851866626986504
+        },
+        {
+          "uavId": 3,
+          "orderId": 15,
+          "requiredBattery": 0.4689071226739145
+        },
+        {
+          "uavId": 2,
           "orderId": 16,
-          "requiredBattery": 0.5577921272278604
+          "requiredBattery": 0.28196972634216094
+        },
+        {
+          "uavId": 1,
+          "orderId": 12,
+          "requiredBattery": 0.47113988492301523
+        },
+        {
+          "uavId": 2,
+          "orderId": 17,
+          "requiredBattery": 0.20851866626986504
+        },
+        {
+          "uavId": 3,
+          "orderId": 18,
+          "requiredBattery": 0.30706411605503753
+        },
+        {
+          "uavId": 2,
+          "orderId": 19,
+          "requiredBattery": 0.37237356835414376
+        },
+        {
+          "uavId": 1,
+          "orderId": 22,
+          "requiredBattery": 0.3245211474117804
+        },
+        {
+          "uavId": 3,
+          "orderId": 23,
+          "requiredBattery": 0.21892284396828243
+        },
+        {
+          "uavId": 2,
+          "orderId": 24,
+          "requiredBattery": 0.28196972634216094
+        },
+        {
+          "uavId": 1,
+          "orderId": 26,
+          "requiredBattery": 0.3245211474117804
+        },
+        {
+          "uavId": 3,
+          "orderId": 27,
+          "requiredBattery": 0.21892284396828243
+        },
+        {
+          "uavId": 2,
+          "orderId": 28,
+          "requiredBattery": 0.28196972634216094
+        },
+        {
+          "uavId": 1,
+          "orderId": 29,
+          "requiredBattery": 0.2137207551190737
+        },
+        {
+          "uavId": 3,
+          "orderId": 30,
+          "requiredBattery": 0.3367753931360837
+        },
+        {
+          "uavId": 1,
+          "orderId": 25,
+          "requiredBattery": 0.3846278140784471
+        },
+        {
+          "uavId": 2,
+          "orderId": 20,
+          "requiredBattery": 0.42751000963566954
+        },
+        {
+          "uavId": 3,
+          "orderId": 21,
+          "requiredBattery": 0.4968192684008652
+        },
+        {
+          "uavId": 1,
+          "orderId": 1,
+          "requiredBattery": 0.4826174550436809
+        },
+        {
+          "uavId": 2,
+          "orderId": 7,
+          "requiredBattery": 0.4809271681118321
         }
       ],
       "decisions": [
         {
           "stage": "mother",
           "uavId": null,
-          "action": 6,
-          "value": 1.1859853267669678,
+          "action": 5,
+          "value": -0.8899725675582886,
           "validActions": 9,
           "candidates": [
             {
-              "action": 6,
-              "probability": 0.592684268951416,
-              "label": "接应点 7"
+              "action": 5,
+              "probability": 0.8945943117141724,
+              "label": "接应点 6"
             },
             {
-              "action": 7,
-              "probability": 0.19302180409431458,
-              "label": "接应点 8"
+              "action": 4,
+              "probability": 0.04543338716030121,
+              "label": "接应点 5"
             },
             {
-              "action": 3,
-              "probability": 0.07534947991371155,
-              "label": "接应点 4"
+              "action": 8,
+              "probability": 0.025827020406723022,
+              "label": "接应点 9"
             }
           ]
         },
         {
           "stage": "uav",
           "uavId": 1,
-          "action": 0,
-          "value": 0.9934921264648438,
-          "validActions": 3,
+          "action": 5,
+          "value": -0.8996773362159729,
+          "validActions": 6,
           "candidates": [
             {
-              "action": 0,
-              "probability": 0.39088860154151917,
+              "action": 5,
+              "probability": 0.6010084748268127,
               "label": "订单 6",
               "orderId": 6
             },
             {
-              "action": 1,
-              "probability": 0.3279110789299011,
-              "label": "订单 13",
-              "orderId": 13
+              "action": 2,
+              "probability": 0.3562338054180145,
+              "label": "订单 3",
+              "orderId": 3
             },
             {
-              "action": 2,
-              "probability": 0.2812003195285797,
-              "label": "订单 16",
-              "orderId": 16
+              "action": 4,
+              "probability": 0.03533845767378807,
+              "label": "订单 5",
+              "orderId": 5
             }
           ],
           "orderId": 6
@@ -990,46 +1152,67 @@
         {
           "stage": "uav",
           "uavId": 2,
-          "action": 1,
-          "value": 1.0498833656311035,
-          "validActions": 2,
+          "action": 2,
+          "value": -0.9029213786125183,
+          "validActions": 5,
           "candidates": [
             {
-              "action": 1,
-              "probability": 0.5402886271476746,
-              "label": "订单 13",
-              "orderId": 13
+              "action": 2,
+              "probability": 0.9764732122421265,
+              "label": "订单 3",
+              "orderId": 3
             },
             {
-              "action": 2,
-              "probability": 0.45971131324768066,
-              "label": "订单 16",
-              "orderId": 16
+              "action": 4,
+              "probability": 0.022114748135209084,
+              "label": "订单 5",
+              "orderId": 5
+            },
+            {
+              "action": 3,
+              "probability": 0.001047594239935279,
+              "label": "订单 4",
+              "orderId": 4
             }
           ],
-          "orderId": 13
+          "orderId": 3
         },
         {
           "stage": "uav",
           "uavId": 3,
-          "action": 2,
-          "value": 1.1622204780578613,
-          "validActions": 1,
+          "action": 4,
+          "value": -0.9062153697013855,
+          "validActions": 4,
           "candidates": [
             {
-              "action": 2,
-              "probability": 1,
-              "label": "订单 16",
-              "orderId": 16
+              "action": 4,
+              "probability": 0.9942434430122375,
+              "label": "订单 5",
+              "orderId": 5
+            },
+            {
+              "action": 3,
+              "probability": 0.005179583560675383,
+              "label": "订单 4",
+              "orderId": 4
+            },
+            {
+              "action": 1,
+              "probability": 0.0005611195228993893,
+              "label": "订单 2",
+              "orderId": 2
             }
           ],
-          "orderId": 16
+          "orderId": 5
         }
       ],
       "windowOrderIds": [
-        6,
-        13,
-        16
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
       ],
       "observationShape": "订单 18×8 · 全局 36 · 候选 18×16",
       "adaptation": "动态到单园区适配 · 训练为静态9–18单 · 效果需单独评估"

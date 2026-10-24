@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { businessToWorld } from '../rendering/CoordinateSystem.js';
 import { V2WaveSummary, V2Diagnostics } from './V2DispatchPanel.jsx';
 
-const PHASE = { idle: '待命', docked: '母车待命', charging: '母车补能', takingOff:'从母车起飞',cruising: '前往取件', approaching: '减速对准', aligning: '稳定悬停', picking: '订单取货', returning: '携货返航', waitingDock:'排队返航', unloading: '母车回收',clearingBay:'吊具回收',parking:'返回母车' };
+const PHASE = { idle: '待命', docked: '母车待命', charging: '母车补能', takingOff:'从母车起飞',cruising: '前往目标', approaching: '减速对准', aligning: '稳定悬停', picking: '订单取货', returning: '携货返航', waitingDock:'排队返航', unloading: '母车回收',clearingBay:'吊具回收',parking:'返回母车', holding:'坐标悬停' };
+const QUERY = { order_count: '订单数量', order_detail: '订单详情', fleet_status: '设备状态', metrics: '运行指标', position: '设备位置' };
 const ORDER = { waiting: '待分配', enroute: '前往取件', approaching: '减速对准', aligning: '稳定悬停', picking: '装载中', collected: '返航中', delivered: '已回收' };
 const format = (value, digits = 0) => Number.isFinite(value) ? value.toFixed(digits) : '—';
 const devicePhase = unit => PHASE[unit.phase] || '待命';
@@ -24,6 +25,11 @@ function ActionVector({values, mother=false}){
     const width = `${Math.abs(value) * 50}%`;
     return <div className="action-vector-item" key={axis}><b>{axis}</b><span className="action-bar"><i className={value < 0 ? 'negative' : ''} style={{ width, left: value < 0 ? `${50 - Math.abs(value) * 50}%` : '50%' }} /></span><em>{value >= 0 ? '+' : ''}{value.toFixed(2)}</em></div>;
   })}</div>;
+}
+
+function CommandDetails({ command }) {
+  if (command.action_type === 'query_status') return <dl><dt>查询类型</dt><dd>{QUERY[command.query_type] || '运行状态'}</dd>{command.query_order_id && <><dt>订单号</dt><dd>{command.query_order_id}</dd></>}{command.query_agent_id && <><dt>设备</dt><dd>{command.query_agent_id}</dd></>}</dl>;
+  return <dl><dt>目标区域</dt><dd>{command.target_area ? `${command.target_area} 区` : '全园区'}</dd><dt>指派设备</dt><dd>{command.assign_agents?.join(' / ')}</dd><dt>优先级</dt><dd>{command.priority === 'urgent' ? '加急' : '常规'}</dd>{command.order_ids?.length > 0 && <><dt>指定订单</dt><dd>{command.order_ids.join(' / ')}</dd></>}{command.target_position?.length === 3 && <><dt>目标坐标</dt><dd>({command.target_position.join(', ')})m</dd></>}</dl>;
 }
 
 export function TaskConsole({ simulation: sim, focus, selectedAgentId, onSelectAgent }) {
@@ -51,7 +57,8 @@ export function TaskConsole({ simulation: sim, focus, selectedAgentId, onSelectA
   }, [latestEventKey]);
   const finished = !sim.running && !state.stats.orderStreamActive && orderCount > 0 && deliveredOrders >= orderCount && state.uavs.every(u=>u.phase==='docked')&&!(state.docking?.hatchProgress>0);
   const initialNotice = sim.message.startsWith('后端已就绪') || sim.message === '等待本机后端连接';
-  const statusText = finished ? `任务完成 · ${orderCount}/${orderCount} 单已回收至母车`
+  const statusText = state.emergencyReturn ? '紧急返航中 · 无人机正在返回母车，订单进度已保留'
+    : finished ? `任务完成 · ${orderCount}/${orderCount} 单已回收至母车`
     : waitingForNewOrder ? (sim.running ? '订单流运行中 · 等待新订单到达' : '订单流已暂停 · 等待继续')
     : orderCount > 0 && deliveredOrders >= orderCount ? (sim.running?'订单已回收 · 正在离舱归位与关舱':'已暂停 · 待完成离舱归位与关舱')
     : initialNotice && stats.stepCount > 0 && sim.running ? `任务执行中 · 后端推理 ${state.health.inferenceCount ?? '—'} 批 · ${format(state.health.inferenceMs, 2)} ms / 批`
@@ -88,7 +95,7 @@ export function TaskConsole({ simulation: sim, focus, selectedAgentId, onSelectA
       {v2 && <V2WaveSummary state={state}/>}
       <div className="section-title"><h2>任务与设备</h2><span>{online ? 'LIVE' : 'OFFLINE'}</span></div>
       <div className="mission-summary"><strong>{format(deliveredOrders)}<small> / {orderCount || '—'}</small></strong><span>已完成并回收</span><progress max={Math.max(1, orderCount)} value={deliveredOrders} /></div>
-      <div className="task-buttons"><button className="primary" disabled={!online || busy || sim.running || finished} onClick={sim.start}>{stats.stepCount > 0 ? '继续任务' : '开始任务'}</button><button disabled={!online || busy || !sim.running} onClick={sim.pause}>暂停</button><button disabled={!online || busy} onClick={sim.reset}>重置</button></div>
+      <div className="task-buttons"><button className="primary" disabled={!online || busy || sim.running || finished} onClick={sim.start}>{stats.stepCount > 0 ? '继续任务' : '开始任务'}</button><button disabled={!online || busy || !sim.running || state.emergencyReturn} onClick={sim.pause}>暂停</button><button disabled={!online || busy} onClick={sim.reset}>重置</button></div>
       <label className="speed-control">演示速度 <b>{format(speedDraft ?? sim.speed, 1)}×</b><input aria-label="演示速度" type="range" min="0.3" max="2" step="0.1" value={speedDraft ?? sim.speed} disabled={!online || busy} onChange={e => setSpeedDraft(Number(e.target.value))} onPointerUp={e => { sim.setSpeed(Number(e.target.value)); setSpeedDraft(null); }} onKeyUp={e => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) { sim.setSpeed(Number(e.target.value)); setSpeedDraft(null); } }} /></label>
       <div className="battery-mode-control" aria-label="无人机初始电量模式"><span>无人机初始电量</span><div>
         <button type="button" aria-pressed={state.batteryMode === 'balanced'} className={state.batteryMode === 'balanced' ? 'selected' : ''} disabled={!canSetBatteryMode} onClick={() => sim.setBatteryMode('balanced')}>均衡 100%</button>
@@ -98,20 +105,20 @@ export function TaskConsole({ simulation: sim, focus, selectedAgentId, onSelectA
         {state.uavs.map(u => <button className={`fleet-device ${selectedAgentId===`uav-${u.id}`?'selected':''}`} key={u.id} onClick={() => locate(u)}><i><DeviceIcon drone/></i><span><strong>UAV {String(u.id).padStart(2,'0')}<em>{format(u.battery * 100)}%</em></strong><small>{devicePhase(u)}{u.targetOrderId ? ` · 订单 ${u.targetOrderId}` : u.cargoOrderId ? ` · 携货订单 ${u.cargoOrderId}` : ''}</small><progress max="100" value={u.battery * 100} /></span><b>↗</b></button>)}
       </div>
       <div className="section-title order-heading"><h2>订单清单</h2><button className="parcel-toggle" aria-expanded={parcelsOpen} onClick={()=>setParcelsOpen(!parcelsOpen)}>{parcelsOpen?'收起':'展开'} · {orderCount}</button></div>
-      <div className="parcel-list" style={{display:parcelsOpen?'block':'none'}}>{state.orders.map(o => <button key={o.id} onClick={() => locate(o)} className={o.status === 'delivered' ? 'delivered' : o.status === 'picking' ? 'picking' : ''}><b>{String(o.id).padStart(2, '0')}</b><span>{o.pickupType === 'balcony' ? `${o.buildingId} · ${o.floor}F` : `${o.area} 区`}<small>{o.reservedBy ? `UAV ${o.reservedBy}` : o.pickupType === 'balcony' ? '阳台取件点 · 待分配' : '中庭取件点 · 待分配'}</small></span><em>{ORDER[o.status]}</em></button>)}</div>
+      <div className="parcel-list" style={{display:parcelsOpen?'block':'none'}}>{state.orders.map(o => <button key={o.id} onClick={() => locate(o)} className={o.status === 'delivered' ? 'delivered' : o.status === 'picking' ? 'picking' : ''}><b>{String(o.id).padStart(2, '0')}</b><span>{o.pickupType === 'balcony' ? `${o.buildingId} · ${o.floor}F` : `${o.area} 区`}<small>{o.priority === 'urgent' ? '加急 · ' : ''}{o.reservedBy ? `UAV ${o.reservedBy}` : o.pickupType === 'balcony' ? '阳台取件点 · 待分配' : '中庭取件点 · 待分配'}</small></span><em>{o.priority === 'urgent' ? '加急 · ' : ''}{ORDER[o.status]}</em></button>)}</div>
       {!orderCount && <p className="empty-state">等待后端生成本轮订单</p>}
     </aside>
     <aside className="dispatch-panel console-card">
       <div className="section-title"><h2>调度指挥官</h2><span>{state.health.agentReady ? state.health.agentVerified ? 'AI 已连接' : '已配置 · 待联调' : state.health.agentConfigured ? 'AI 接口未连接' : 'AI 未配置'}</span></div>
-      <p className="panel-description">{v2?'PPO 自主选单与接应。区域、设备与预算变更在当前波次回收后生效。':'先用预设演示任务，也可通过自然语言指派区域与设备。'}</p>
+      <p className="panel-description">{v2?'PPO 自主选单与接应。可通过自然语言查询状态或指派区域与设备。':'先用预设演示任务，也可通过自然语言查询状态或指派区域与设备。'}</p>
       <div className="preset-list">{PRESETS.map(p => <button key={p.label} disabled={!online || busy} onClick={() => sim.dispatch(p.command, `预设调度：${p.label}`)}><strong>{p.label}<b>↗</b></strong><small>{v2&&p.command.action_type==='optimize_energy'?'单机预算 75% · 下波次生效':p.description}</small></button>)}</div>
       <div className="chat-history" aria-live="polite">
         {sim.messages.length === 0 && <div className="chat-intro"><i>◈</i><strong>让调度过程看得见</strong><p>指令发送后，后端确认任务，设备开始执行；下方卡片展示实际结果。</p></div>}
-        {sim.messages.map(m => <div className="chat-exchange" key={m.id}><div className="user-message">{m.text}</div><div className={`command-result ${m.ok === false ? 'failed' : ''}`}><small>{m.unknown ? '执行状态待确认' : m.ok ? '后端已执行' : m.ok === false ? '未执行' : '处理中'}</small><p>{m.result}</p>{m.command && <dl><dt>目标区域</dt><dd>{m.command.target_area ? `${m.command.target_area} 区` : '全园区'}</dd><dt>指派设备</dt><dd>{m.command.assign_agents?.join(' / ')}</dd><dt>优先级</dt><dd>{m.command.priority === 'urgent' ? '加急' : '常规'}</dd>{m.command.energy_limit && <><dt>能耗预算</dt><dd>{m.command.energy_limit}% / 单机</dd></>}</dl>}</div></div>)}
+        {sim.messages.map(m => <div className="chat-exchange" key={m.id}><div className="user-message">{m.text}</div><div className={`command-result ${m.ok === false ? 'failed' : ''}`}><small>{m.unknown ? '执行状态待确认' : m.ok && m.command?.action_type === 'query_status' ? '后端已回答' : m.ok ? '后端已执行' : m.ok === false ? '未执行' : '处理中'}</small><p>{m.result}</p>{m.command && <CommandDetails command={m.command}/>}</div></div>)}
       </div>
       {(!state.health.agentReady || !state.health.agentVerified) && <p className="agent-note">{state.health.agentLastError || (state.health.agentReady ? 'AI 接口已配置，真实调度暂未验证；可先使用预设调度。' : state.health.agentConfigured ? state.health.agentMessage : '自然语言解析需要后端配置 AI 接口。预设调度可直接执行。')}</p>}
       <form className="chat-compose" onSubmit={e => { e.preventDefault(); if (text.trim()) { sim.chat(text.trim()); setText(''); } }}><textarea aria-label="调度需求" placeholder={state.health.agentReady ? '例如：派1号和3号机去B区取件' : state.health.agentConfigured ? '等待 AI 接口启动，预设可正常使用' : 'AI 未配置，请先使用上方预设'} value={text} onChange={e => setText(e.target.value)} disabled={!online || !state.health.agentReady || busy} maxLength={1000} /><button className="primary" disabled={!online || !state.health.agentReady || busy || !text.trim()}>发送调度指令 ↑</button></form>
-      <button className="emergency" disabled={!online} onClick={() => sim.dispatch({ action_type: 'emergency_stop', target_area: null, priority: 'urgent', energy_limit: null, assign_agents: ['all'] }, '紧急停止')}>Ⅱ 紧急停止集群</button>
+      <button className="emergency" disabled={!online || state.emergencyReturn} onClick={() => sim.dispatch({ action_type: 'emergency_stop', target_area: null, priority: 'urgent', energy_limit: null, assign_agents: ['all'] }, '紧急返航')}>{state.emergencyReturn ? '↩ 紧急返航中' : '↩ 紧急返航'}</button>
     </aside>
     <div className="mission-bottom console-card">
       <div className="mission-stages">{stages.map((stage, i) => <div className={stage.done ? 'done' : ''} key={stage.title}><i>{String(i + 1).padStart(2, '0')}</i><span><small>{stage.title}</small><strong>{stage.value}</strong></span></div>)}</div>

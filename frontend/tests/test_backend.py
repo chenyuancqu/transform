@@ -139,7 +139,7 @@ class BackendMissionTests(unittest.TestCase):
         self.assertTrue(order['completed'])
         self.assertEqual(u['cargoOrderId'], order['id'])
 
-    def test_pause_and_emergency_stop_freeze_business_state(self):
+    def test_pause_freezes_but_emergency_stop_returns_home(self):
         m = Mission()
         m.running = True
         m.advance(.05, {})
@@ -148,7 +148,15 @@ class BackendMissionTests(unittest.TestCase):
         m.advance(100, {'mother': [1, 1]})
         self.assertEqual({key: value for key, value in m.__dict__.items() if key != 'rng'}, before)
         m.command({'action_type': 'emergency_stop', 'assign_agents': ['all']})
+        self.assertTrue(m.running)
+        self.assertTrue(m.emergency_return)
+        for _ in range(400):
+            m.advance(.05, {})
+            if not m.running:
+                break
         self.assertFalse(m.running)
+        self.assertFalse(m.emergency_return)
+        self.assertTrue(all(u['phase'] in ('charging', 'docked') for u in m.uavs))
 
     def test_dispatch_targets_selected_agents_and_region(self):
         m = Mission(order_count=8, rng=random.Random(12))

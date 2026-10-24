@@ -52,12 +52,12 @@ class DispatchPolicy:
                 label=f"接应点 {i + 1}" if view.stage == 'mother' else f"订单 {i + 1}") for i in rank])
         return action, trace
 
-    def plan(self, mission):
+    def plan(self, mission, fixed_site=None, only_uav_ids=None):
         started = time.perf_counter()
-        # Slots represent currently waiting orders, not historical order IDs.
-        # Eight physical anchors cap simultaneous waiting parcels at eight even
-        # when a mission has accumulated thirty different order IDs.
-        window = sorted((o for o in mission.orders if not o['completed']),
+        # Slots represent currently unreserved orders, not historical order
+        # IDs.  This lets a returned UAV refill its slot while other UAVs in
+        # the same wave are still flying or unloading.
+        window = sorted((o for o in mission.orders if not o['completed'] and o['reservedBy'] is None),
                         key=lambda o: (o['createdAt'], o['id']))[:18]
         if not window:
             return None
@@ -76,12 +76,25 @@ class DispatchPolicy:
         view.elapsed = mission.elapsed
         view.flow = sum((o['deliveredAt'] if o['deliveredAt'] is not None else mission.elapsed) - o['createdAt'] for o in mission.orders)
         view.energy = mission.stats['uavEnergyWh']
-        site, trace = self.decide(view)
+        if fixed_site is None:
+            site, trace = self.decide(view)
+        else:
+            site = int(fixed_site)
+            trace = dict(stage='mother', uavId=None, action=site, value=None,
+                         validActions=1, candidates=[dict(action=site, probability=1., label=f'接应点 {site + 1}')])
         view.meeting = SITES[site].copy()
         view.stage = 'uav'
         traces, assignments = [trace], []
         for uav in mission.uavs:
-            if not uav['enabled'] or not view.pending.any():
+            # A UAV that is still unloading or folding back belongs to the
+            # previous wave.  It must not receive a new reservation while its
+            # physical state is still being completed.  HOME_PHASES includes
+            # charging, so a low-battery aircraft can still be reserved for
+            # the next wave and join after it has replenished on the carrier.
+            if (not uav['enabled'] or uav['phase'] not in HOME_PHASES
+                    or uav['cargoOrderId'] is not None or uav['targetOrderId'] is not None
+                    or not view.pending.any()
+                    or (only_uav_ids is not None and uav['id'] not in only_uav_ids)):
                 continue
             view.uav = uav['id'] - 1
             allowed = np.zeros(18, dtype=bool)
@@ -129,21 +142,86 @@ class V2Mission(Mission):
         self.last_plan = None
         self.stats.update(uavEnergyWh=0., averageUavEnergyPerOrderWh=None, dispatchObjective=None)
 
+    def _reserve_assignments(self, plan):
+        """Apply a policy plan without changing the aircraft's physical phase.
+
+        The caller only passes HOME_PHASES aircraft.  Keeping this operation in
+        one place is important for rolling refill: an aircraft that is still
+        unloading/parking must never be overwritten by a new reservation.
+        """
+        applied = []
+        for assignment in plan.get('assignments', []):
+            uav = self.uavs[assignment['uavId'] - 1]
+            order = next((o for o in self.orders if o['id'] == assignment['orderId']), None)
+            if (order is None or order['completed'] or order['reservedBy'] is not None
+                    or not uav['enabled'] or uav['phase'] not in HOME_PHASES
+                    or uav['cargoOrderId'] is not None or uav['targetOrderId'] is not None):
+                continue
+            order.update(reservedBy=uav['id'], status='enroute')
+            uav.update(targetOrderId=order['id'], missionOrderId=order['id'],
+                       phase='charging' if uav['battery'] < assignment['requiredBattery'] else 'docked')
+            applied.append(assignment)
+        return applied
+
+    def _refill_wave(self):
+        """Assign free aircraft into the current rendezvous wave.
+
+        The mother keeps the existing rendezvous, so a returned aircraft can
+        launch a new pickup while another aircraft is using the single bay.
+        This is deliberately limited to HOME_PHASES aircraft and unreserved
+        orders; the physical unloading queue remains authoritative.
+        """
+        if not self.wave_plan or self.wave_stage != 'executing':
+            return False
+        free_ids = {u['id'] for u in self.uavs if u['enabled'] and u['phase'] in HOME_PHASES
+                    and u['cargoOrderId'] is None and u['targetOrderId'] is None}
+        if not free_ids:
+            return False
+        refill = self.policy.plan(self, fixed_site=self.wave_plan['site'] - 1,
+                                  only_uav_ids=free_ids)
+        if not refill:
+            return False
+        applied = self._reserve_assignments(refill)
+        if not applied:
+            return False
+        self.wave_plan['assignments'].extend(copy.deepcopy(applied))
+        # Keep the model trace window bounded to the original 18 slots.  A
+        # refill is a new policy call over a later window and its assignment
+        # is already carried by the stable real order ID; mixing the two
+        # windows would make an old `action` index ambiguous in the UI.
+        pairs = ' / '.join(f"UAV {a['uavId']}→订单 {a['orderId']}" for a in applied)
+        self.event(f'V2 第 {self.wave_number} 波滚动补派 · {pairs} · 保持接应点 {self.wave_plan["site"]}')
+        return True
+
     def assign(self):
         if not self.running:
             return
-        if self.wave_plan:
-            if self.wave_stage == 'preflight':
-                ready = all(self.uavs[a['uavId'] - 1]['battery'] >= a['requiredBattery']
-                            for a in self.wave_plan['assignments'])
-                if ready:
-                    for a in self.wave_plan['assignments']:
-                        u = self.uavs[a['uavId'] - 1]
-                        u.update(phase='takingOff', stableElapsed=0., pickupProgress=0.)
-                    self.wave_stage = 'executing'
-                    self.event(f'V2 第 {self.wave_number} 波起飞 · 母车前往接应点 {self.wave_plan["site"]}')
+        if self.emergency_return:
             return
-        if not all(u['phase'] in HOME_PHASES for u in self.uavs) or self.docking['hatchProgress'] > 0:
+        if self.wave_plan:
+            if self.wave_stage in ['preflight', 'executing']:
+                launched = []
+                for a in self.wave_plan['assignments']:
+                    u = self.uavs[a['uavId'] - 1]
+                    order = next((o for o in self.orders if o['id'] == a['orderId']), None)
+                    if (order and not order['completed'] and u['targetOrderId'] == a['orderId']
+                            and u['phase'] in HOME_PHASES and u['battery'] >= a['requiredBattery']):
+                        u.update(phase='takingOff', stableElapsed=0., pickupProgress=0.)
+                        launched.append(u['id'])
+                if launched and self.wave_stage == 'preflight':
+                    self.wave_stage = 'executing'
+                    self.event(f'V2 第 {self.wave_number} 波分批起飞 · UAV {", ".join(map(str, launched))} 前往接应点 {self.wave_plan["site"]}')
+                if self.wave_stage == 'executing':
+                    self._refill_wave()
+            return
+        # A wave can be handed off as soon as at least one aircraft is back on
+        # the carrier.  Other aircraft may still be folding/parking from the
+        # previous wave; DispatchPolicy.plan() filters them out until they
+        # become physically available.  Waiting for all three here was the
+        # source of the long "波次回收" idle window.
+        available = [u for u in self.uavs if u['enabled'] and u['phase'] in HOME_PHASES
+                     and u['cargoOrderId'] is None and u['targetOrderId'] is None]
+        if not available or self.docking['hatchProgress'] > 0:
             return
         if self.queued_command:
             command = self.queued_command
@@ -163,16 +241,15 @@ class V2Mission(Mission):
             self.event('本次调度范围已完成或预算不足 · 可继续派发其它区域任务')
             return
         self.wave_number += 1
-        self.wave_plan = self.last_plan = plan
+        self.wave_plan = self.last_plan = copy.deepcopy(plan)
         self.wave_stage = 'preflight'
-        for a in plan['assignments']:
-            u = self.uavs[a['uavId'] - 1]
-            order = self.orders[a['orderId'] - 1]
-            order.update(reservedBy=u['id'], status='enroute')
-            u.update(targetOrderId=order['id'], missionOrderId=order['id'],
-                     phase='charging' if u['battery'] < a['requiredBattery'] else 'docked')
-        pairs = ' / '.join(f"UAV {a['uavId']}→订单 {a['orderId']}" for a in plan['assignments'])
-        self.event(f'PPO 第 {self.wave_number} 波 · 接应点 {plan["site"]} · {pairs}')
+        self._reserve_assignments(self.wave_plan)
+        if not self.wave_plan['assignments']:
+            self.wave_plan = None
+            self.wave_stage = 'regrouping'
+            return
+        pairs = ' / '.join(f"UAV {a['uavId']}→订单 {a['orderId']}" for a in self.wave_plan['assignments'])
+        self.event(f'PPO 第 {self.wave_number} 波 · 接应点 {self.wave_plan["site"]} · {pairs}')
 
     def meeting_rover(self):
         plan = self.wave_plan or self.last_plan
@@ -185,7 +262,7 @@ class V2Mission(Mission):
         return distance(self.rover, self.meeting_rover()) < .02
 
     def should_park_rover(self):
-        return (not self.wave_plan or self.wave_stage == 'preflight'
+        return (self.emergency_return or not self.wave_plan or self.wave_stage == 'preflight'
             or any(u['phase'] in ['takingOff', 'unloading', 'clearingBay', 'parking'] for u in self.uavs))
 
     def move_rover(self, dt, actions):
@@ -235,9 +312,32 @@ class V2Mission(Mission):
         self.stats['dispatchObjective'] = (sum((o['deliveredAt'] if o['deliveredAt'] is not None else self.elapsed) - o['createdAt']
             for o in self.orders) + 6 * self.stats['uavEnergyWh']) / len(self.orders)
         home = all(u['phase'] in HOME_PHASES for u in self.uavs) and self.docking['hatchProgress'] == 0
-        if home and self.wave_stage == 'executing':
+        if self.emergency_return:
+            if home:
+                for u in self.uavs:
+                    u['enabled'] = (self.emergency_enabled or {}).get(u['id'], True)
+                self.emergency_enabled = None
+                self.emergency_return = False
+                self.wave_plan = None
+                self.queued_command = None
+                self.running = False
+                self.wave_stage = 'ready'
+                self.event('紧急返航完成 · 全部无人机已回到母车')
+            return
+        wave_orders = [next((o for o in self.orders if o['id'] == a['orderId']), None)
+                       for a in (self.wave_plan or {}).get('assignments', [])]
+        wave_complete = bool(wave_orders) and all(o is not None and o['status'] == 'delivered' for o in wave_orders)
+        previous_wave_active = any(u['phase'] in ['returning', 'waitingDock', 'unloading']
+                                   or u['cargoOrderId'] is not None for u in self.uavs)
+        if (self.wave_stage == 'executing' and wave_complete
+                and self.docking['hatchProgress'] == 0 and not previous_wave_active):
             self.wave_plan = None
             self.wave_stage = 'regrouping'
+            # The next plan is allowed to start on the first available UAV.
+            # Remaining aircraft finish clearing/parking in parallel and are
+            # picked up by the next assign() call once they reach HOME_PHASES.
+            self.event('本波订单已交付 · 可用无人机先行进入下一波，其他无人机并行归位')
+            self.assign()
         if home and len(delivered) == len(self.orders) and not self.order_stream_enabled:
             self.running = False
             self.wave_stage = 'complete'
@@ -248,22 +348,25 @@ class V2Mission(Mission):
             self.assign()
 
     def command(self, data):
+        if data.get('action_type') == 'query_status':
+            return self.query_status(data)
         # Validate with the established command validator, without mutating live
         # in-flight assignments. Dispatch changes take effect at a wave boundary.
         shadow = Mission.__new__(Mission)
         shadow.__dict__ = copy.deepcopy({k: v for k, v in self.__dict__.items() if k != 'policy'})
         Mission.command(shadow, data)
         if data['action_type'] == 'emergency_stop':
-            self.running = False
-            self.last_command = copy.deepcopy(data)
-            self.event('集群紧急停止 · V2 波次与进度已保留')
-            return '集群紧急停止 · 位置和任务进度已保留'
+            message = Mission.command(self, data)
+            self.wave_plan = None
+            self.queued_command = None
+            self.wave_stage = 'emergencyReturn'
+            return message
         if self.wave_plan:
             self.queued_command = copy.deepcopy(data)
             self.running = True
             self.last_command = copy.deepcopy(data)
-            self.event('新调度已排队 · 当前波次回收后生效')
-            return '调度已确认 · 当前波次完成后由 PPO 重新选单'
+            self.event('新调度已排队 · 当前波次交付完成后生效')
+            return '调度已确认 · 当前波次交付完成后由 PPO 重新选单'
         return super().command(data)
 
     def snapshot(self, health):

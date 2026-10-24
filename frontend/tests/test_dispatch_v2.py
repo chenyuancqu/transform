@@ -38,7 +38,13 @@ class V2IntegrationTests(unittest.TestCase):
             mission.control({'action':'start'})
             seen, minimum = self.finish(mission)
             self.assertEqual(mission.stats['deliveredOrders'],8)
-            self.assertEqual(mission.wave_number,3)
+            # The V2 executor now keeps one rendezvous wave open and rolls a
+            # returned UAV into the next unreserved order.  The old all-home
+            # barrier produced three waves for eight orders and is no longer
+            # the expected efficiency behavior.
+            self.assertEqual(mission.wave_number,1)
+            self.assertEqual(len(mission.last_plan['assignments']),8)
+            self.assertLess(len({a['uavId'] for a in mission.last_plan['assignments']}),8)
             self.assertEqual(mission.wave_stage,'complete')
             self.assertTrue(all(u['phase']=='docked' for u in mission.uavs))
             self.assertGreater(minimum,.1)
@@ -81,16 +87,15 @@ class V2IntegrationTests(unittest.TestCase):
         self.finish(mission)
         self.assertEqual(mission.stats['deliveredOrders'],8)
 
-    def test_preflight_holds_rover_until_aircraft_ready(self):
+    def test_partial_preflight_launches_ready_aircraft(self):
         mission = self.mission()
         mission.uavs[0]['battery']=.1
         mission.control({'action':'start'})
         for _ in range(20):
             mission.advance(.05,{})
-        self.assertEqual(mission.wave_stage,'preflight')
-        self.assertEqual(mission.rover['x'],.5)
-        self.assertEqual(mission.rover['y'],.5)
-        self.assertTrue(all(u['phase'] in HOME_PHASES for u in mission.uavs))
+        self.assertEqual(mission.wave_stage,'executing')
+        self.assertTrue(any(u['phase'] not in HOME_PHASES for u in mission.uavs))
+        self.assertTrue(any(u['phase'] in HOME_PHASES for u in mission.uavs))
 
     def test_dynamic_orders_reach_thirty_with_real_ids_beyond_model_slots(self):
         for profile in ['balanced','imbalanced']:
@@ -111,7 +116,10 @@ class V2IntegrationTests(unittest.TestCase):
                 saw_streaming |= len(mission.orders) > initial
                 if mission.wave_plan:
                     for a in mission.wave_plan['assignments']:
-                        self.assertIn(a['orderId'],mission.wave_plan['windowOrderIds'])
+                        # Rolling refills can append orders from a later
+                        # 18-slot model window; the stable physical order ID
+                        # is the authoritative assignment reference.
+                        self.assertIn(a['orderId'],[o['id'] for o in mission.orders])
                         saw_late_id |= a['orderId'] > 18
                     for d in mission.wave_plan['traces']:
                         if d['stage']=='uav':

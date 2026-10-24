@@ -86,7 +86,7 @@ test('V2 discrete decisions validate without pretending to be continuous motion 
   data.dispatch={version:2,policy:'PPO',wave:1,stage:'executing',rendezvous:[30,-30],
     assignments:[{uavId:1,orderId:2}],decisions:[{stage:'uav',action:1,candidates:[{action:1,probability:.8,label:'订单 2'}]}]};
   assert.equal(decodeSnapshot(data).dispatch.assignments[0].orderId,2);
-  for(const mutate of [d=>{d.dispatch.rendezvous=[NaN,0];},d=>{d.dispatch.assignments.push({uavId:1,orderId:3});},
+  for(const mutate of [d=>{d.dispatch.rendezvous=[NaN,0];},d=>{d.dispatch.assignments.push({uavId:2,orderId:2});},
     d=>{d.dispatch.decisions[0].candidates[0].probability=2;},d=>{d.dispatch.assignments[0].orderId=99;}]){
     const bad=structuredClone(data);mutate(bad);assert.throws(()=>decodeSnapshot(bad));
   }

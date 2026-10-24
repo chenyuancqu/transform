@@ -30,6 +30,18 @@ def world(p):
     return [p['x'] * 200 - 100, p['y'] * 200 - 100, p.get('z', 0) * 50]
 
 
+def normalise_world_position(position):
+    if not isinstance(position, (list, tuple)) or len(position) != 3:
+        raise ValueError('target_position 必须是 [x, y, z] 三维米制坐标')
+    if any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)
+           for value in position):
+        raise ValueError('target_position 必须只包含有限数字')
+    x, y, z = [float(value) for value in position]
+    if not -100 <= x <= 100 or not -100 <= y <= 100 or not 0 <= z <= 50:
+        raise ValueError('target_position 超出园区范围（x/y -100–100m，z 0–50m）')
+    return dict(x=(x + 100) / 200, y=(y + 100) / 200, z=z / 50)
+
+
 def distance(a, b):
     return math.dist(world(a), world(b))
 
@@ -76,6 +88,11 @@ def aligned(uav, order, velocity):
     return math.hypot(a[0] - b[0], a[1] - b[1]) <= .35 and abs(a[2] - b[2]) <= .2 and velocity <= .15
 
 
+def aligned_position(uav, target, velocity):
+    a, b = world(uav), world(target)
+    return math.hypot(a[0] - b[0], a[1] - b[1]) <= .35 and abs(a[2] - b[2]) <= .2 and velocity <= .15
+
+
 class Mission:
     def __init__(self, order_count=None, rng=None, max_orders=MAX_ORDERS_PER_MISSION):
         if order_count is not None and (isinstance(order_count, bool) or not isinstance(order_count, int)
@@ -118,7 +135,7 @@ class Mission:
         return dict(id=order_id, locationId=location['id'], x=bx, y=by, z=height / 50,
                     pickupType=location['pickupType'], buildingId=location.get('buildingId'),
                     floor=location.get('floor'), area=self.location_area(location),
-                    completed=False, status='waiting', reservedBy=None, deliveredAt=None,
+                    priority='normal', completed=False, status='waiting', reservedBy=None, deliveredAt=None,
                     createdAt=self.elapsed, energyConsumedPercent=0.)
 
     def spawn_order(self):
@@ -175,7 +192,8 @@ class Mission:
             uav = dict(id=index, battery=battery, phase='charging' if battery < .995 else 'docked',
                        targetOrderId=None, cargoOrderId=None, stableElapsed=0., pickupProgress=0.,
                        unloadProgress=0., missionOrderId=None, enabled=True, preferredArea=None,
-                       energyLimit=None, missionEnergy=0., retractProgress=0.)
+                       preferredOrderIds=None, commandTarget=None, energyLimit=None,
+                       missionEnergy=0., retractProgress=0.)
             uav.update(carrier_pad(self.rover, uav))
             self.uavs.append(uav)
         self.orders = self.generate_orders()
@@ -187,6 +205,8 @@ class Mission:
         self.events = []
         self.last_command = None
         self.energy_mode = False
+        self.emergency_return = False
+        self.emergency_enabled = None
 
     def event(self, text):
         self.events.append(dict(time=round(self.elapsed, 1), text=text))
@@ -194,18 +214,21 @@ class Mission:
 
     def assign(self):
         for u in self.uavs:
-            if not u['enabled'] or u['phase'] not in HOME_PHASES or u['cargoOrderId'] is not None or u['targetOrderId'] is not None:
+            if self.emergency_return or not u['enabled'] or u['phase'] not in HOME_PHASES or u['cargoOrderId'] is not None or u['targetOrderId'] is not None:
                 continue
             choices = [o for o in self.orders if not o['completed'] and o['reservedBy'] is None]
             if u['preferredArea']:
                 choices = [o for o in choices if o['area'] == u['preferredArea']]
+            if u.get('preferredOrderIds'):
+                choices = [o for o in choices if o['id'] in u['preferredOrderIds']]
             if u['energyLimit'] is not None and u['missionEnergy'] >= u['energyLimit']:
                 continue
             if not choices:
                 continue
             if u['battery'] < MIN_DISPATCH_BATTERY:
                 continue
-            order = min(choices, key=lambda o: distance(u, pickup(o)))
+            order = min(choices, key=lambda o: (0 if o.get('priority') == 'urgent' else 1,
+                                                distance(u, pickup(o))))
             estimated = (distance(u, pickup(order)) + distance(pickup(order), dock(self.rover, u))) / 3.5 * (.003 / .52 * 100) + 3
             if u['battery'] * 100 < estimated + BATTERY_RESERVE_PERCENT:
                 continue
@@ -224,7 +247,7 @@ class Mission:
                              len(waiting) / len(self.orders), sum(u['battery'] for u in self.uavs) / 3]}
         for u in self.uavs:
             order = next((o for o in self.orders if o['id'] == u['targetOrderId']), None)
-            target = pickup(order) if order else dock(r, u)
+            target = pickup(order) if order else (u.get('commandTarget') or dock(r, u))
             result[f"uav_{u['id']}"] = [u['x'], u['y'], u['z'], u['battery'], r['x'] - u['x'],
                                         r['y'] - u['y'], -u['z'], target['x'] - u['x'],
                                         target['y'] - u['y'], target['z'] - u['z']]
@@ -291,7 +314,7 @@ class Mission:
             if u['phase'] == 'idle':
                 on_carrier = distance(u, carrier_pad(r, u)) <= .2
                 u['phase'] = ('charging' if u['battery'] < .995 else 'docked') if on_carrier else 'parking'
-        if not self.should_park_rover():
+        if not self.should_park_rover() and not self.emergency_return:
             self.move_rover(dt, actions)
         if distance(r, old_rover) > .0001:
             r['heading'] = math.atan2(r['x'] - old_rover['x'], r['y'] - old_rover['y'])
@@ -308,6 +331,16 @@ class Mission:
                     if u['battery'] >= .995:
                         u['phase'] = 'docked'
             order = next((o for o in self.orders if o['id'] == u['targetOrderId'] and not o['completed']), None)
+            command_target = u.get('commandTarget')
+            if command_target:
+                if u['phase'] != 'holding':
+                    target_distance = distance(u, command_target)
+                    move(u, command_target, dt, 4.5 if self.energy_mode else 6)
+                    velocity = distance(u, before) / dt
+                    if aligned_position(u, command_target, velocity) or target_distance <= .1:
+                        u.update(command_target, phase='holding')
+                        self.event(f"UAV {u['id']} 已到达 AI 指定坐标 · 稳定悬停")
+                order = None
             if order and u['phase']=='takingOff':
                 move(u,dict(x=u['x'],y=u['y'],z=TAKEOFF_ALTITUDE),dt,0)
                 if abs(u['z']-TAKEOFF_ALTITUDE)*50<=.005:u.update(z=TAKEOFF_ALTITUDE,phase='cruising')
@@ -386,10 +419,17 @@ class Mission:
                                   and all(u['phase'] == 'docked' for u in self.uavs)
                                   and self.docking['hatchProgress'] == 0)
         all_home = all(u['phase'] in HOME_PHASES for u in self.uavs)
-        if all_delivered_and_home and not self.order_stream_enabled:
+        if self.emergency_return and all_home and self.docking['hatchProgress'] == 0:
+            for u in self.uavs:
+                u['enabled'] = (self.emergency_enabled or {}).get(u['id'], True)
+            self.emergency_enabled = None
+            self.emergency_return = False
+            self.running = False
+            self.event('紧急返航完成 · 全部无人机已回到母车')
+        elif all_delivered_and_home and not self.order_stream_enabled:
             self.running = False
             self.event('本轮订单已全部完成')
-        elif all_home:
+        elif all_home and not self.emergency_return:
             # A second admission check includes the energy budget and region.
             self.assign()
             if all(u['phase'] in HOME_PHASES for u in self.uavs):
@@ -408,6 +448,8 @@ class Mission:
     def control(self, command):
         action = command.get('action')
         if action == 'start':
+            if self.emergency_return:
+                raise ValueError('紧急返航进行中，请等待无人机归位后再继续任务')
             can_resume_stream = self.dynamic_order_stream and len(self.orders) < self.max_orders
             if (self.stats['deliveredOrders'] == len(self.orders) and all(u['phase'] == 'docked' for u in self.uavs)
                     and self.docking['hatchProgress'] == 0 and not can_resume_stream):
@@ -415,6 +457,8 @@ class Mission:
             self.running = True
             self.configure_order_stream(self.order_stream_area)
         elif action == 'pause':
+            if self.emergency_return:
+                raise ValueError('紧急返航进行中，不能暂停返航流程')
             self.running = False
         elif action == 'reset':
             self.reset()
@@ -436,10 +480,54 @@ class Mission:
         return {'start': '任务开始 · 无人机从母车起飞', 'pause': '任务暂停', 'reset': '任务重置',
                 'speed': '演示速度已更新', 'battery_mode': '初始电量模式已切换'}[action]
 
+    def query_status(self, data):
+        query_type = data.get('query_type')
+        aliases = {'订单数': 'order_count', '订单数量': 'order_count', '订单统计': 'order_count',
+                   '订单详情': 'order_detail', '订单状态': 'order_detail', '设备状态': 'fleet_status',
+                   '机队状态': 'fleet_status', '指标': 'metrics', '运行指标': 'metrics', '位置': 'position', '坐标': 'position'}
+        query_type = aliases.get(query_type, query_type)
+        if query_type == 'order_count':
+            delivered = sum(o['status'] == 'delivered' for o in self.orders)
+            waiting = sum(not o['completed'] and o['reservedBy'] is None for o in self.orders)
+            active = sum(not o['completed'] and o['reservedBy'] is not None for o in self.orders)
+            return f'当前共有 {len(self.orders)} 个订单：已完成并回收 {delivered} 个，执行中 {active} 个，待分配 {waiting} 个。'
+        if query_type == 'order_detail':
+            order_id = data.get('query_order_id', data.get('order_id'))
+            if isinstance(order_id, bool) or not isinstance(order_id, int):
+                raise ValueError('查询订单详情需要有效订单号')
+            order = next((o for o in self.orders if o['id'] == order_id), None)
+            if order is None:
+                raise ValueError(f'订单 {order_id} 不存在')
+            location = f"{order['buildingId']} · {order['floor']}F 阳台" if order['pickupType'] == 'balcony' else f"{order['area']}区中庭"
+            assignee = f"UAV {order['reservedBy']}" if order['reservedBy'] is not None else '待分配'
+            priority = '加急' if order.get('priority') == 'urgent' else '常规'
+            return f"订单 {order_id}：{location}，{priority}，状态 {order['status']}，执行设备 {assignee}。"
+        if query_type == 'fleet_status':
+            return '当前机队：' + '；'.join(f"UAV {u['id']}：{u['phase']}，电量 {u['battery'] * 100:.0f}%" + (f"，订单 {u['targetOrderId']}" if u['targetOrderId'] is not None else '') for u in self.uavs) + '。'
+        if query_type == 'metrics':
+            return f"当前指标：完成率 {self.stats['completionRate']:.1f}% ，已回收 {self.stats['deliveredOrders']} 单，累计能耗 {self.stats.get('uavEnergyWh', self.stats.get('energyConsumed', 0)):.2f}。"
+        if query_type == 'position':
+            agent_id = data.get('query_agent_id', data.get('agent_id'))
+            if isinstance(agent_id, int) and 1 <= agent_id <= 3:
+                agent_id = f'uav_{agent_id}'
+            if agent_id == 'mother':
+                point, label = self.rover, 'MOTHER'
+            elif isinstance(agent_id, str) and agent_id in ['uav_1', 'uav_2', 'uav_3']:
+                point, label = self.uavs[int(agent_id[-1]) - 1], agent_id.upper()
+            else:
+                raise ValueError('查询位置需要 mother 或 uav_1/uav_2/uav_3')
+            x, y, z = [round(value, 2) for value in world(point)]
+            return f'{label} 当前坐标：({x}, {y}, {z}) 米。'
+        raise ValueError('不支持的查询类型')
+
     def command(self, data):
         action = data.get('action_type')
+        if action == 'query_status':
+            return self.query_status(data)
         if action not in ['dispatch', 'emergency_stop', 'optimize_energy']:
             raise ValueError('调度类型无效')
+        if self.emergency_return and action != 'emergency_stop':
+            raise ValueError('紧急返航进行中，请等待无人机归位后再派发任务')
         area = data.get('target_area')
         if area not in ['A', 'B', 'C', None]:
             raise ValueError('目标区域无效')
@@ -449,27 +537,77 @@ class Mission:
         limit = data.get('energy_limit')
         if limit is not None and (isinstance(limit, bool) or not isinstance(limit, (int, float)) or not 0 < limit <= 100):
             raise ValueError('能耗上限必须大于0且不超过100')
-        if data.get('priority', 'normal') not in ['normal', 'urgent']:
+        priority = data.get('priority', 'normal')
+        if priority not in ['normal', 'urgent']:
             raise ValueError('优先级无效')
+        order_ids = data.get('order_ids')
+        if order_ids is not None and (not isinstance(order_ids, list) or not order_ids or any(isinstance(i, bool) or not isinstance(i, int) or i < 1 for i in order_ids) or len(set(order_ids)) != len(order_ids)):
+            raise ValueError('order_ids 必须是去重后的正整数数组')
+        known = {o['id']: o for o in self.orders}
+        if order_ids is not None:
+            missing = [i for i in order_ids if i not in known]
+            if missing:
+                raise ValueError(f'订单不存在：{", ".join(map(str, missing))}')
+        target_position = data.get('target_position')
+        normalized_target = normalise_world_position(target_position) if target_position is not None else None
         if action != 'emergency_stop' and not any(i in ids for i in ['all', 'uav_1', 'uav_2', 'uav_3']):
             raise ValueError('取件调度需要至少一架无人机')
         if action == 'emergency_stop':
-            self.running = False
-            message = '集群紧急停止 · 位置和任务进度已保留'
+            if self.emergency_enabled is None:
+                self.emergency_enabled = {u['id']: u['enabled'] for u in self.uavs}
+            self.emergency_return = True
+            self.order_stream_enabled = False
+            self.stats['orderStreamActive'] = False
+            self.next_order_at = None
+            for u in self.uavs:
+                u.update(enabled=False, preferredArea=None, preferredOrderIds=None, energyLimit=None, commandTarget=None)
+                if u['cargoOrderId'] is not None:
+                    continue
+                if u['targetOrderId'] is not None:
+                    order = next((o for o in self.orders if o['id'] == u['targetOrderId']), None)
+                    if order and not order['completed']:
+                        order.update(reservedBy=None, status='waiting')
+                u.update(targetOrderId=None, missionOrderId=None, phase='parking', stableElapsed=0., pickupProgress=0.)
+            self.running = True
+            message = '紧急返航已启动 · 无人机返回母车，当前订单进度已保留'
         else:
             self.energy_mode = action == 'optimize_energy'
+            selected_ids = {u['id'] for u in self.uavs if 'all' in ids or f"uav_{u['id']}" in ids}
+            if normalized_target is not None and len(selected_ids) != 1:
+                raise ValueError('target_position 只能指派一架无人机')
+            scoped = [o for o in self.orders if not o['completed'] and (area is None or o['area'] == area) and (order_ids is None or o['id'] in order_ids)]
+            if order_ids is not None and not scoped:
+                raise ValueError('指定订单已完成或不属于当前调度范围')
+            for order in scoped:
+                order['priority'] = priority
             for u in self.uavs:
                 selected = 'all' in ids or f"uav_{u['id']}" in ids
                 # Finish an already loaded parcel; never delete in-flight cargo.
                 if u['cargoOrderId'] is None:
                     order = next((o for o in self.orders if o['id'] == u['targetOrderId']), None)
-                    if order and u['phase'] != 'picking' and (not selected or data.get('priority') == 'urgent' or (area and order['area'] != area)):
+                    if order and u['phase'] != 'picking' and (normalized_target is not None or not selected or priority == 'urgent' or (area and order['area'] != area) or (order_ids is not None and order['id'] not in order_ids)):
                         order.update(reservedBy=None, status='waiting')
                         u.update(targetOrderId=None, missionOrderId=None, phase='parking', stableElapsed=0.)
-                u.update(enabled=selected, preferredArea=area if selected else None, energyLimit=limit, missionEnergy=0.)
+                if selected:
+                    if normalized_target is None and u.get('commandTarget') is not None and u['cargoOrderId'] is None:
+                        u['phase'] = 'parking'
+                    u.update(commandTarget=normalized_target if normalized_target is not None else None,
+                             preferredOrderIds=order_ids, preferredArea=area)
+                    if normalized_target is not None:
+                        if u['cargoOrderId'] is not None:
+                            raise ValueError(f'UAV {u["id"]} 正在携货返航，不能切换到坐标指令')
+                        u.update(targetOrderId=None, missionOrderId=None, phase='cruising', stableElapsed=0., pickupProgress=0.)
+                else:
+                    u.update(commandTarget=None, preferredOrderIds=None, preferredArea=None)
+                u.update(enabled=selected, energyLimit=limit, missionEnergy=0.)
             self.running = True
-            self.configure_order_stream(area)
-            message = f"{'节能调度' if self.energy_mode else '取件调度'}已执行 · {area + '区' if area else '全园区'} · {', '.join(ids)}"
+            if normalized_target is not None:
+                self.order_stream_enabled = False; self.stats['orderStreamActive'] = False; self.next_order_at = None
+                x, y, z = [round(value, 1) for value in world(normalized_target)]
+                message = f"AI 坐标调度已执行 · UAV {next(iter(selected_ids))} · 目标 ({x}, {y}, {z})m"
+            else:
+                self.configure_order_stream(area)
+                message = f"{'节能调度' if self.energy_mode else ('加急' if priority == 'urgent' else '常规') + '取件调度'}已执行 · {area + '区' if area else '全园区'} · {', '.join(ids)}"
         self.last_command = copy.deepcopy(data)
         self.event(message)
         return message
@@ -477,10 +615,13 @@ class Mission:
     def snapshot(self, health):
         self.seq += 1
         def pose(p):
-            return {k: v for k, v in p.items() if k not in ['x', 'y', 'z', 'stableElapsed']} | {'position': world(p)}
+            result = {k: v for k, v in p.items() if k not in ['x', 'y', 'z', 'stableElapsed', 'commandTarget']}
+            if p.get('commandTarget') is not None:
+                result['commandTargetPosition'] = world(p['commandTarget'])
+            return result | {'position': world(p)}
         return dict(schema_version=1, epoch=self.epoch, seq=self.seq, timestamp=time.time() * 1000,
                     coordinate_system='campus_meters_xy_height', running=self.running, speed=self.speed,
-                    batteryMode=self.battery_mode,
+                    batteryMode=self.battery_mode, emergencyReturn=self.emergency_return,
                     elapsedSeconds=self.elapsed, rover=pose(self.rover), uavs=[pose(u) for u in self.uavs],
                     orders=[pose(o) for o in self.orders], stats=self.stats.copy(), health=health,
                     docking=copy.deepcopy(self.docking),
