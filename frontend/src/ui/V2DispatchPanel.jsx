@@ -1,15 +1,19 @@
 import React from 'react';
 
-const STAGES = {ready:'准备开始',preflight:'等待共同补能',executing:'并行取件与接应',regrouping:'回收归位',waitingOrders:'等待新订单到达',complete:'本轮已完成',scopeComplete:'本次范围已完成'};
+const STAGES = {ready:'准备开始',preflight:'逐机补能 · 达标即起飞',executing:'分批起飞与移动接应',regrouping:'回收归位',waitingOrders:'等待新订单到达',complete:'本轮已完成',scopeComplete:'本次范围已完成'};
 const fixed = (n, digits=1) => Number.isFinite(n) ? n.toFixed(digits) : '—';
 
 export function V2WaveSummary({state}) {
   const plan = state.dispatch;
   return <section className="v2-wave-summary" aria-label="PPO 波次调度">
     <div><strong>V2 · PPO 协同调度</strong><span>第 {plan.wave || '—'} 波</span></div>
-    <p>{!state.running&&plan.stage==='executing'?'已暂停 · ':''}{STAGES[plan.stage] || '等待调度'}{plan.pendingCommand ? ' · 新调度待下波生效' : ''}</p>
+    <p>{!state.running&&['preflight','executing'].includes(plan.stage)?'已暂停 · ':''}{STAGES[plan.stage] || '等待调度'}{plan.pendingCommand ? ' · 新调度待下波生效' : ''}</p>
     <small>{plan.rendezvous ? `接应点 ${plan.site} · X ${fixed(plan.rendezvous[0],0)} / Y ${fixed(plan.rendezvous[1],0)} m` : '模型将在开始后选择订单与接应点'}</small>
-    <div className="v2-assignment-list">{plan.assignments.map(a => <span key={a.uavId}>UAV {a.uavId}<b>→</b>订单 {a.orderId}</span>)}</div>
+    <div className="v2-assignment-list">{plan.assignments.map(a => {
+      const uav = state.uavs.find(u => u.id === a.uavId);
+      const pending = a.launchedAt === null;
+      return <span key={a.uavId}>UAV {a.uavId}<b>→</b>订单 {a.orderId}{pending && <small> · {a.launchState === 'ready' ? '等待舱区空闲' : `补能 ${fixed((uav?.battery ?? 0)*100,0)}% / ${fixed(a.requiredBattery*100,0)}%`}</small>}</span>;
+    })}</div>
     <small className="v2-scope-note">{plan.fixedOrders?`固定 ${state.orders.length} 单`:`已到达 ${state.orders.length} / ${plan.orderStream?.maxOrders ?? 30} 单 · 每 12 仿真秒补单`} · 波次回收后重新选单</small>
   </section>;
 }

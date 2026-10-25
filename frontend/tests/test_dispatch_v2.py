@@ -81,9 +81,36 @@ class V2IntegrationTests(unittest.TestCase):
         self.finish(mission)
         self.assertEqual(mission.stats['deliveredOrders'],8)
 
-    def test_preflight_holds_rover_until_aircraft_ready(self):
+    def test_ready_aircraft_launch_while_teammate_charges_on_moving_carrier(self):
         mission = self.mission()
-        mission.uavs[0]['battery']=.1
+        mission.rover.update(x=.4,y=.4)
+        mission.uavs[0]['battery']=.01
+        mission.control({'action':'start'})
+        for _ in range(120):
+            mission.advance(.05,{})
+        self.assertEqual(mission.wave_stage,'executing')
+        assignments = mission.wave_plan['assignments']
+        waiting = next(a for a in assignments if a['uavId']==1)
+        self.assertIsNone(waiting['launchedAt'])
+        self.assertEqual(mission.uavs[0]['phase'],'charging')
+        self.assertTrue(all(a['launchedAt'] is not None for a in assignments if a['uavId']!=1))
+        self.assertNotEqual((mission.rover['x'],mission.rover['y']),(.4,.4))
+        from mission import carrier_pad, distance
+        self.assertLess(distance(mission.uavs[0],carrier_pad(mission.rover,mission.uavs[0])),.001)
+        self.assertAlmostEqual(waiting['requiredBattery'],mission.required_battery(mission.uavs[0],mission.orders[waiting['orderId']-1]),delta=.002)
+        site = mission.wave_plan['site']
+        for _ in range(2000):
+            mission.advance(.05,{})
+            self.assertEqual(mission.wave_plan['site'],site)
+            if waiting['launchedAt'] is not None:
+                break
+        self.assertIsNotNone(waiting['launchedAt'])
+        self.assertGreaterEqual(waiting['launchBattery'],waiting['requiredBattery'])
+
+    def test_preflight_holds_rover_when_no_aircraft_can_launch(self):
+        mission = self.mission()
+        for u in mission.uavs:
+            u['battery']=.01
         mission.control({'action':'start'})
         for _ in range(20):
             mission.advance(.05,{})
@@ -91,6 +118,48 @@ class V2IntegrationTests(unittest.TestCase):
         self.assertEqual(mission.rover['x'],.5)
         self.assertEqual(mission.rover['y'],.5)
         self.assertTrue(all(u['phase'] in HOME_PHASES for u in mission.uavs))
+
+    def test_early_returns_preserve_waiting_assignment_and_wave_boundary(self):
+        mission = self.mission()
+        mission.uavs[0]['battery']=.01
+        normal_charge = mission.charge
+        mission.charge = lambda u,dt: normal_charge(u,dt) if u['id']!=1 else None
+        mission.control({'action':'start'})
+        mission.advance(.05,{})
+        plan = mission.wave_plan
+        for _ in range(4000):
+            mission.advance(.05,{})
+            if mission.stats['deliveredOrders']==2 and all(u['phase'] in HOME_PHASES for u in mission.uavs):
+                break
+        self.assertEqual(mission.stats['deliveredOrders'],2)
+        self.assertIs(mission.wave_plan,plan)
+        self.assertEqual(mission.wave_number,1)
+        waiting = next(a for a in plan['assignments'] if a['uavId']==1)
+        self.assertIsNone(waiting['launchedAt'])
+        self.assertEqual(mission.orders[waiting['orderId']-1]['reservedBy'],1)
+        mission.control({'action':'pause'})
+        frozen = copy.deepcopy((mission.wave_plan,mission.uavs,mission.rover))
+        mission.advance(5,{})
+        self.assertEqual(frozen,(mission.wave_plan,mission.uavs,mission.rover))
+        mission.charge = normal_charge
+        mission.control({'action':'start'})
+        self.finish(mission)
+        self.assertEqual(mission.stats['deliveredOrders'],8)
+
+    def test_departure_rechecks_required_energy_after_carrier_moves(self):
+        mission = self.mission()
+        for u in mission.uavs:
+            u['battery']=.01
+        mission.control({'action':'start'})
+        mission.assign()
+        for a in mission.wave_plan['assignments']:
+            self.assertAlmostEqual(a['requiredBattery'],mission.required_battery(mission.uavs[a['uavId']-1],mission.orders[a['orderId']-1]))
+        mission.rover.update(x=.65,y=.35)
+        mission.assign()
+        self.assertTrue(any(abs(a['requiredBattery']-a['plannedRequiredBattery'])>.001 for a in mission.wave_plan['assignments']))
+        self.assertTrue(all(a['launchedAt'] is None for a in mission.wave_plan['assignments']))
+        for a in mission.wave_plan['assignments']:
+            self.assertAlmostEqual(a['requiredBattery'],mission.required_battery(mission.uavs[a['uavId']-1],mission.orders[a['orderId']-1]))
 
     def test_dynamic_orders_reach_thirty_with_real_ids_beyond_model_slots(self):
         for profile in ['balanced','imbalanced']:

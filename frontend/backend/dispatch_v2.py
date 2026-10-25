@@ -133,15 +133,35 @@ class V2Mission(Mission):
         if not self.running:
             return
         if self.wave_plan:
-            if self.wave_stage == 'preflight':
-                ready = all(self.uavs[a['uavId'] - 1]['battery'] >= a['requiredBattery']
-                            for a in self.wave_plan['assignments'])
-                if ready:
-                    for a in self.wave_plan['assignments']:
-                        u = self.uavs[a['uavId'] - 1]
+            if self.wave_stage in ['preflight', 'executing']:
+                launched = []
+                bay_clear = self.docking['hatchProgress'] == 0 and not any(
+                    u['phase'] in ['unloading', 'clearingBay', 'parking'] for u in self.uavs)
+                for a in self.wave_plan['assignments']:
+                    if a['launchedAt'] is not None:
+                        continue
+                    u = self.uavs[a['uavId'] - 1]
+                    order = self.orders[a['orderId'] - 1]
+                    if (u['phase'] not in HOME_PHASES or u['cargoOrderId'] is not None
+                            or u['targetOrderId'] != order['id'] or order['completed']):
+                        continue
+                    # A charging aircraft travels on the carrier. Its eventual
+                    # departure point differs from the original PPO plan.
+                    a['requiredBattery'] = self.required_battery(u, order)
+                    flight_percent = max(0., a['requiredBattery'] - .1) * 100
+                    if (a['requiredBattery'] > 1 or u['energyLimit'] is not None
+                            and u['missionEnergy'] + flight_percent > u['energyLimit']):
+                        self.running = False
+                        self.event(f'UAV {u["id"]} 新起飞位置的航程超出电量或预算 · 已暂停')
+                        return
+                    a['launchState'] = 'waitingCharge' if u['battery'] < a['requiredBattery'] else 'ready'
+                    if a['launchState'] == 'ready' and bay_clear:
+                        a.update(launchedAt=self.elapsed, launchState='inFlight', launchBattery=u['battery'])
                         u.update(phase='takingOff', stableElapsed=0., pickupProgress=0.)
+                        launched.append(u['id'])
+                if launched:
                     self.wave_stage = 'executing'
-                    self.event(f'V2 第 {self.wave_number} 波起飞 · 母车前往接应点 {self.wave_plan["site"]}')
+                    self.event(f'V2 第 {self.wave_number} 波分批起飞 · UAV {", ".join(map(str, launched))} · 接应点 {self.wave_plan["site"]}')
             return
         if not all(u['phase'] in HOME_PHASES for u in self.uavs) or self.docking['hatchProgress'] > 0:
             return
@@ -166,6 +186,7 @@ class V2Mission(Mission):
         self.wave_plan = self.last_plan = plan
         self.wave_stage = 'preflight'
         for a in plan['assignments']:
+            a.update(launchedAt=None, launchState='waitingCharge', plannedRequiredBattery=a['requiredBattery'])
             u = self.uavs[a['uavId'] - 1]
             order = self.orders[a['orderId'] - 1]
             order.update(reservedBy=u['id'], status='enroute')
@@ -173,6 +194,20 @@ class V2Mission(Mission):
                      phase='charging' if u['battery'] < a['requiredBattery'] else 'docked')
         pairs = ' / '.join(f"UAV {a['uavId']}→订单 {a['orderId']}" for a in plan['assignments'])
         self.event(f'PPO 第 {self.wave_number} 波 · 接应点 {plan["site"]} · {pairs}')
+
+    def required_battery(self, uav, order):
+        """Reapply the existing plan's energy estimate at the current carrier position.
+
+        Keep the 2 Wh precision-flight allowance and 4.5 Wh reserve; the
+        rendezvous stays fixed until every assignment has returned.
+        """
+        start, point = world(self.rover), world(order)
+        meeting = self.wave_plan['rendezvous']
+        horizontal = math.dist(start[:2], point[:2]) + math.dist(point[:2], meeting)
+        vertical = 2 * abs(point[2] + .95 - 2.63)
+        drive_seconds = sum(abs(meeting[i] - start[i]) for i in range(2)) / 4
+        wh = horizontal * [.055, .05, .06][uav['id'] - 1] + vertical * .14 + 4 * .02
+        return (wh + 2. + .02 * (drive_seconds + 8) + 4.5) / 45
 
     def meeting_rover(self):
         plan = self.wave_plan or self.last_plan
@@ -235,7 +270,11 @@ class V2Mission(Mission):
         self.stats['dispatchObjective'] = (sum((o['deliveredAt'] if o['deliveredAt'] is not None else self.elapsed) - o['createdAt']
             for o in self.orders) + 6 * self.stats['uavEnergyWh']) / len(self.orders)
         home = all(u['phase'] in HOME_PHASES for u in self.uavs) and self.docking['hatchProgress'] == 0
-        if home and self.wave_stage == 'executing':
+        # Early aircraft may already be home while a later one is still
+        # charging. Do not drop its reservation or replan the rendezvous.
+        wave_delivered = self.wave_plan and all(
+            self.orders[a['orderId'] - 1]['deliveredAt'] is not None for a in self.wave_plan['assignments'])
+        if home and self.wave_stage == 'executing' and wave_delivered:
             self.wave_plan = None
             self.wave_stage = 'regrouping'
         if home and len(delivered) == len(self.orders) and not self.order_stream_enabled:
@@ -270,6 +309,7 @@ class V2Mission(Mission):
         snap = super().snapshot(health)
         plan = self.wave_plan or self.last_plan
         snap['dispatch'] = dict(version=2, policy='PPO', mode='campus_wave_adapter',
+            launchMode='staggered',
             wave=self.wave_number, stage=self.wave_stage, fixedOrders=not self.dynamic_order_stream,
             orderStream=dict(enabled=self.order_stream_enabled, intervalSeconds=12, retrySeconds=3,
                              maxOrders=self.max_orders, nextOrderAt=self.next_order_at),
@@ -279,5 +319,5 @@ class V2Mission(Mission):
             decisions=copy.deepcopy(plan['traces']) if plan else [],
             windowOrderIds=plan['windowOrderIds'].copy() if plan else [],
             observationShape='订单 18×8 · 全局 36 · 候选 18×16',
-            adaptation='动态到单园区适配 · 训练为静态9–18单 · 效果需单独评估')
+            adaptation='动态到单与分批起飞适配 · 训练为静态9–18单同步波次 · 效果需单独评估')
         return snap
